@@ -1,13 +1,15 @@
-import time
 import logging
 import random
+import time
+
 import pyautogui as auto
 import python_imagesearch.imagesearch as imagesearch
 
-from screen_helpers import onscreen, find_image
-from better_image_click import click_image_rand
-from system_helpers import resource_path
 import generic_helpers
+from better_image_click import click_image_rand
+from screen_helpers import find_image, onscreen
+from system_helpers import resource_path
+
 
 def click_key(key, delay=.1) -> None:
     auto.keyDown(key)

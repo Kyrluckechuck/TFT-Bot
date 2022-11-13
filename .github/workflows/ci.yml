@@ -10,16 +10,16 @@ jobs:
         python-version: ["3.10", "3.11"]
     steps:
     - uses: actions/checkout@v3
-    - name: Set up Python ${{ matrix.python-version }}
+    - name: Set Up Python ${{ matrix.python-version }}
       uses: actions/setup-python@v4
       with:
         python-version: ${{ matrix.python-version }}
         cache: 'pip'
-    - name: Install dependencies
+    - name: Install Dependencies
       run: pip install -r requirements.txt
     - run: python installer.py
 
-    - name: Display structure of downloaded files
+    - name: Display Structure Of Downloaded Files
       run: ls -R
     - uses: xresloader/upload-to-github-release@main
       env:

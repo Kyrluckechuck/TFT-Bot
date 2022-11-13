@@ -17,10 +17,11 @@
 #                                                                               -
 # -------------------------------------------------------------------------------
 
+import ctypes
+import logging
 # Imports
 import sys
-import logging
-import ctypes
+
 
 # Logging formatter supporting colorized output
 class LogFormatter(logging.Formatter):

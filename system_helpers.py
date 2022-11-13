@@ -1,16 +1,16 @@
-import sys
-import os
-import logging
 import http.client as httplib
-import psutil
+import logging
+import os
+import sys
 
+import psutil
+import win32com.client
 import win32gui
 import win32process
-import win32com.client
 
 try:
-    import msvcrt
     import ctypes
+    import msvcrt
 finally:
     pass
 

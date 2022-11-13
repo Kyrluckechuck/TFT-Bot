@@ -10,7 +10,7 @@ jobs:
         python-version: ["3.10", "3.11"]
     steps:
     - uses: actions/checkout@v3
-    - name: Set up Python ${{ matrix.python-version }}
+    - name: Set Up Python ${{ matrix.python-version }}
       uses: actions/setup-python@v4
       with:
         python-version: ${{ matrix.python-version }}
@@ -18,6 +18,10 @@ jobs:
     - name: Install dependencies
       run: |
         pip install -r requirements.txt
-    - name: Analysing the code with pylint
+    - name: Analysing The Code With PyLint
       run: |
         pylint $(git ls-files '*.py')
+    - name: Ensure Sorted Imports
+      uses: jamescurtin/isort-action@master
+      with:
+          requirementsFiles: "requirements.txt requirements-test.txt"

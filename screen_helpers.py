@@ -1,9 +1,10 @@
-import time
 import logging
+import time
 
 import python_imagesearch.imagesearch as imagesearch
 
 from system_helpers import resource_path
+
 
 def onscreen(path, precision=0.8) -> bool:
     path = resource_path(path)

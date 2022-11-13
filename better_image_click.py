@@ -1,8 +1,10 @@
 import logging
-import time
 import random
-import pyautogui as auto
+import time
+
 import cv2
+import pyautogui as auto
+
 
 def click_image_rand(image, pos, action, move_duration, offset="half", delay=0.1) -> bool:
     img = cv2.imread(image)
