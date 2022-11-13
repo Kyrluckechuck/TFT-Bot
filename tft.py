@@ -12,13 +12,10 @@ import pyautogui as auto
 from printy import printy
 
 import system_helpers
-from click_helpers import (click_right, click_to_middle,
-                           click_to_middle_multiple)
-from constants import (CONSTANTS, exit_now_images, find_match_images,
-                       key_fragment_images, skip_waiting_for_stats_images)
+from click_helpers import click_right, click_to_middle, click_to_middle_multiple
+from constants import CONSTANTS, exit_now_images, find_match_images, key_fragment_images, skip_waiting_for_stats_images
 from logging_helper import setup_logging
-from screen_helpers import (onscreen, onscreen_multiple_any,
-                            onscreen_region_numLoop)
+from screen_helpers import onscreen, onscreen_multiple_any, onscreen_region_numLoop
 
 auto.FAILSAFE = False
 GAME_COUNT = -1
