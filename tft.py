@@ -9,6 +9,7 @@ import subprocess
 import sys
 import time
 from datetime import datetime
+from pathlib import Path
 
 import keyboard
 import pyautogui as auto
@@ -489,13 +490,15 @@ def dismiss_interruptions() -> None:
         try:
             localtime = time.localtime()    # added for printing time
             current_time = time.strftime("%H%M%S", localtime) #for the changing file name
+            Path(CONSTANTS["client"]["screenshot_location"]).mkdir(parents=True, exist_ok=True)
             my_screenshot = auto.screenshot()
             my_screenshot.save(rf'{CONSTANTS["client"]["screenshot_location"]}/{current_time}.png')
-            time.sleep(2)
+            time.sleep(0.5)
             logging.info("Screenshot of mission saved")
             click_to_middle(CONSTANTS['client']['post_game']['missions_ok'])
-        except Exception:
-            time.sleep(3)
+        except Exception as exception:
+            logging.critical(exception)
+        time.sleep(1)
 
 def match_complete() -> None:
     """Print a log timer to update the time passed and number of games completed (rough estimation), and begin the end of match logic."""
