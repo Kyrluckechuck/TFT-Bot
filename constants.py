@@ -140,3 +140,9 @@ key_fragment_images = [
     CONSTANTS['client']['key_fragment']['one'],
     CONSTANTS['client']['key_fragment']['two'],
 ]
+
+wanted_traits = [
+    CONSTANTS['game']['trait']['bruiser'],
+    CONSTANTS['game']['trait']['mage'],
+    CONSTANTS['game']['trait']['jade']
+]

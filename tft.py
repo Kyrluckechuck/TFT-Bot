@@ -1,3 +1,6 @@
+"""
+The main TFT Bot code
+"""
 import argparse
 import logging
 import os
@@ -13,7 +16,7 @@ from printy import printy
 
 import system_helpers
 from click_helpers import click_right, click_to_middle, click_to_middle_multiple
-from constants import CONSTANTS, exit_now_images, find_match_images, key_fragment_images, skip_waiting_for_stats_images
+from constants import CONSTANTS, exit_now_images, find_match_images, key_fragment_images, skip_waiting_for_stats_images, wanted_traits
 from logging_helper import setup_logging
 from screen_helpers import onscreen, onscreen_multiple_any, onscreen_region_numLoop
 
@@ -25,27 +28,43 @@ PAUSE_LOGIC = False
 FF_EARLY = False
 VERBOSE = False
 
-
 def bring_league_client_to_forefront() -> None:
+    """Brings the league client to the forefront."""
     try:
         system_helpers.bring_window_to_forefront("League of Legends", CONSTANTS['executables']['league']['client_ux'])
     except Exception:
         logging.warning("Failed to bring League client to forefront, this should be non-fatal so let's continue")
 
 def bring_league_game_to_forefront() -> None:
+    """Brings the league game to the forefront."""
     try:
         system_helpers.bring_window_to_forefront("League of Legends", CONSTANTS['executables']['league']['game'])
     except Exception:
         logging.warning("Failed to bring League game to forefront, this should be non-fatal so let's continue")
 
 def league_game_already_running() -> bool:
+    """Checks if the league game is already running.
+
+    Returns:
+        bool: True if the game is running, False otherwise.
+    """
     return system_helpers.find_in_processes(CONSTANTS['executables']['league']['game'])
 
 def league_client_running() -> bool:
+    """Checks if the league client is already running.
+
+    Returns:
+        bool: True if the client is running, False otherwise.
+    """
     return system_helpers.find_in_processes(CONSTANTS['executables']['league']['client']) and \
             system_helpers.find_in_processes(CONSTANTS['executables']['league']['client_ux'])
 
 def parse_task_kill_text(result: subprocess.CompletedProcess[str]) -> None:
+    """Parses the task kill text to log the result.
+
+    Args:
+        result (subprocess.CompletedProcess[str]): the return value of the subprocess run.
+    """
     if 'not found.' in result.stderr:
         logging.debug(F"{result.args[-1]} was not running.")
     elif 'has been terminated.' in result.stdout:
@@ -55,16 +74,22 @@ def parse_task_kill_text(result: subprocess.CompletedProcess[str]) -> None:
         logging.debug(result)
 
 def restart_league_client() -> None:
+    """Restarts the league client."""
     logging.debug("Killing League Client!")
     result = subprocess.run(["taskkill", "/f", "/im", CONSTANTS['processes']['client']], check=False, capture_output=True, text=True)
     parse_task_kill_text(result)
     result = subprocess.run(["taskkill", "/f", "/im", CONSTANTS['processes']['client_ux']], check=False, capture_output=True, text=True)
     parse_task_kill_text(result)
-    time.sleep(3)
+    time.sleep(1)
     subprocess.run(CONSTANTS['executables']['league']['client'], check=True)
-    time.sleep(5)
+    time.sleep(3)
 
 def restart_league_if_not_running() -> bool:
+    """Restarts the league client if it is not already running.
+
+    Returns:
+        bool: True if the league client was restarted, False otherwise.
+    """
     if not league_client_running():
         logging.debug("League client not detected, restarting!")
         restart_league_client()
@@ -72,6 +97,9 @@ def restart_league_if_not_running() -> bool:
     return False
 
 def toggle_pause() -> None:
+    """Toggles whether the bots logic evaluation should pause.
+    *Note:* This does not entirely stop the bot, but does stop various state changes that can be annoying if you're trying to manually interact with it.
+    """
     global PAUSE_LOGIC
     logging.debug(f'alt+p pressed, toggling pause from {PAUSE_LOGIC} to {not PAUSE_LOGIC}')
     PAUSE_LOGIC = not PAUSE_LOGIC
@@ -82,14 +110,25 @@ def toggle_pause() -> None:
 
 
 def is_in_queue() -> bool:
+    """Checks if the League client is currently in queue / searching for a game.
+
+    Returns:
+        bool: True if the client is in queue, False otherwise.
+    """
     return onscreen(CONSTANTS['client']['in_queue']['base']) or onscreen(CONSTANTS['client']['in_queue']['overshadowed'])
 
 
 def is_in_tft_lobby() -> bool:
+    """Checks if the League client is currently in the TFT lobby.
+
+    Returns:
+        bool: True if the client is in the TFT lobby, False otherwise.
+    """
     return onscreen(CONSTANTS['tft_logo']['base']) or onscreen(CONSTANTS['tft_logo']['overshadowed'])
 
 
 def find_match() -> None:
+    """Begin actually finding a match, bringing the League client to the forefront/focus and dismissing any interruptions."""
     counter = 0
     while is_in_tft_lobby() and not check_if_client_error():
         bring_league_client_to_forefront()
@@ -114,6 +153,11 @@ def find_match() -> None:
             break
 
 def wait_for_league_running() -> bool:
+    """Attempt to pause the bot logic evaluation until the league game client is running, or 30 seconds has passed.
+
+    Returns:
+        bool: True if the game is running, False otherwise.
+    """
     counter = 0
     while not league_game_already_running():
         counter = counter + 1
@@ -124,6 +168,7 @@ def wait_for_league_running() -> bool:
 
 # Start between match logic
 def queue() -> None:
+    """Begin finding a match -- the start of the repeating game logic, dismissing any interruptions and bringing the League client to the forefront/focus."""
     # Queue search loop
     while True:
         if PAUSE_LOGIC:
@@ -158,13 +203,16 @@ def queue() -> None:
             if league_game_already_running() and onscreen(CONSTANTS['game']['loading']):
                 logging.info("Loading!")
                 break
-            elif onscreen(CONSTANTS['game']['gamelogic']['timer_1']) or league_game_already_running():
+            if onscreen(CONSTANTS['game']['gamelogic']['timer_1']) or league_game_already_running():
                 logging.info("Already in game :O!")
                 break
     loading_match()
 
 
 def loading_match() -> None:
+    """Attempt to wait for the match to load, bringing the League game to the forefront/focus.
+    After some time, if the game has not been detected as starting, it moves on anyways.
+    """
     counter = 0
     logging.info("Match Loading!")
     bring_league_game_to_forefront()
@@ -183,6 +231,7 @@ def loading_match() -> None:
 
 
 def start_match() -> None:
+    """Do initial first round pathing to pick the first champ."""
     while onscreen(CONSTANTS['game']['round']['1-1']):
         shared_draft_pathing()
     logging.info("In the match now!")
@@ -190,6 +239,7 @@ def start_match() -> None:
 
 
 def shared_draft_pathing() -> None:
+    """Navigate counter-clockwise in a diamond to help ensure a champ is picked up."""
     auto.moveTo(946, 315)
     click_right()
     time.sleep(3)
@@ -202,13 +252,13 @@ def shared_draft_pathing() -> None:
     auto.moveTo(1200, 460)
     click_right()
 
-wanted_traits = [
-    CONSTANTS['game']['trait']['bruiser'],
-    CONSTANTS['game']['trait']['mage'],
-    CONSTANTS['game']['trait']['jade']
-]
+def buy(iterations: int) -> None:
+    """Attempt to purchase champs with the designated `wanted_traits`.
+    This will iterate the attempts, but only if the gold is detected to at least be 1 (to avoid clicking when there is no gold available).
 
-def buy(iterations) -> None:
+    Args:
+        iterations (int): The number of attempts to purchase a champ.
+    """
     for i in range(iterations):
         if not check_if_gold_at_least(1):
             return
@@ -220,17 +270,26 @@ def buy(iterations) -> None:
                 return
 
 def click_ok_message() -> None:
+    """Click the message OK button"""
     click_to_middle(CONSTANTS['client']['messages']['buttons']['message_ok'])
 
 def click_exit_message() -> None:
+    """Click the message Exit button"""
     click_to_middle(CONSTANTS['client']['messages']['buttons']['message_exit'])
 
 def wait_for_internet() -> None:
+    """Delay indefinitely until an internet is detected."""
     while not system_helpers.have_internet():
-        logging.info("Internet is not up, will retry in 60 seconds")
+        logging.warning("Internet is not up, will retry in 60 seconds")
         time.sleep(60)
 
 def check_if_client_error() -> bool:
+    """Check if any client error is detected.
+    If any are detected, the League client is restarted.
+
+    Returns:
+        bool: True if a client error message was detected.
+    """
     if onscreen(CONSTANTS['client']['messages']['session_expired']):
         logging.info("Session expired!")
         click_ok_message()
@@ -254,9 +313,20 @@ def check_if_client_error() -> bool:
     return False
 
 def exit_now_conditional() -> bool:
+    """(Special function for `check_if_game_complete()` conditional.
+    Checks if the League game is not running.
+
+    Returns:
+        bool: False if the League game is running, True if it is running.
+    """
     return not league_game_already_running()
 
 def check_if_game_complete() -> bool:
+    """Check if the League game is complete.
+
+    Returns:
+        bool: True if any scenario in which the game is not active, False otherwise.
+    """
     if not league_game_already_running() and not attempt_reconnect_to_existing_game():
         return True
     if check_if_client_error():
@@ -276,6 +346,11 @@ def check_if_game_complete() -> bool:
 
 
 def attempt_reconnect_to_existing_game() -> bool:
+    """If there is a Reconnect button on screen in the client, attempt to reconnect.
+
+    Returns:
+        bool: True if a reconnect is attempted, False otherwise.
+    """
     if onscreen(CONSTANTS['client']['reconnect']):
         logging.info("Reconnecting!")
         time.sleep(0.5)
@@ -284,33 +359,50 @@ def attempt_reconnect_to_existing_game() -> bool:
     return False
 
 
-def check_if_post_game() -> bool:  # checks to see if game was interrupted
+def check_if_post_game() -> bool:
+    """Checks to see if the game was interrupted.
+
+    Returns:
+        bool: True if the game was complete or a reconnection attempt is made, False otherwise.
+    """
     if check_if_game_complete():
         return True
     return attempt_reconnect_to_existing_game()
 
 
-def check_if_gold_at_least(num) -> bool:
+def check_if_gold_at_least(num: int) -> bool:
+    """Check if the gold on screen is at least the provided amount
+
+    Args:
+        num (int): The value to check if the gold is at least.
+
+    Returns:
+        bool: True if the value is >= `num`, False otherwise.
+    """
     logging.debug(f"Looking for at least {num} gold")
     for i in range(num + 1):
-        # logging.info(f"Checking for {i} gold")
         try:
             if onscreen_region_numLoop(CONSTANTS['game']['gold'][f"{i}"], 0.1, 5, 780, 850, 970, 920, 0.9):
                 logging.debug(f"Found {i} gold")
                 if i == num:
                     logging.debug("Correct")
                     return True
-                else:
-                    logging.debug("Incorrect")
-                    return False
+                logging.debug("Incorrect")
+                return False
         except Exception:
-            logging.debug(f"Exception finding {i} gold")
+            logging.debug(f"Exception finding {i} gold, we possibly don't have the value as a file")
             # We don't have this gold as a file
             return True
     return True
 
 
 def main_game_loop() -> None:
+    """The main in-game loop.
+    
+    Skips 5 second increments if a pause logic request is made, repeating until toggled or an event triggers an early exit.
+
+    Support for forfeiting early does exist but is rarely tested as the main author does not use this feature.
+    """
     should_exit = False
     while should_exit is False:
         if PAUSE_LOGIC:
@@ -354,6 +446,12 @@ def main_game_loop() -> None:
 
 
 def end_match() -> None:
+    """End of TFT game logic.
+
+    Loops to ensure the various end-of-match scenarios are accounte for to help ensure we make it back to the next find match button.
+
+    Will dismiss various interruptions and screen such as 'waiting for stats' or 'play again'.
+    """
     # added a main loop for the end match function to ensure you make it to the find match button.
     while not onscreen_multiple_any(find_match_images):
         bring_league_client_to_forefront()
@@ -363,7 +461,7 @@ def end_match() -> None:
         if onscreen_multiple_any(skip_waiting_for_stats_images):
             logging.info("Skipping waiting for stats")
             click_to_middle_multiple(skip_waiting_for_stats_images)
-            time.sleep(10)
+            time.sleep(3)
         if onscreen(CONSTANTS['client']['post_game']['play_again']):
             logging.info("Attempting to play again")
             bring_league_client_to_forefront()
@@ -379,24 +477,29 @@ def end_match() -> None:
             time.sleep(3)
 
 def dismiss_interruptions() -> None:
+    """Dismisses any 'earned key fragment' and 'mission completion' messages.
+    
+    If a mission completion is detected, it will attempt to take a screenshot of the message.
+    """
     if onscreen_multiple_any(key_fragment_images, 0.7):
         logging.info("Dismissing key fragment")
         click_to_middle_multiple(key_fragment_images, 0.7)
         time.sleep(0.5)
     while onscreen(CONSTANTS['client']['post_game']['missions_ok']):
         logging.info("Dismissing mission")
-        #screenshot if you have an "ok" button
-        localtime = time.localtime()    # added for printing time
-        current_time = time.strftime("%H%M%S", localtime) #for the changing file name
-        my_screenshot = auto.screenshot()
-        my_screenshot.save(rf'{CONSTANTS["client"]["screenshot_location"]}/{current_time}.png')
-        time.sleep(2)
-        logging.info("Screenshot of mission saved")
-        click_to_middle(CONSTANTS['client']['post_game']['missions_ok'])
-        time.sleep(3)
-
+        try:
+            localtime = time.localtime()    # added for printing time
+            current_time = time.strftime("%H%M%S", localtime) #for the changing file name
+            my_screenshot = auto.screenshot()
+            my_screenshot.save(rf'{CONSTANTS["client"]["screenshot_location"]}/{current_time}.png')
+            time.sleep(2)
+            logging.info("Screenshot of mission saved")
+            click_to_middle(CONSTANTS['client']['post_game']['missions_ok'])
+        finally:
+            time.sleep(3)
 
 def match_complete() -> None:
+    """Print a log timer to update the time passed and number of games completed (rough estimation), and begin the end of match logic."""
     print_timer()
     logging.info("Match complete! Cleaning up and restarting")
     time.sleep(1)
@@ -404,6 +507,10 @@ def match_complete() -> None:
 
 
 def surrender() -> None:
+    """Attempt to surrender.
+
+    *Notice:* The main author does not use this often, so this is not tested between most updates.
+    """
     counter = 0
     surrenderwait = random.randint(100, 150)
     logging.info(f'Waiting {surrenderwait} seconds ({surrenderwait / 60 } minutes) to surrender')
@@ -439,6 +546,7 @@ def surrender() -> None:
 
 
 def print_timer() -> None:
+    """Print a log timer to update the time passed and number of games completed (rough estimation)."""
     global END_TIMER, GAME_COUNT
     END_TIMER = time.time()
     GAME_COUNT += 1
@@ -456,10 +564,11 @@ def print_timer() -> None:
     logging.info(f"Play Time : {int(float(hours))} Hour, {int(float(mins))} Min, {int(float(seconds))} Sec")
     logging.info(f"Gamecount : {gamecount_string}")
     logging.info("-------------------------------------")
-# End main process
-
 
 def tft_bot_loop() -> None:
+    """Main loop to ensure various errors don't unhinge/break the bot.
+    Since the bot is able to reconnect and handle most errors, this should allow it to resume games in progress even if an 'uncaught exception' has occurred.
+    """
     while True:
         try:
             queue()
@@ -468,8 +577,11 @@ def tft_bot_loop() -> None:
             time.sleep(5)
             continue
 
-
 def main():
+    """Entrypoint function to initialize most of the code.
+    
+    Parses command line arguments, sets up console settings, logging, and kicks of the main bot loop.
+    """
     global FF_EARLY, VERBOSE
 
     arg_parser = argparse.ArgumentParser(prog="TFT Bot")
@@ -530,15 +642,18 @@ def main():
         ):
         print("Failed to set up logger, continue with caution!")
         if auto.alert("Failed to set up logger, continue with caution!\n", buttons=['Proceed', 'Cancel']) == "Cancel":
-            return 1
+            print("Startup aborted!")
+            sys.exit(1)
     else:
         print("Logger setup success")
 
     logging.info("Welcome! \nPlease feel free to ask questions or contribute at https://github.com/Kyrluckechuck/tft-bot")
-    auto.alert("Press OK when you're in a TFT lobby!\n")
+    if auto.alert("Press Start when the bot should continue!\n", buttons=['Start', 'Cancel']) != 'Start':
+        logging.critical("Intialization completed but aborting by user choice!")
+        sys.exit(1)
     logging.info("Bot started, queuing up!")
 
-    keyboard.add_hotkey('alt+p', lambda: toggle_pause())
+    keyboard.add_hotkey('alt+p', lambda: toggle_pause()) #pylint: disable=unnecessary-lambda
 
     global START_TIMER
     START_TIMER = time.time()

@@ -6,4 +6,4 @@ generated-members=cv2.*,win32gui.*,win32process.*
 
 [tool.pylint.code_style]
 max-line-length = 160
-disable=logging-fstring-interpolation,logging-format-interpolation
+disable=broad-except,global-statement,logging-fstring-interpolation,logging-format-interpolation
