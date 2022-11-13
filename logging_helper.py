@@ -1,21 +1,15 @@
-#!/usr/bin/env python3
-# -*- coding: utf-8 -*-
+"""
+Python dual-logging setup (console and log file),
+supporting different log levels and colorized output
 
-# -------------------------------------------------------------------------------
-#                                                                               -
-#  Python dual-logging setup (console and log file),                            -
-#  supporting different log levels and colorized output                         -
-#                                                                               -
-#  Created by Fonic <https://github.com/fonic>                                  -
-#  Date: 04/05/20                                                               -
-#                                                                               -
-#  Based on:                                                                    -
-#  https://stackoverflow.com/a/13733863/1976617                                 -
-#  https://uran198.github.io/en/python/2016/07/12/colorful-python-logging.html  -
-#  https://en.wikipedia.org/wiki/ANSI_escape_code#Colors                        -
-#  via https://gist.github.com/fonic/7e5ab76d951a2ab2d5f526a7db3e2004           -
-#                                                                               -
-# -------------------------------------------------------------------------------
+Created by Fonic <https://github.com/fonic>
+
+Based on:
+https://stackoverflow.com/a/13733863/1976617
+https://uran198.github.io/en/python/2016/07/12/colorful-python-logging.html
+https://en.wikipedia.org/wiki/ANSI_escape_code#Colors
+via https://gist.github.com/fonic/7e5ab76d951a2ab2d5f526a7db3e2004
+"""
 
 import ctypes
 import logging
@@ -23,8 +17,8 @@ import logging
 import sys
 
 
-# Logging formatter supporting colorized output
 class LogFormatter(logging.Formatter):
+    """LogFormatter class which supports colorized output."""
 
     COLOR_CODES = {
         logging.CRITICAL: "\033[1;35m", # bright/bold magenta
@@ -51,6 +45,11 @@ class LogFormatter(logging.Formatter):
 
 # Enable ANSI terminal mode for Command Prompt on Microsoft Windows
 def try_windows_enable_ansi_terminal_mode() -> bool:
+    """Try to enable Windows ANSI terminal mode.
+
+    Returns:
+        bool: True if success, False if not supported or failure.
+    """
     if sys.platform != "win32":
         return False
     try:
@@ -62,8 +61,22 @@ def try_windows_enable_ansi_terminal_mode() -> bool:
     except Exception:
         return False
 
-# Setup logging
-def setup_logging(console_log_output, console_log_level, console_log_color, logfile_file, logfile_log_level, logfile_log_color, log_line_template) -> bool:
+def setup_logging(console_log_output: str, console_log_level: str, console_log_color: bool, #pylint: disable=too-many-arguments
+    logfile_file: str, logfile_log_level: str, logfile_log_color: bool, log_line_template: str) -> bool:
+    """Setup logging.
+
+    Args:
+        console_log_output (str): The console output destination (stdout, stderr)
+        console_log_level (str): The base log level that should log to console
+        console_log_color (bool): Whether colour should be enabled in the console output (when available)
+        logfile_file (str): The logfile target name
+        logfile_log_level (str): The base log level that should log to logfile
+        logfile_log_color (bool):  Whether colour should be enabled in the logfile output
+        log_line_template (str): The log template/formatting to which the log should follow
+
+    Returns:
+        bool: True if successfully setup, False otherwise.
+    """
     try_windows_enable_ansi_terminal_mode()
     # Create logger
     # For simplicity, we use the root logger, i.e. call 'logging.getLogger()'

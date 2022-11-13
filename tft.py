@@ -395,10 +395,9 @@ def check_if_gold_at_least(num: int) -> bool:
             return True
     return True
 
-
-def main_game_loop() -> None:
+def main_game_loop() -> None: #pylint: disable=too-many-branches
     """The main in-game loop.
-    
+
     Skips 5 second increments if a pause logic request is made, repeating until toggled or an event triggers an early exit.
 
     Support for forfeiting early does exist but is rarely tested as the main author does not use this feature.
@@ -478,7 +477,7 @@ def end_match() -> None:
 
 def dismiss_interruptions() -> None:
     """Dismisses any 'earned key fragment' and 'mission completion' messages.
-    
+
     If a mission completion is detected, it will attempt to take a screenshot of the message.
     """
     if onscreen_multiple_any(key_fragment_images, 0.7):
@@ -579,7 +578,7 @@ def tft_bot_loop() -> None:
 
 def main():
     """Entrypoint function to initialize most of the code.
-    
+
     Parses command line arguments, sets up console settings, logging, and kicks of the main bot loop.
     """
     global FF_EARLY, VERBOSE
@@ -641,14 +640,15 @@ def main():
             log_line_template="%(color_on)s[%(created)d] [%(threadName)s] %(levelname)-8s || %(message)s%(color_off)s"
         ):
         print("Failed to set up logger, continue with caution!")
-        if auto.alert("Failed to set up logger, continue with caution!\n", buttons=['Proceed', 'Cancel']) == "Cancel":
+        if auto.alert(title="TFT Auto Bot - Logging Setup Failure",
+                text="Failed to set up logger, continue with caution!\n", buttons=['Proceed', 'Cancel']) == "Cancel":
             print("Startup aborted!")
             sys.exit(1)
     else:
         print("Logger setup success")
 
     logging.info("Welcome! \nPlease feel free to ask questions or contribute at https://github.com/Kyrluckechuck/tft-bot")
-    if auto.alert("Press Start when the bot should continue!\n", buttons=['Start', 'Cancel']) != 'Start':
+    if auto.prompt(title="TFT Auto Bot", text="Press Start when the bot should continue!\n", buttons=['Start', 'Cancel']) != 'Start':
         logging.critical("Intialization completed but aborting by user choice!")
         sys.exit(1)
     logging.info("Bot started, queuing up!")

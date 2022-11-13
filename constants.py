@@ -1,3 +1,5 @@
+"""Common constants used throughout the codebase, and common groupings of them in array format."""
+
 CONSTANTS = {
     "executables": {
         "league": {
