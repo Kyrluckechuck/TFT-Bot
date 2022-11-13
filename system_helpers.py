@@ -11,7 +11,7 @@ import win32process
 try:
     import ctypes
     import msvcrt
-finally:
+except Exception:
     pass
 
 def set_active_window(window_id) -> None:

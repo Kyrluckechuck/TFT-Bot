@@ -494,7 +494,7 @@ def dismiss_interruptions() -> None:
             time.sleep(2)
             logging.info("Screenshot of mission saved")
             click_to_middle(CONSTANTS['client']['post_game']['missions_ok'])
-        finally:
+        except Exception:
             time.sleep(3)
 
 def match_complete() -> None:
@@ -640,7 +640,7 @@ def main():
             log_line_template="%(color_on)s[%(created)d] [%(threadName)s] %(levelname)-8s || %(message)s%(color_off)s"
         ):
         print("Failed to set up logger, continue with caution!")
-        if auto.alert(title="TFT Auto Bot - Logging Setup Failure",
+        if auto.confirm(title="TFT Auto Bot - Logging Setup Failure",
                 text="Failed to set up logger, continue with caution!\n", buttons=['Proceed', 'Cancel']) == "Cancel":
             print("Startup aborted!")
             sys.exit(1)
@@ -648,7 +648,7 @@ def main():
         print("Logger setup success")
 
     logging.info("Welcome! \nPlease feel free to ask questions or contribute at https://github.com/Kyrluckechuck/tft-bot")
-    if auto.prompt(title="TFT Auto Bot", text="Press Start when the bot should continue!\n", buttons=['Start', 'Cancel']) != 'Start':
+    if auto.confirm(title="TFT Auto Bot", text="Press Start when the bot should continue!\n", buttons=['Start', 'Cancel']) != 'Start':
         logging.critical("Intialization completed but aborting by user choice!")
         sys.exit(1)
     logging.info("Bot started, queuing up!")

@@ -1,5 +1,7 @@
 """Common constants used throughout the codebase, and common groupings of them in array format."""
 
+import os
+
 CONSTANTS = {
     "executables": {
         "league": {
@@ -18,7 +20,7 @@ CONSTANTS = {
         "overshadowed": "captures/tft_logo_overshadowed.png",
     },
     "client": {
-        "screenshot_location": "./screenshots/",
+        "screenshot_location": f"{os.getcwd()}/screenshots",
         "tabs": {
             "tft": {
                 "unselected": "captures/buttons/tab_tft_unselected.png"
