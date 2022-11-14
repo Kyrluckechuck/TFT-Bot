@@ -22,6 +22,6 @@ jobs:
       run: |
         pylint $(git ls-files '*.py')
     - name: Ensure Sorted Imports
-      uses: jamescurtin/isort-action@master
+      uses: isort/isort-action@v1.1.0
       with:
           requirementsFiles: "requirements.txt"
