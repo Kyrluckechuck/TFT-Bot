@@ -3,6 +3,9 @@
 import os
 
 CONSTANTS = {
+    "storage": {
+        "appdata": "%APPDATA%/TFT Bot"
+    },
     "executables": {
         "league": {
             "client": r"C:\Riot Games\League of Legends\LeagueClient.exe",

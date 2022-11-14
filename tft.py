@@ -634,11 +634,12 @@ def main():
     os.system('color 0F')
 
     script_name = os.path.splitext(os.path.basename(sys.argv[0]))[0]
+    appdata_path = system_helpers.expand_environment_variables(CONSTANTS['storage']['appdata'])
     if not setup_logging(
             console_log_output="stdout",
             console_log_level="debug" if VERBOSE else "info",
             console_log_color=True,
-            logfile_file=script_name + ".log",
+            logfile_file=f"{appdata_path}/{script_name}.log",
             logfile_log_level="debug",
             logfile_log_color=False,
             log_line_template="%(color_on)s[%(created)d] [%(threadName)s] %(levelname)-8s || %(message)s%(color_off)s"
@@ -649,7 +650,7 @@ def main():
             print("Startup aborted!")
             sys.exit(1)
     else:
-        print("Logger setup success")
+        logging.info("===== TFT Bot Started =====")
 
     logging.info("Welcome! \nPlease feel free to ask questions or contribute at https://github.com/Kyrluckechuck/tft-bot")
     if auto.confirm(title="TFT Auto Bot", text="Press Start when the bot should continue!\n", buttons=['Start', 'Cancel']) != 'Start':
