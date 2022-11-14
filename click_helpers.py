@@ -7,9 +7,10 @@ from typing import Callable
 import pyautogui as auto
 from python_imagesearch import imagesearch
 
-import generic_helpers
 from better_image_click import click_image_rand
-from screen_helpers import find_image, onscreen
+import generic_helpers
+from screen_helpers import find_image
+from screen_helpers import onscreen
 from system_helpers import resource_path
 
 

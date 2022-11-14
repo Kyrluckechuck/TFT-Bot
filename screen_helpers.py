@@ -3,7 +3,7 @@
 import logging
 import time
 
-import python_imagesearch.imagesearch as imagesearch
+from python_imagesearch import imagesearch
 
 from system_helpers import resource_path
 
@@ -154,8 +154,7 @@ def find_image_multiple_any(paths: list[str], precision: float=0.8) -> (None | l
             # logging.debug(f"is_onscreen: {pos[0] != -1}") #Advanced debugging not even normally needed
             if pos[0] != -1:
                 return pos
-            else:
-                return None
+            return None
     except Exception as err:
         logging.debug(f"multiple_onscreen_any error: {err}")
 

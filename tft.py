@@ -2,24 +2,33 @@
 The main TFT Bot code
 """
 import argparse
+from datetime import datetime
 import logging
 import os
+from pathlib import Path
 import random
 import subprocess
 import sys
 import time
-from datetime import datetime
-from pathlib import Path
 
 import keyboard
-import pyautogui as auto
 from printy import printy
+import pyautogui as auto
 
-import system_helpers
-from click_helpers import click_right, click_to_middle, click_to_middle_multiple
-from constants import CONSTANTS, exit_now_images, find_match_images, key_fragment_images, skip_waiting_for_stats_images, wanted_traits
+from click_helpers import click_right
+from click_helpers import click_to_middle
+from click_helpers import click_to_middle_multiple
+from constants import CONSTANTS
+from constants import exit_now_images
+from constants import find_match_images
+from constants import key_fragment_images
+from constants import skip_waiting_for_stats_images
+from constants import wanted_traits
 from logging_helper import setup_logging
-from screen_helpers import onscreen, onscreen_multiple_any, onscreen_region_num_loop
+from screen_helpers import onscreen
+from screen_helpers import onscreen_multiple_any
+from screen_helpers import onscreen_region_num_loop
+import system_helpers
 
 auto.FAILSAFE = False
 GAME_COUNT = -1
