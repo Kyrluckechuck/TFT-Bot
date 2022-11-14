@@ -31,7 +31,7 @@ class LogFormatter(logging.Formatter):
     RESET_CODE = "\033[0m"
 
     def __init__(self, color, *args, **kwargs):
-        super(LogFormatter, self).__init__(*args, **kwargs)
+        super().__init__(*args, **kwargs)
         self.color = color
 
     def format(self, record, *args, **kwargs):
@@ -41,7 +41,7 @@ class LogFormatter(logging.Formatter):
         else:
             record.color_on  = ""
             record.color_off = ""
-        return super(LogFormatter, self).format(record, *args, **kwargs)
+        return super().format(record, *args, **kwargs)
 
 # Enable ANSI terminal mode for Command Prompt on Microsoft Windows
 def try_windows_enable_ansi_terminal_mode() -> bool:

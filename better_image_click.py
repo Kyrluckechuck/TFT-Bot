@@ -1,10 +1,10 @@
 """A 'better' center-of-image clicking implementation."""
 import logging
+import time
 
 import cv2
 import pyautogui as auto
 
-from click_helpers import mouse_button
 from generic_helpers import rand_func
 
 
@@ -38,3 +38,16 @@ def click_image_rand(image, pos, action, move_duration, offset="half", delay=0.1
     auto.moveTo(pos[0] + rand_func(width / 2, offset_to_use), pos[1] + rand_func(height / 2, offset_to_use), move_duration)
     mouse_button(delay=delay, button=action)
     return True
+
+
+def mouse_button(delay=.1, button="left") -> None:
+    """A click helper to simulate clicking the specified button.
+    *NOTE* Copied from `click_helpers` to avoid a cyclical import
+
+    Args:
+        delay (float, optional): The delay between button down & up. Defaults to .1.
+        button (str, optional): Button of the mouse to activate : "left" "right" "middle", see pyautogui.click documentation for more info. Defaults to "left".
+    """
+    auto.mouseDown(button=button)
+    time.sleep(delay)
+    auto.mouseUp(button=button)
