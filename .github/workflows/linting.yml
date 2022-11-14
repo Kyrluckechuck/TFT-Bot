@@ -24,4 +24,4 @@ jobs:
     - name: Ensure Sorted Imports
       uses: jamescurtin/isort-action@master
       with:
-          requirementsFiles: "requirements.txt requirements-test.txt"
+          requirementsFiles: "requirements.txt"
