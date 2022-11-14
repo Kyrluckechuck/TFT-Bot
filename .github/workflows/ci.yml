@@ -21,9 +21,6 @@ jobs:
     - name: Install Dependencies
       run: pip install -r requirements.txt
     - run: python installer.py
-
-    - name: Display Structure Of Downloaded Files
-      run: ls -R
     - uses: xresloader/upload-to-github-release@main
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
