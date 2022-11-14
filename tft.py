@@ -138,6 +138,7 @@ def find_match() -> None:
         logging.debug(f"Clicking find match success: {find_match_click_success}")
         time.sleep(1)
         while not onscreen(CONSTANTS['game']['loading']) and not onscreen(CONSTANTS['game']['round']['1-1']) and is_in_queue():
+            bring_league_client_to_forefront()
             click_to_middle(CONSTANTS['client']['in_queue']['accept'])
             time.sleep(1)
 
