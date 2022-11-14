@@ -1,4 +1,6 @@
 """Generic helper functions."""
+import random
+
 
 def is_var_number(var) -> bool:
     """Checks if the provided variable is a number type.
@@ -29,3 +31,15 @@ def is_var_function(var) -> bool:
     except Exception:
         pass
     return False
+
+def rand_func(num: float, rand: float) -> float:
+    """Generate a random number offset.
+
+    Args:
+        num (float): The initial number.
+        rand (float): The variable amount.
+
+    Returns:
+        float: The generated number
+    """
+    return num + rand * random.random()

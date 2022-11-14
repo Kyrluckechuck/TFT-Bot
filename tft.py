@@ -19,7 +19,7 @@ import system_helpers
 from click_helpers import click_right, click_to_middle, click_to_middle_multiple
 from constants import CONSTANTS, exit_now_images, find_match_images, key_fragment_images, skip_waiting_for_stats_images, wanted_traits
 from logging_helper import setup_logging
-from screen_helpers import onscreen, onscreen_multiple_any, onscreen_region_numLoop
+from screen_helpers import onscreen, onscreen_multiple_any, onscreen_region_num_loop
 
 auto.FAILSAFE = False
 GAME_COUNT = -1
@@ -384,7 +384,7 @@ def check_if_gold_at_least(num: int) -> bool:
     logging.debug(f"Looking for at least {num} gold")
     for i in range(num + 1):
         try:
-            if onscreen_region_numLoop(CONSTANTS['game']['gold'][f"{i}"], 0.1, 5, 780, 850, 970, 920, 0.9):
+            if onscreen_region_num_loop(CONSTANTS['game']['gold'][f"{i}"], 0.1, 5, 780, 850, 970, 920, 0.9):
                 logging.debug(f"Found {i} gold")
                 if i == num:
                     logging.debug("Correct")

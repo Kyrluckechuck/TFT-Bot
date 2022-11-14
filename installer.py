@@ -1,5 +1,6 @@
 """Bot executable creation script."""
 import PyInstaller.__main__
+
 import constants
 
 PyInstaller.__main__.run([
