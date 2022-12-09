@@ -10,6 +10,7 @@ import random
 import subprocess
 import sys
 import time
+import configparser
 
 import keyboard
 from printy import printy
@@ -589,20 +590,33 @@ def tft_bot_loop() -> None:
             time.sleep(5)
             continue
 
-def main():
-    """Entrypoint function to initialize most of the code.
+def load_settings():
+    """Load settings for the bot.
 
-    Parses command line arguments, sets up console settings, logging, and kicks of the main bot loop.
+    Any CLI-set settings take highest precedence, then falling back on config values, then to defaults.
     """
     global FF_EARLY, VERBOSE
+
+    config = configparser.ConfigParser()
+    config.read('bot_settings.ini')
+    config.getboolean('SETTINGS', 'Verbose', fallback=False)
+    config.getboolean('SETTINGS', 'ForfeitEarly', fallback=False)
 
     arg_parser = argparse.ArgumentParser(prog="TFT Bot")
     arg_parser.add_argument("--ffearly", action='store_true', help="If the game should be surrendered at first available time.")
     arg_parser.add_argument("-v", "--verbose", action="store_true", help="Increase output verbosity, mostly useful for debugging")
     parsed_args = arg_parser.parse_args()
 
-    FF_EARLY = parsed_args.ffearly
-    VERBOSE = parsed_args.verbose
+    FF_EARLY = parsed_args.ffearly or config.getboolean('SETTINGS', 'ForfeitEarly', fallback=False)
+    VERBOSE = parsed_args.verbose or config.getboolean('SETTINGS', 'Verbose', fallback=False)
+
+def main():
+    """Entrypoint function to initialize most of the code.
+
+    Parses command line arguments, sets up console settings, logging, and kicks of the main bot loop.
+    """
+    load_settings()
+
     logging_handlers = [logging.StreamHandler()]
     if VERBOSE:
         logging_handlers.append(logging.FileHandler("debug.log"))

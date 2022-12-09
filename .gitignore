@@ -133,3 +133,4 @@ dmypy.json
 
 screenshots/
 *.log
+bot_settings.ini
