@@ -115,13 +115,27 @@ CONSTANTS = {
             "6-6": "captures/round/6-6.png",
         },
         "trait": {
-            "astral": "captures/trait/astral.png",
-            "bruiser": "captures/trait/bruiser.png",
-            "chemtech": "captures/trait/chemtech.png",
-            "dragonmancer": "captures/trait/dragonmancer.png",
-            "jade": "captures/trait/jade.png",
-            "mage": "captures/trait/mage.png",
-            "scrap": "captures/trait/scrap.png",
+            "ace": "captures/trait/ace.png",
+            "admin": "captures/trait/admin.png",
+            "aegis": "captures/trait/aegis.png",
+            "anima_squad": "captures/trait/anima_squad.png",
+            "brawler": "captures/trait/brawler.png",
+            "civilian": "captures/trait/civilian.png",
+            "defender": "captures/trait/defender.png",
+            "duelist": "captures/trait/duelist.png",
+            "gadgeteen": "captures/trait/gadgeteen.png",
+            "hacker": "captures/trait/hacker.png",
+            "heart": "captures/trait/heart.png",
+            "lasercorps": "captures/trait/lasercorps.png",
+            "mascot": "captures/trait/mascot.png",
+            "mecha_prime": "captures/trait/mecha_prime.png",
+            "ox_force": "captures/trait/ox_force.png",
+            "recon": "captures/trait/recon.png",
+            "renegade": "captures/trait/renegade.png",
+            "spellslinger": "captures/trait/spellslinger.png",
+            "star_guardian": "captures/trait/star_guardian.png",
+            "threat": "captures/trait/threat.png",
+            "underground": "captures/trait/underground.png",
         },
     },
 }
@@ -149,7 +163,7 @@ key_fragment_images = [
 ]
 
 wanted_traits = [
-    CONSTANTS['game']['trait']['bruiser'],
-    CONSTANTS['game']['trait']['mage'],
-    CONSTANTS['game']['trait']['jade']
+    CONSTANTS['game']['trait']['lasercorps'],
+    CONSTANTS['game']['trait']['brawler'],
+    CONSTANTS['game']['trait']['star_guardian']
 ]
