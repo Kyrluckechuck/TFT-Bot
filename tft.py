@@ -2,6 +2,7 @@
 The main TFT Bot code
 """
 import argparse
+import configparser
 from datetime import datetime
 import logging
 import os
@@ -10,7 +11,6 @@ import random
 import subprocess
 import sys
 import time
-import configparser
 
 import keyboard
 from printy import printy
