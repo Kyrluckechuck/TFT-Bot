@@ -32,4 +32,4 @@ jobs:
         branches: "main;dev"
         verbose: true
         draft: true
-        tag_name: env.GITHUB_REF_NAME
+        tag_name: ${{ env.GITHUB_REF_NAME }}
