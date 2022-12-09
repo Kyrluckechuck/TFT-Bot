@@ -42,11 +42,21 @@ For example:
 
 On that note, if anyone has any suggestions / features they would like to see, please feel free to suggest in an [issue](https://github.com/Kyrluckechuck/tft-bot/issues), or by submitting your own PR to this!
 
-# Usage
+# Usage / Settings
 
 * Adding the `--ffearly` argument will make it forfeit at the first opportunity
 * Adding the (`-v` or `--verbose`) argument will enable more verbose debug logging
   * To be updated further to actually utilize this setting, at present it just prints a statement saying it's enabled/disabled
+
+## Config Structure
+If you want to use frequent settings / "set it and forget it", you can do so by creating `bot-settings.ini` with the following structure:
+```ini
+[SETTINGS]
+Verbose = True
+ForfeitEarly = False
+```
+
+Any setting not specified will fall back on the default behaviour, though CLI settings will take highest precedence (overriding config settings).
 
 # Installation:
 
