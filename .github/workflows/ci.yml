@@ -1,6 +1,9 @@
-name: Main CI
+name: Generate Release
 
-on: [push]
+on:
+  push:
+    tags:
+      - '*'
 
 jobs:
   build:
@@ -28,5 +31,5 @@ jobs:
         file: "dist/TFT Bot.exe"
         branches: "main;dev"
         verbose: true
-        prerelease: true
-        draft: false
+        draft: true
+        tag_name: env.GITHUB_REF_NAME
