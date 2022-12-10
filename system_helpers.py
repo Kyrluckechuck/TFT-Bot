@@ -3,12 +3,12 @@ import http.client as httplib
 import logging
 import os
 import sys
+import winreg
 
 import psutil
 import win32com.client
 import win32gui
 import win32process
-import winreg
 
 try:
     import ctypes
