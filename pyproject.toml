@@ -12,3 +12,6 @@ lexicographical = true
 single_line_exclusions = ["typing"]
 order_by_type = false
 group_by_package = true
+
+[tool.pytest.ini_options]
+addopts = "--pylint"
