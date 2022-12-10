@@ -146,7 +146,7 @@ def determine_league_install_location() -> str:
         access_key = winreg.OpenKey(
             access_registry, r'SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall\Riot Game league_of_legends.live', 0, winreg.KEY_READ
         )
-        league_path = winreg.QueryValueEx(access_key, "InstallLocation")
+        [league_path, _] = winreg.QueryValueEx(access_key, "InstallLocation")
     except Exception as err:
         logging.error(f'Could not dynamically determine League install location : {str(err)}')
         logging.error(sys.exc_info())
