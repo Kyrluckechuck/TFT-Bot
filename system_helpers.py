@@ -8,6 +8,7 @@ import psutil
 import win32com.client
 import win32gui
 import win32process
+import winreg
 
 try:
     import ctypes
@@ -131,3 +132,24 @@ def expand_environment_variables(var: str) -> str:
         str: The string with any environment variables replaced.
     """
     return os.path.expandvars(var)
+
+def determine_league_install_location() -> str:
+    """Determine the location League was installed.
+
+    Returns:
+        str: If successful, the determined install location. If unsuccessful, the default install location.
+    """
+    # Assign default just in case it failed to be found
+    league_path = r"C:\Riot Games\League of Legends"
+    try:
+        access_registry = winreg.ConnectRegistry(None,winreg.HKEY_CURRENT_USER)
+        access_key = winreg.OpenKey(
+            access_registry, r'SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall\Riot Game league_of_legends.live', 0, winreg.KEY_READ
+        )
+        league_path = winreg.QueryValueEx(access_key, "InstallLocation")
+    except Exception as err:
+        logging.error(f'Could not dynamically determine League install location : {str(err)}')
+        logging.error(sys.exc_info())
+
+    logging.debug(f"League path determined to be: {league_path}")
+    return league_path

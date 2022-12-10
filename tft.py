@@ -610,6 +610,17 @@ def load_settings():
     FF_EARLY = parsed_args.ffearly or config.getboolean('SETTINGS', 'ForfeitEarly', fallback=False)
     VERBOSE = parsed_args.verbose or config.getboolean('SETTINGS', 'Verbose', fallback=False)
 
+def update_league_constants(league_install_location: str) -> None:
+    """Update League executable constants
+
+    Args:
+        league_install_location (str): The determined location for the executables
+    """
+    CONSTANTS['executables']['league']['client'] = rf"{league_install_location}{CONSTANTS['executables']['league']['client']}"
+    CONSTANTS['executables']['league']['client_ux'] = rf"{league_install_location}{CONSTANTS['executables']['league']['client_ux']}"
+    CONSTANTS['executables']['league']['game'] = rf"{league_install_location}{CONSTANTS['executables']['league']['game']}"
+
+
 def main():
     """Entrypoint function to initialize most of the code.
 
@@ -682,6 +693,8 @@ def main():
     logging.info("Bot started, queuing up!")
 
     keyboard.add_hotkey('alt+p', lambda: toggle_pause()) #pylint: disable=unnecessary-lambda
+
+    update_league_constants(system_helpers.determine_league_install_location())
 
     global START_TIMER
     START_TIMER = time.time()

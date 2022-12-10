@@ -28,5 +28,5 @@ jobs:
         file: "dist/TFT Bot.exe"
         branches: "main;dev"
         verbose: true
-        prerelease: true
-        draft: false
+        # prerelease: true
+        draft: true
