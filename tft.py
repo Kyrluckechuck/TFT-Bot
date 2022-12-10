@@ -135,7 +135,7 @@ def is_in_tft_lobby() -> bool:
     Returns:
         bool: True if the client is in the TFT lobby, False otherwise.
     """
-    return onscreen(CONSTANTS['tft_logo']['base']) or onscreen(CONSTANTS['tft_logo']['overshadowed'])
+    return onscreen(CONSTANTS['client']['pre_match']['lobby']['normal'])
 
 
 def find_match() -> None:

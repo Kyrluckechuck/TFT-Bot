@@ -26,7 +26,8 @@ CONSTANTS = {
         "screenshot_location": f"{os.getcwd()}/screenshots",
         "tabs": {
             "tft": {
-                "unselected": "captures/buttons/tab_tft_unselected.png"
+                "unselected": "captures/buttons/tab_tft_unselected.png",
+                "selected": "captures/buttons/tab_tft_selected.png"
             }
         },
         "pre_match": {
@@ -35,6 +36,9 @@ CONSTANTS = {
                 "base": "captures/buttons/find_match.png",
                 "highlighted": "captures/buttons/find_match_highlighted.png",
                 "original": "captures/buttons/find_match_original.png",
+            },
+            "lobby": {
+                "normal": "captures/tft_lobby_normal.png",
             }
         },
         "in_queue": {
