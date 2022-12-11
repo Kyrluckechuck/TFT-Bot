@@ -29,11 +29,23 @@ Some features of this bot:
 If you want to use frequent settings / "set it and forget it", you can do so by creating `bot-settings.ini` in the same directory as the python script or release executable with the following structure:
 ```ini
 [SETTINGS]
+; Enable verbose output to console
 Verbose = True
+; For most scenarios I do not recommend enabling ForfeitEarly, since if you're botting pass EXP you get the most from staying in matches longer.
 ForfeitEarly = False
+; In most scenarios the below setting should not be required
+OverrideInstallLocation = C:\Riot Games\League of Legends
 ```
 
 Any setting not specified will fall back on the default behaviour, though CLI settings will take highest precedence (overriding config settings).
+
+### *Advanced Setting Info*
+#### **Verbose**
+Enable verbose logging to the console window.
+#### **ForfeitEarly**
+Forfeit at first opportunity instead of playing it out until eliminated.
+#### **OverrideInstallLocation**
+Override any League client detection logic. This should be set to whichever directory contains your `LeagueClient.exe`, `LeagueClientUx.exe`, and `Game\League of Legends.exe` executables, which is especially useful for Garena players as I can not automate this detection (from what I've heard).
 
 # Installation (for source):
 

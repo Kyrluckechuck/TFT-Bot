@@ -36,8 +36,11 @@ GAME_COUNT = -1
 END_TIMER = time.time()
 START_TIMER = time.time()
 PAUSE_LOGIC = False
-FF_EARLY = False
-VERBOSE = False
+CONFIG = {
+    "FF_EARLY": False,
+    "VERBOSE": False,
+    "OVERRIDE_INSTALL_DIR": None,
+}
 
 def bring_league_client_to_forefront() -> None:
     """Brings the league client to the forefront."""
@@ -447,7 +450,7 @@ def main_game_loop() -> None: #pylint: disable=too-many-branches
             match_complete()
             break
 
-        if FF_EARLY:
+        if CONFIG['FF_EARLY']:
             # Change the round to end the round early at a different time
             if not onscreen(CONSTANTS["game"]["1-"], 0.9) and not onscreen(CONSTANTS["game"]["2-", 0.9]):
                 if not onscreen("./captures/3-1.png", 0.9):
@@ -595,20 +598,17 @@ def load_settings():
 
     Any CLI-set settings take highest precedence, then falling back on config values, then to defaults.
     """
-    global FF_EARLY, VERBOSE
-
-    config = configparser.ConfigParser()
-    config.read('bot_settings.ini')
-    config.getboolean('SETTINGS', 'Verbose', fallback=False)
-    config.getboolean('SETTINGS', 'ForfeitEarly', fallback=False)
-
     arg_parser = argparse.ArgumentParser(prog="TFT Bot")
     arg_parser.add_argument("--ffearly", action='store_true', help="If the game should be surrendered at first available time.")
     arg_parser.add_argument("-v", "--verbose", action="store_true", help="Increase output verbosity, mostly useful for debugging")
     parsed_args = arg_parser.parse_args()
 
-    FF_EARLY = parsed_args.ffearly or config.getboolean('SETTINGS', 'ForfeitEarly', fallback=False)
-    VERBOSE = parsed_args.verbose or config.getboolean('SETTINGS', 'Verbose', fallback=False)
+    config = configparser.ConfigParser()
+    config.read('bot_settings.ini')
+
+    CONFIG['FF_EARLY'] = parsed_args.ffearly or config.getboolean('SETTINGS', 'ForfeitEarly', fallback=False)
+    CONFIG['VERBOSE'] = parsed_args.verbose or config.getboolean('SETTINGS', 'Verbose', fallback=False)
+    CONFIG['OVERRIDE_INSTALL_DIR'] = config.get('SETTINGS', 'OverrideInstallLocation', fallback=None)
 
 def update_league_constants(league_install_location: str) -> None:
     """Update League executable constants
@@ -629,15 +629,15 @@ def main():
     load_settings()
 
     logging_handlers = [logging.StreamHandler()]
-    if VERBOSE:
+    if CONFIG['VERBOSE']:
         logging_handlers.append(logging.FileHandler("debug.log"))
 
-    if VERBOSE:
+    if CONFIG['VERBOSE']:
         logging.info("Will explain everything and be very verbose")
     else:
         logging.info("Will be quiet and not be very verbose")
 
-    if FF_EARLY:
+    if CONFIG['FF_EARLY']:
         logging.info("FF Early Specified - Will surrender at first available time")
     else:
         logging.info("FF Early Not Specified - Will play out games for their duration")
@@ -671,7 +671,7 @@ def main():
     appdata_path = system_helpers.expand_environment_variables(CONSTANTS['storage']['appdata'])
     if not setup_logging(
             console_log_output="stdout",
-            console_log_level="debug" if VERBOSE else "info",
+            console_log_level="debug" if CONFIG['VERBOSE'] else "info",
             console_log_color=True,
             logfile_file=f"{appdata_path}/{script_name}.log",
             logfile_log_level="debug",
@@ -694,7 +694,8 @@ def main():
 
     keyboard.add_hotkey('alt+p', lambda: toggle_pause()) #pylint: disable=unnecessary-lambda
 
-    update_league_constants(system_helpers.determine_league_install_location())
+    league_directory_to_set = system_helpers.determine_league_install_location(CONFIG['OVERRIDE_INSTALL_DIR'])
+    update_league_constants(league_directory_to_set)
 
     global START_TIMER
     START_TIMER = time.time()

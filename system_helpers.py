@@ -133,23 +133,31 @@ def expand_environment_variables(var: str) -> str:
     """
     return os.path.expandvars(var)
 
-def determine_league_install_location() -> str:
+def determine_league_install_location(override_path: str | None=None) -> str:
     """Determine the location League was installed.
+
+    Args:
+        override_path (str): A path to override any client detection logic.
 
     Returns:
         str: If successful, the determined install location. If unsuccessful, the default install location.
     """
     # Assign default just in case it failed to be found
     league_path = r"C:\Riot Games\League of Legends"
-    try:
-        access_registry = winreg.ConnectRegistry(None,winreg.HKEY_CURRENT_USER)
-        access_key = winreg.OpenKey(
-            access_registry, r'SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall\Riot Game league_of_legends.live', 0, winreg.KEY_READ
-        )
-        [league_path, _] = winreg.QueryValueEx(access_key, "InstallLocation")
-    except Exception as err:
-        logging.error(f'Could not dynamically determine League install location : {str(err)}')
-        logging.error(sys.exc_info())
+
+    if override_path is not None:
+        logging.warning(f'Override path supplied, using \'{override_path}\' as League install directory.')
+        league_path = override_path
+    else:
+        try:
+            access_registry = winreg.ConnectRegistry(None,winreg.HKEY_CURRENT_USER)
+            access_key = winreg.OpenKey(
+                access_registry, r'SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall\Riot Game league_of_legends.live', 0, winreg.KEY_READ
+            )
+            [league_path, _] = winreg.QueryValueEx(access_key, "InstallLocation")
+        except Exception as err:
+            logging.error(f'Could not dynamically determine League install location : {str(err)}')
+            logging.error(sys.exc_info())
 
     logging.debug(f"League path determined to be: {league_path}")
     return league_path
