@@ -2,6 +2,7 @@
 import http.client as httplib
 import logging
 import os
+import pathlib
 import sys
 import winreg
 
@@ -159,5 +160,8 @@ def determine_league_install_location(override_path: str | None=None) -> str:
             logging.error(f'Could not dynamically determine League install location : {str(err)}')
             logging.error(sys.exc_info())
 
+    league_path = str(pathlib.PureWindowsPath(league_path))
+
     logging.debug(f"League path determined to be: {league_path}")
+
     return league_path
