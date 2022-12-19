@@ -328,6 +328,19 @@ def check_if_client_error() -> bool:
         return True
     return False
 
+def check_if_client_popup() -> bool:
+    """Checks if a popup may be interrupting the client
+
+    Returns:
+        bool: True if one is detected, False otherwise.
+    """
+    if onscreen(CONSTANTS['client']['messages']['give_feedback']):
+        logging.info("Client survey/feedback detected, clicking on (opening in browser) and continuing!")
+        click_to_middle(CONSTANTS['client']['messages']['give_feedback'])
+        time.sleep(2)
+        return True
+    return False
+
 def exit_now_conditional() -> bool:
     """(Special function for `check_if_game_complete()` conditional.
     Checks if the League game is not running.
@@ -346,6 +359,8 @@ def check_if_game_complete() -> bool:
     if not league_game_already_running() and not attempt_reconnect_to_existing_game():
         return True
     if check_if_client_error():
+        return True
+    if check_if_client_popup():
         return True
     if onscreen(CONSTANTS['client']['death']):
         logging.info("Death detected")

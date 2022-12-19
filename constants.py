@@ -63,6 +63,7 @@ CONSTANTS = {
         },
         "launcher_play": "captures/buttons/launcher_play.png",
         "messages": {
+            "give_feedback": "captures/messages/give_feedback.png",
             "session_expired": "captures/messages/session_expired.png",
             "failed_to_reconnect": "captures/messages/failed_to_reconnect.png",
             "login_servers_down": "captures/messages/login_servers_down.png",
