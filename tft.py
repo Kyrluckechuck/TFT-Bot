@@ -238,7 +238,8 @@ def loading_match() -> None:
         wait_for_league_running()
         bring_league_game_to_forefront()
         if counter > 60:
-            logging.warning("Did not detect game start, continuing anyways 😬")
+            logging.warning("Did not detect game start, continuing anyways :S")
+            break
         counter = counter + 1
 
     logging.info("Match starting!")
@@ -257,13 +258,13 @@ def shared_draft_pathing() -> None:
     """Navigate counter-clockwise in a diamond to help ensure a champ is picked up."""
     auto.moveTo(946, 315)
     click_right()
-    time.sleep(3)
+    time.sleep(2)
     auto.moveTo(700, 450)
     click_right()
-    time.sleep(3)
+    time.sleep(2)
     auto.moveTo(950, 675)
     click_right()
-    time.sleep(3)
+    time.sleep(2)
     auto.moveTo(1200, 460)
     click_right()
 
@@ -349,12 +350,12 @@ def check_if_game_complete() -> bool:
     if onscreen(CONSTANTS['client']['death']):
         logging.info("Death detected")
         click_to_middle(CONSTANTS['client']['death'])
-        time.sleep(5)
+        time.sleep(3)
     if onscreen_multiple_any(exit_now_images):
         logging.info("End of game detected")
         exit_now_bool = click_to_middle_multiple(exit_now_images, conditional_func=exit_now_conditional, delay=1.5)
         logging.debug(f"Exit now clicking success: {exit_now_bool}")
-        time.sleep(5)
+        time.sleep(4)
     return onscreen(CONSTANTS['client']['post_game']['play_again']) or \
                 onscreen(CONSTANTS['client']['pre_match']['quick_play']) or \
                 onscreen_multiple_any(skip_waiting_for_stats_images)
@@ -368,7 +369,6 @@ def attempt_reconnect_to_existing_game() -> bool:
     """
     if onscreen(CONSTANTS['client']['reconnect']):
         logging.info("Reconnecting!")
-        time.sleep(0.5)
         click_to_middle(CONSTANTS['client']['reconnect'])
         return True
     return False
@@ -397,7 +397,7 @@ def check_if_gold_at_least(num: int) -> bool:
     logging.debug(f"Looking for at least {num} gold")
     for i in range(num + 1):
         try:
-            if onscreen_region_num_loop(CONSTANTS['game']['gold'][f"{i}"], 0.1, 5, 780, 850, 970, 920, 0.9):
+            if onscreen_region_num_loop(CONSTANTS['game']['gold'][f"{i}"], 0.05, 5, 780, 850, 970, 920, 0.9):
                 logging.debug(f"Found {i} gold")
                 if i == num:
                     logging.debug("Correct")
@@ -426,11 +426,11 @@ def main_game_loop() -> None: #pylint: disable=too-many-branches
             # Treasure dragon, dont reroll just take it
             if onscreen(CONSTANTS['game']['gamelogic']['take_all']):
                 click_to_middle(CONSTANTS['game']['gamelogic']['take_all'])
-                time.sleep(1)
+                time.sleep(0.25)
                 continue
             # Free champ round
             if not onscreen(CONSTANTS['game']['round']['1-'], 0.9) and onscreen(CONSTANTS['game']['round']['-4'], 0.9):
-                logging.info("Round X-4, draft detected")
+                logging.info("Round [X]-4, draft detected")
                 shared_draft_pathing()
                 continue
             if onscreen(CONSTANTS['game']['round']['1-'], 0.9) or onscreen(CONSTANTS['game']['round']['2-'], 0.9):
@@ -475,20 +475,20 @@ def end_match() -> None:
         if onscreen_multiple_any(skip_waiting_for_stats_images):
             logging.info("Skipping waiting for stats")
             click_to_middle_multiple(skip_waiting_for_stats_images)
-            time.sleep(3)
+            time.sleep(2)
         if onscreen(CONSTANTS['client']['post_game']['play_again']):
             logging.info("Attempting to play again")
             bring_league_client_to_forefront()
             click_to_middle(CONSTANTS['client']['post_game']['play_again'], delay=0.5)
-            time.sleep(3)
+            time.sleep(2)
         if onscreen(CONSTANTS['client']['pre_match']['quick_play']):
             logging.info("Attempting to quick play")
             click_to_middle(CONSTANTS['client']['pre_match']['quick_play'])
-            time.sleep(10)
+            time.sleep(5)
         if not onscreen_multiple_any(find_match_images) and onscreen(CONSTANTS['client']['tabs']['tft']['unselected'], precision=0.9):
-            logging.info("Detected that TFT tab is not selected, attempting ot select")
+            logging.info("Detected that TFT tab is not selected, attempting to select")
             click_to_middle(CONSTANTS['client']['tabs']['tft']['unselected'])
-            time.sleep(3)
+            time.sleep(2)
 
 def dismiss_interruptions() -> None:
     """Dismisses any 'earned key fragment' and 'mission completion' messages.
@@ -518,7 +518,6 @@ def match_complete() -> None:
     """Print a log timer to update the time passed and number of games completed (rough estimation), and begin the end of match logic."""
     print_timer()
     logging.info("Match complete! Cleaning up and restarting")
-    time.sleep(1)
     end_match()
 
 
