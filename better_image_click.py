@@ -8,7 +8,7 @@ import pyautogui as auto
 from generic_helpers import rand_func
 
 
-def click_image_rand(image, pos, action, move_duration, offset="half", delay=0.1) -> bool: #pylint: disable=too-many-arguments
+def click_image_rand(image, pos, action, move_duration, offset="half", delay=0.1) -> bool:  # pylint: disable=too-many-arguments
     """
     Explanation from https://github.com/drov0/python-imagesearch/blob/master/python_imagesearch/imagesearch.py
     click on the center of an image with a bit of random.
@@ -29,18 +29,22 @@ def click_image_rand(image, pos, action, move_duration, offset="half", delay=0.1
     """
     img = cv2.imread(image)
     if img is None:
-        logging.debug(f'Image file not found: {image}')
+        logging.debug(f"Image file not found: {image}")
         return False
     height, width, _channel = img.shape
     offset_to_use = min(height, width) / 2
     if offset != "half":
         offset_to_use = offset
-    auto.moveTo(pos[0] + rand_func(width / 2, offset_to_use), pos[1] + rand_func(height / 2, offset_to_use), move_duration)
+    auto.moveTo(
+        pos[0] + rand_func(width / 2, offset_to_use),
+        pos[1] + rand_func(height / 2, offset_to_use),
+        move_duration,
+    )
     mouse_button(delay=delay, button=action)
     return True
 
 
-def mouse_button(delay=.1, button="left") -> None:
+def mouse_button(delay=0.1, button="left") -> None:
     """A click helper to simulate clicking the specified button.
     *NOTE* Copied from `click_helpers` to avoid a cyclical import
 

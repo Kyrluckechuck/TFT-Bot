@@ -14,7 +14,7 @@ from screen_helpers import onscreen
 from system_helpers import resource_path
 
 
-def mouse_button(delay=.1, button="left") -> None:
+def mouse_button(delay=0.1, button="left") -> None:
     """A click helper to simulate clicking the specified button.
 
     Args:
@@ -25,7 +25,8 @@ def mouse_button(delay=.1, button="left") -> None:
     time.sleep(delay)
     auto.mouseUp(button=button)
 
-def click_key(key: str, delay: float=.1) -> None:
+
+def click_key(key: str, delay: float = 0.1) -> None:
     """Simulate a click on the specified key.
 
     Args:
@@ -37,7 +38,7 @@ def click_key(key: str, delay: float=.1) -> None:
     auto.keyUp(key)
 
 
-def click_left(delay=.1) -> None:
+def click_left(delay=0.1) -> None:
     """Simulate a click on the left mouse button.
 
     Args:
@@ -46,7 +47,7 @@ def click_left(delay=.1) -> None:
     mouse_button(delay=delay, button="left")
 
 
-def click_right(delay=.1) -> None:
+def click_right(delay=0.1) -> None:
     """Simulate a click on the right mouse button.
 
     Args:
@@ -55,7 +56,7 @@ def click_right(delay=.1) -> None:
     mouse_button(delay=delay, button="right")
 
 
-def click_to(path: str, precision: float=0.8, delay: float=.1) -> None:
+def click_to(path: str, precision: float = 0.8, delay: float = 0.1) -> None:
     """Click to the specified image on the screen.
 
     Args:
@@ -73,7 +74,8 @@ def click_to(path: str, precision: float=0.8, delay: float=.1) -> None:
     else:
         logging.debug(f"Could not find '{path}', skipping")
 
-def click_to_multiple(images: list[str], conditional_func: Callable | None=None, delay: float=None) -> bool:
+
+def click_to_multiple(images: list[str], conditional_func: Callable | None = None, delay: float = None) -> bool:
     """Click to the specified images, evaluating the condtional_func (if provided) after the specified delay (if provided) for if it was successfully clicked.
 
     Args:
@@ -96,6 +98,7 @@ def click_to_multiple(images: list[str], conditional_func: Callable | None=None,
             return True
     return False
 
+
 def search_to(path: str) -> (None | list[int] | tuple[int, int]):
     """Search for the given image on the screen, and move the mouse to it.
 
@@ -115,8 +118,15 @@ def search_to(path: str) -> (None | list[int] | tuple[int, int]):
         return None
     return None
 
-def click_to_middle(path: str, precision: float=0.8, move_duration: float=random.uniform(0.1, 1.0), #pylint: disable=too-many-arguments
-    delay: float=0.2, offset: float | str="half", action: str="left") -> bool:
+
+def click_to_middle(  # pylint: disable=too-many-arguments
+    path: str,
+    precision: float = 0.8,
+    move_duration: float = random.uniform(0.1, 1.0),
+    delay: float = 0.2,
+    offset: float | str = "half",
+    action: str = "left",
+) -> bool:
     """Attempt to click to the (relative) middle of the specified image.
 
     Args:
@@ -134,14 +144,28 @@ def click_to_middle(path: str, precision: float=0.8, move_duration: float=random
     pos = find_image(path, precision)
     if pos:
         try:
-            return click_image_rand(path, pos, action, move_duration=move_duration, delay=delay, offset=offset)
+            return click_image_rand(
+                path,
+                pos,
+                action,
+                move_duration=move_duration,
+                delay=delay,
+                offset=offset,
+            )
         except Exception as err:
             logging.debug(f"M|Failed to click to {err}")
     else:
         logging.debug(f"M|Could not find '{path}', skipping")
     return False
 
-def click_to_middle_multiple(images: list[str], precision: float=0.8, conditional_func: Callable | None=None, delay: float=None, action: str="left") -> bool:
+
+def click_to_middle_multiple(
+    images: list[str],
+    precision: float = 0.8,
+    conditional_func: Callable | None = None,
+    delay: float = None,
+    action: str = "left",
+) -> bool:
     """Attempt to click to the (relative) middle of the specified images.
 
     Args:

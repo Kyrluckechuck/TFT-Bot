@@ -17,6 +17,7 @@ try:
 except Exception:
     pass
 
+
 def set_active_window(window_id: int) -> None:
     """Sets the currently active window and focus.
 
@@ -25,13 +26,13 @@ def set_active_window(window_id: int) -> None:
     """
     # Try to account for every scenario
     shell = win32com.client.Dispatch("WScript.Shell")
-    shell.SendKeys('%')
+    shell.SendKeys("%")
     win32gui.BringWindowToTop(window_id)
     win32gui.SetForegroundWindow(window_id)
     win32gui.SetActiveWindow(window_id)
 
 
-def bring_window_to_forefront(window_title: str, path_to_verify: str | None=None) -> None:
+def bring_window_to_forefront(window_title: str, path_to_verify: str | None = None) -> None:
     """Bring the first window found matching the requested title to the forefront and focus/make active.
 
     Args:
@@ -82,27 +83,28 @@ def have_internet(ip_to_ping="1.1.1.1") -> bool:
     conn = httplib.HTTPSConnection(ip_to_ping, timeout=5)
     try:
         conn.request("HEAD", "/")
-        logging.debug(F"Success pinging {ip_to_ping}")
+        logging.debug(f"Success pinging {ip_to_ping}")
         return True
     except Exception:
-        logging.debug(F"Can not ping {ip_to_ping}")
+        logging.debug(f"Can not ping {ip_to_ping}")
         return False
     finally:
         conn.close()
 
+
 # Via https://gist.github.com/sthonnard/31106e47eab8d6f3329ef530717e8079
 def disable_quickedit() -> None:
     """Disable QuickEdit mode on Windows terminal. QuickEdit pauses application execution if the user selects/highlights/clicks within the terminal."""
-    if not os.name == 'posix':
+    if not os.name == "posix":
         try:
-            kernel32 = ctypes.WinDLL('kernel32', use_last_error=True)
-            device = r'\\.\CONIN$'
-            with open(device, 'r') as con: # pylint: disable=unspecified-encoding
+            kernel32 = ctypes.WinDLL("kernel32", use_last_error=True)
+            device = r"\\.\CONIN$"
+            with open(device, "r") as con:  # pylint: disable=unspecified-encoding
                 file_handle = msvcrt.get_osfhandle(con.fileno())
                 kernel32.SetConsoleMode(file_handle, 0x0080)
         except Exception as err:
-            logging.warning(f'Cannot disable QuickEdit mode! : {str(err)}')
-            logging.warning('As a consequence, execution might be automatically paused, careful where you click!')
+            logging.warning(f"Cannot disable QuickEdit mode! : {str(err)}")
+            logging.warning("As a consequence, execution might be automatically paused, careful where you click!")
 
 
 def resource_path(relative_path: str) -> str:
@@ -115,13 +117,14 @@ def resource_path(relative_path: str) -> str:
         str: The relative path prefixed with the runtime directory.
     """
     try:
-        base_path = sys._MEIPASS # pylint: disable=no-member,protected-access
+        base_path = sys._MEIPASS  # pylint: disable=no-member,protected-access
     except Exception:
         base_path = os.path.abspath(".")
 
     if relative_path.startswith(base_path):
         return relative_path
     return os.path.join(base_path, relative_path)
+
 
 def expand_environment_variables(var: str) -> str:
     """Expands the provided variable for any included environment variables.
@@ -134,7 +137,8 @@ def expand_environment_variables(var: str) -> str:
     """
     return os.path.expandvars(var)
 
-def determine_league_install_location(override_path: str | None=None) -> str:
+
+def determine_league_install_location(override_path: str | None = None) -> str:
     """Determine the location League was installed.
 
     Args:
@@ -147,17 +151,20 @@ def determine_league_install_location(override_path: str | None=None) -> str:
     league_path = r"C:\Riot Games\League of Legends"
 
     if override_path is not None:
-        logging.warning(f'Override path supplied, using \'{override_path}\' as League install directory.')
+        logging.warning(f"Override path supplied, using '{override_path}' as League install directory.")
         league_path = override_path
     else:
         try:
-            access_registry = winreg.ConnectRegistry(None,winreg.HKEY_CURRENT_USER)
+            access_registry = winreg.ConnectRegistry(None, winreg.HKEY_CURRENT_USER)
             access_key = winreg.OpenKey(
-                access_registry, r'SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall\Riot Game league_of_legends.live', 0, winreg.KEY_READ
+                access_registry,
+                r"SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall\Riot Game league_of_legends.live",
+                0,
+                winreg.KEY_READ,
             )
             [league_path, _] = winreg.QueryValueEx(access_key, "InstallLocation")
         except Exception as err:
-            logging.error(f'Could not dynamically determine League install location : {str(err)}')
+            logging.error(f"Could not dynamically determine League install location : {str(err)}")
             logging.error(sys.exc_info())
 
     league_path = str(pathlib.PureWindowsPath(league_path))

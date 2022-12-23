@@ -13,6 +13,7 @@ via https://gist.github.com/fonic/7e5ab76d951a2ab2d5f526a7db3e2004
 
 import ctypes
 import logging
+
 # Imports
 import sys
 
@@ -21,11 +22,11 @@ class LogFormatter(logging.Formatter):
     """LogFormatter class which supports colorized output."""
 
     COLOR_CODES = {
-        logging.CRITICAL: "\033[1;35m", # bright/bold magenta
-        logging.ERROR:    "\033[1;31m", # bright/bold red
-        logging.WARNING:  "\033[1;33m", # bright/bold yellow
-        logging.INFO:     "\033[0;37m", # white / light gray
-        logging.DEBUG:    "\033[1;30m"  # bright/bold black / dark gray
+        logging.CRITICAL: "\033[1;35m",  # bright/bold magenta
+        logging.ERROR: "\033[1;31m",  # bright/bold red
+        logging.WARNING: "\033[1;33m",  # bright/bold yellow
+        logging.INFO: "\033[0;37m",  # white / light gray
+        logging.DEBUG: "\033[1;30m",  # bright/bold black / dark gray
     }
 
     RESET_CODE = "\033[0m"
@@ -35,13 +36,14 @@ class LogFormatter(logging.Formatter):
         self.color = color
 
     def format(self, record, *args, **kwargs):
-        if (self.color is True and record.levelno in self.COLOR_CODES):
-            record.color_on  = self.COLOR_CODES[record.levelno]
+        if self.color is True and record.levelno in self.COLOR_CODES:
+            record.color_on = self.COLOR_CODES[record.levelno]
             record.color_off = self.RESET_CODE
         else:
-            record.color_on  = ""
+            record.color_on = ""
             record.color_off = ""
         return super().format(record, *args, **kwargs)
+
 
 # Enable ANSI terminal mode for Command Prompt on Microsoft Windows
 def try_windows_enable_ansi_terminal_mode() -> bool:
@@ -61,8 +63,16 @@ def try_windows_enable_ansi_terminal_mode() -> bool:
     except Exception:
         return False
 
-def setup_logging(console_log_output: str, console_log_level: str, console_log_color: bool, #pylint: disable=too-many-arguments
-    logfile_file: str, logfile_log_level: str, logfile_log_color: bool, log_line_template: str) -> bool:
+
+def setup_logging(  # pylint: disable=too-many-arguments
+    console_log_output: str,
+    console_log_level: str,
+    console_log_color: bool,
+    logfile_file: str,
+    logfile_log_level: str,
+    logfile_log_color: bool,
+    log_line_template: str,
+) -> bool:
     """Setup logging.
 
     Args:
@@ -102,7 +112,7 @@ def setup_logging(console_log_output: str, console_log_level: str, console_log_c
 
     # Set console log level
     try:
-        console_handler.setLevel(console_log_level.upper()) # only accepts uppercase level names
+        console_handler.setLevel(console_log_level.upper())  # only accepts uppercase level names
     except Exception as exception:
         logging.critical(exception)
         print(f"Failed to set console log level: invalid level: '{console_log_level}'")
@@ -122,7 +132,7 @@ def setup_logging(console_log_output: str, console_log_level: str, console_log_c
 
     # Set log file log level
     try:
-        logfile_handler.setLevel(logfile_log_level.upper()) # only accepts uppercase level names
+        logfile_handler.setLevel(logfile_log_level.upper())  # only accepts uppercase level names
     except Exception as exception:
         logging.critical(exception)
         print(f"Failed to set log file log level: invalid level: '{logfile_log_level}'")

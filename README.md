@@ -4,13 +4,14 @@
 This is an auto TFT bot, with some decent logic built in.
 
 Some features of this bot:
-- Ability to pause/resume the bot using `alt+p`
-  - This uses the [keyboard](https://pypi.org/project/keyboard/) package, which allows it to listen globally (so you don't need to have the console selected in the foreground for this to take effect)
-- Does not surrender, allowing it to play out most games, which at the ELO your bot will end up at means there's a decent chance you end up in top 4
-  - If you're using this for event pass grinding, it will increase your odds of being top 4 which increases the points earned per minute played
+- Keyboard shortcuts use the [keyboard](https://pypi.org/project/keyboard/) package, which allows it to listen globally (so you don't need to have the console selected in the foreground for this to take effect)
+  - Ability to pause/resume the bot using `alt+p`
+  - Ability to not re-queue the bot for a new game using `alt+n`
+- Does not surrender games early, by default, allowing it to play out most games, which at the ELO your bot will end up at means there's a decent chance you end up in top 4
+  - If you're using this for event pass grinding, it will increase your odds of being top 4 which increases the points earned per minute played (faster pass progression)
 - Draft stage pathing (does not just walk to one point, will walk counter-clockwise to try to ensure it picks up a champ)
 - Basic gold logic to only click based on the gold available
-  - If >= 4, buy xp 
+  - If >= 4, buy xp
   - If >= 1, attempt 3 champ purchases
     - After that, if >= 2, re-roll
 - Compiles to release executables so you do not need Python / pip installed in order to use it

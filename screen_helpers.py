@@ -8,7 +8,7 @@ from python_imagesearch import imagesearch
 from system_helpers import resource_path
 
 
-def onscreen(path: str, precision: float=0.8) -> bool:
+def onscreen(path: str, precision: float = 0.8) -> bool:
     """Check if a given image is detected on screen.
 
     Args:
@@ -24,7 +24,8 @@ def onscreen(path: str, precision: float=0.8) -> bool:
     except Exception:
         return False
 
-def onscreen_multiple_any(paths: list[str], precision: float=0.8) -> bool:
+
+def onscreen_multiple_any(paths: list[str], precision: float = 0.8) -> bool:
     """Check if any of the given images are detected on screen.
 
     Args:
@@ -46,7 +47,10 @@ def onscreen_multiple_any(paths: list[str], precision: float=0.8) -> bool:
 
     return False
 
-def onscreen_region(path: str, x1: int, y1: int, x2: int, y2: int, precision: float=0.8) -> (bool | list[int] | tuple[int, int]): # pylint: disable=invalid-name,too-many-arguments
+
+def onscreen_region(  # pylint: disable=invalid-name,too-many-arguments,disable=invalid-name
+    path: str, x1: int, y1: int, x2: int, y2: int, precision: float = 0.8
+) -> (bool | list[int] | tuple[int, int]):
     """Search for a given image within a region on screen.
     The region is specified by the coordinates and a rectangular region is devised.
 
@@ -66,8 +70,17 @@ def onscreen_region(path: str, x1: int, y1: int, x2: int, y2: int, precision: fl
     except Exception:
         return False
 
-def onscreen_region_num_loop(path: str, timesample: float, max_samples: int, # pylint: disable=too-many-arguments
-    x1: int, y1: int, x2: int, y2: int, precision: float=0.8) -> (bool | list[int] | tuple[int, int]): # pylint: disable=invalid-name
+
+def onscreen_region_num_loop(  # pylint: disable=too-many-arguments,disable=invalid-name
+    path: str,
+    timesample: float,
+    max_samples: int,
+    x1: int,
+    y1: int,
+    x2: int,
+    y2: int,
+    precision: float = 0.8,
+) -> (bool | list[int] | tuple[int, int]):
     """Search for a given image within a region on screen, attempting multiple times.
     The region is specified by the coordinates and a rectangular region is devised.
 
@@ -88,9 +101,18 @@ def onscreen_region_num_loop(path: str, timesample: float, max_samples: int, # p
     except Exception:
         return False
 
+
 # Via https://github.com/drov0/python-imagesearch/blob/master/python_imagesearch/imagesearch.py
-def imagesearch_region_num_loop(image: str, timesample: float, max_samples: int, # pylint: disable=too-many-arguments
-    x1: int, y1: int, x2: int, y2: int, precision: float=0.8) -> (None | list[int] | tuple[int, int]): # pylint: disable=invalid-name
+def imagesearch_region_num_loop(  # pylint: disable=too-many-arguments,disable=invalid-name
+    image: str,
+    timesample: float,
+    max_samples: int,
+    x1: int,
+    y1: int,
+    x2: int,
+    y2: int,
+    precision: float = 0.8,
+) -> (None | list[int] | tuple[int, int]):
     """Search for a given image within a region on screen, attempting multiple times.
     The region is specified by the coordinates and a rectangular region is devised.
 
@@ -120,7 +142,8 @@ def imagesearch_region_num_loop(image: str, timesample: float, max_samples: int,
     except Exception:
         return None
 
-def find_image(path: str, precision: float=0.8) -> (None | list[int] | tuple[int, int]):
+
+def find_image(path: str, precision: float = 0.8) -> (None | list[int] | tuple[int, int]):
     """Search for a given image, returning the coordinates if found.
 
     Args:
@@ -137,7 +160,8 @@ def find_image(path: str, precision: float=0.8) -> (None | list[int] | tuple[int
     except Exception:
         return None
 
-def find_image_multiple_any(paths: list[str], precision: float=0.8) -> (None | list[int] | tuple[int, int]):
+
+def find_image_multiple_any(paths: list[str], precision: float = 0.8) -> (None | list[int] | tuple[int, int]):
     """Search for any of the given images, returning the coordinates of the first one if any are found.
 
     Args:
@@ -160,8 +184,17 @@ def find_image_multiple_any(paths: list[str], precision: float=0.8) -> (None | l
 
     return None
 
-def find_image_in_region_num_loop(path: str, timesample: float, max_samples: int, # pylint: disable=too-many-arguments
-    x1: int, y1: int, x2: int, y2: int, precision: float=0.8) -> (None | list[int] | tuple[int, int]): # pylint: disable=invalid-name
+
+def find_image_in_region_num_loop(  # pylint: disable=too-many-arguments,disable=invalid-name
+    path: str,
+    timesample: float,
+    max_samples: int,
+    x1: int,
+    y1: int,
+    x2: int,
+    y2: int,
+    precision: float = 0.8,
+) -> (None | list[int] | tuple[int, int]):
     """Get the coorindates for a given image within a region on screen, attempting multiple times.
     The region is specified by the coordinates and a rectangular region is devised.
 

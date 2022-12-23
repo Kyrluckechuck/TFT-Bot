@@ -12,10 +12,11 @@ def is_var_number(var) -> bool:
         bool: True if the provide variable is a number type, False otherwise.
     """
     try:
-        return type(var) == int or type(var) == float #pylint: disable=unidiomatic-typecheck
+        return type(var) == int or type(var) == float  # pylint: disable=unidiomatic-typecheck
     except Exception:
         pass
     return False
+
 
 def is_var_function(var) -> bool:
     """Checks if the provided variable is a function.
@@ -31,6 +32,7 @@ def is_var_function(var) -> bool:
     except Exception:
         pass
     return False
+
 
 def rand_func(num: float, rand: float) -> float:
     """Generate a random number offset.

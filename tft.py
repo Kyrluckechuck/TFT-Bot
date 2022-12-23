@@ -36,25 +36,29 @@ GAME_COUNT = -1
 END_TIMER = time.time()
 START_TIMER = time.time()
 PAUSE_LOGIC = False
+PLAY_NEXT_GAME = True
 CONFIG = {
     "FF_EARLY": False,
     "VERBOSE": False,
     "OVERRIDE_INSTALL_DIR": None,
 }
 
+
 def bring_league_client_to_forefront() -> None:
     """Brings the league client to the forefront."""
     try:
-        system_helpers.bring_window_to_forefront("League of Legends", CONSTANTS['executables']['league']['client_ux'])
+        system_helpers.bring_window_to_forefront("League of Legends", CONSTANTS["executables"]["league"]["client_ux"])
     except Exception:
         logging.warning("Failed to bring League client to forefront, this should be non-fatal so let's continue")
+
 
 def bring_league_game_to_forefront() -> None:
     """Brings the league game to the forefront."""
     try:
-        system_helpers.bring_window_to_forefront("League of Legends", CONSTANTS['executables']['league']['game'])
+        system_helpers.bring_window_to_forefront("League of Legends", CONSTANTS["executables"]["league"]["game"])
     except Exception:
         logging.warning("Failed to bring League game to forefront, this should be non-fatal so let's continue")
+
 
 def league_game_already_running() -> bool:
     """Checks if the league game is already running.
@@ -62,7 +66,8 @@ def league_game_already_running() -> bool:
     Returns:
         bool: True if the game is running, False otherwise.
     """
-    return system_helpers.find_in_processes(CONSTANTS['executables']['league']['game'])
+    return system_helpers.find_in_processes(CONSTANTS["executables"]["league"]["game"])
+
 
 def league_client_running() -> bool:
     """Checks if the league client is already running.
@@ -70,8 +75,10 @@ def league_client_running() -> bool:
     Returns:
         bool: True if the client is running, False otherwise.
     """
-    return system_helpers.find_in_processes(CONSTANTS['executables']['league']['client']) and \
-            system_helpers.find_in_processes(CONSTANTS['executables']['league']['client_ux'])
+    return system_helpers.find_in_processes(CONSTANTS["executables"]["league"]["client"]) and system_helpers.find_in_processes(
+        CONSTANTS["executables"]["league"]["client_ux"]
+    )
+
 
 def parse_task_kill_text(result: subprocess.CompletedProcess[str]) -> None:
     """Parses the task kill text to log the result.
@@ -79,24 +86,36 @@ def parse_task_kill_text(result: subprocess.CompletedProcess[str]) -> None:
     Args:
         result (subprocess.CompletedProcess[str]): the return value of the subprocess run.
     """
-    if 'not found.' in result.stderr:
-        logging.debug(F"{result.args[-1]} was not running.")
-    elif 'has been terminated.' in result.stdout:
-        logging.debug(F"{result.args[-1]} has been terminated.")
+    if "not found." in result.stderr:
+        logging.debug(f"{result.args[-1]} was not running.")
+    elif "has been terminated." in result.stdout:
+        logging.debug(f"{result.args[-1]} has been terminated.")
     else:
-        logging.warning(F"An unknown exception ocurred attempting to end {result.args[-1]}")
+        logging.warning(f"An unknown exception ocurred attempting to end {result.args[-1]}")
         logging.debug(result)
+
 
 def restart_league_client() -> None:
     """Restarts the league client."""
     logging.debug("Killing League Client!")
-    result = subprocess.run(["taskkill", "/f", "/im", CONSTANTS['processes']['client']], check=False, capture_output=True, text=True)
+    result = subprocess.run(
+        ["taskkill", "/f", "/im", CONSTANTS["processes"]["client"]],
+        check=False,
+        capture_output=True,
+        text=True,
+    )
     parse_task_kill_text(result)
-    result = subprocess.run(["taskkill", "/f", "/im", CONSTANTS['processes']['client_ux']], check=False, capture_output=True, text=True)
+    result = subprocess.run(
+        ["taskkill", "/f", "/im", CONSTANTS["processes"]["client_ux"]],
+        check=False,
+        capture_output=True,
+        text=True,
+    )
     parse_task_kill_text(result)
     time.sleep(1)
-    subprocess.run(CONSTANTS['executables']['league']['client'], check=True)
+    subprocess.run(CONSTANTS["executables"]["league"]["client"], check=True)
     time.sleep(3)
+
 
 def restart_league_if_not_running() -> bool:
     """Restarts the league client if it is not already running.
@@ -110,17 +129,31 @@ def restart_league_if_not_running() -> bool:
         return True
     return False
 
+
 def toggle_pause() -> None:
     """Toggles whether the bots logic evaluation should pause.
     *Note:* This does not entirely stop the bot, but does stop various state changes that can be annoying if you're trying to manually interact with it.
     """
     global PAUSE_LOGIC
-    logging.debug(f'alt+p pressed, toggling pause from {PAUSE_LOGIC} to {not PAUSE_LOGIC}')
+    logging.debug(f"alt+p pressed, toggling pause from {PAUSE_LOGIC} to {not PAUSE_LOGIC}")
     PAUSE_LOGIC = not PAUSE_LOGIC
     if PAUSE_LOGIC:
-        logging.info("Bot now paused, remember to unpause to continue botting!")
+        logging.warning("Bot now paused, remember to unpause to continue botting!")
     else:
-        logging.info("Bot playing again!")
+        logging.warning("Bot playing again!")
+
+
+def toggle_play_next_game() -> None:
+    """Toggles whether the bots logic evaluation should start a new game after this finishes.
+    *Note:* This does not entirely stop the bot, but will stop it from starting a new game.
+    """
+    global PLAY_NEXT_GAME
+    logging.debug(f"alt+n pressed, toggling pause from {PLAY_NEXT_GAME} to {not PLAY_NEXT_GAME}")
+    PLAY_NEXT_GAME = not PLAY_NEXT_GAME
+    if not PLAY_NEXT_GAME:
+        logging.warning("Bot will not queue a new game when a lobby is detected!")
+    else:
+        logging.warning("Bot will queue a new game when in lobby!")
 
 
 def is_in_queue() -> bool:
@@ -129,7 +162,7 @@ def is_in_queue() -> bool:
     Returns:
         bool: True if the client is in queue, False otherwise.
     """
-    return onscreen(CONSTANTS['client']['in_queue']['base']) or onscreen(CONSTANTS['client']['in_queue']['overshadowed'])
+    return onscreen(CONSTANTS["client"]["in_queue"]["base"]) or onscreen(CONSTANTS["client"]["in_queue"]["overshadowed"])
 
 
 def is_in_tft_lobby() -> bool:
@@ -138,7 +171,7 @@ def is_in_tft_lobby() -> bool:
     Returns:
         bool: True if the client is in the TFT lobby, False otherwise.
     """
-    return onscreen(CONSTANTS['client']['pre_match']['lobby']['normal'])
+    return onscreen(CONSTANTS["client"]["pre_match"]["lobby"]["normal"])
 
 
 def find_match() -> None:
@@ -150,9 +183,9 @@ def find_match() -> None:
         find_match_click_success = click_to_middle_multiple(find_match_images, conditional_func=is_in_queue, delay=0.2)
         logging.debug(f"Clicking find match success: {find_match_click_success}")
         time.sleep(1)
-        while not onscreen(CONSTANTS['game']['loading']) and not onscreen(CONSTANTS['game']['round']['1-1']) and is_in_queue():
+        while not onscreen(CONSTANTS["game"]["loading"]) and not onscreen(CONSTANTS["game"]["round"]["1-1"]) and is_in_queue():
             bring_league_client_to_forefront()
-            click_to_middle(CONSTANTS['client']['in_queue']['accept'])
+            click_to_middle(CONSTANTS["client"]["in_queue"]["accept"])
             time.sleep(1)
 
             if not is_in_queue():
@@ -166,6 +199,7 @@ def find_match() -> None:
         if counter > 60:
             logging.info("An exception occurred while finding match")
             break
+
 
 def wait_for_league_running() -> bool:
     """Attempt to pause the bot logic evaluation until the league game client is running, or 30 seconds has passed.
@@ -181,14 +215,38 @@ def wait_for_league_running() -> bool:
             break
     return league_game_already_running()
 
+
+def evaluate_next_game_logic() -> None:
+    """Don't queue next game, but continue current if already playing.
+
+    Wait indefinitely if not already in-game.
+    """
+    if not league_game_already_running():
+        logging.warning("Play next game disabled, waiting for user to toggle or program close")
+        wait_counter = 0
+        while not PLAY_NEXT_GAME:
+            sleep_time = 30
+            if wait_counter > 0:
+                logging.debug(f"Play next game still disabled after {sleep_time * wait_counter} seconds")
+            time.sleep(sleep_time)
+            wait_counter = wait_counter + 1
+    else:
+        logging.warning("Play next game disabled, but game already in progress, will not resume next cycle")
+
+
 # Start between match logic
-def queue() -> None:
+
+
+def queue() -> None:  # pylint: disable=too-many-branches
     """Begin finding a match -- the start of the repeating game logic, dismissing any interruptions and bringing the League client to the forefront/focus."""
     # Queue search loop
     while True:
         if PAUSE_LOGIC:
             time.sleep(5)
         else:
+            if not PLAY_NEXT_GAME:
+                evaluate_next_game_logic()
+
             game_launched = False
             if restart_league_if_not_running():
                 continue
@@ -215,10 +273,10 @@ def queue() -> None:
             if game_launched:
                 wait_for_league_running()
 
-            if league_game_already_running() and onscreen(CONSTANTS['game']['loading']):
+            if league_game_already_running() and onscreen(CONSTANTS["game"]["loading"]):
                 logging.info("Loading!")
                 break
-            if onscreen(CONSTANTS['game']['gamelogic']['timer_1']) or league_game_already_running():
+            if onscreen(CONSTANTS["game"]["gamelogic"]["timer_1"]) or league_game_already_running():
                 logging.info("Already in game :O!")
                 break
     loading_match()
@@ -232,7 +290,7 @@ def loading_match() -> None:
     logging.info("Match Loading!")
     bring_league_game_to_forefront()
 
-    while not onscreen(CONSTANTS['game']['round']['1-1']) and not onscreen(CONSTANTS['game']['gamelogic']['timer_1']):
+    while not onscreen(CONSTANTS["game"]["round"]["1-1"]) and not onscreen(CONSTANTS["game"]["gamelogic"]["timer_1"]):
         time.sleep(0.5)
         # In case the client isn't already running, try waiting for it
         wait_for_league_running()
@@ -248,7 +306,7 @@ def loading_match() -> None:
 
 def start_match() -> None:
     """Do initial first round pathing to pick the first champ."""
-    while onscreen(CONSTANTS['game']['round']['1-1']):
+    while onscreen(CONSTANTS["game"]["round"]["1-1"]):
         shared_draft_pathing()
     logging.info("In the match now!")
     main_game_loop()
@@ -268,6 +326,7 @@ def shared_draft_pathing() -> None:
     auto.moveTo(1200, 460)
     click_right()
 
+
 def buy(iterations: int) -> None:
     """Attempt to purchase champs with the designated `wanted_traits`.
     This will iterate the attempts, but only if the gold is detected to at least be 1 (to avoid clicking when there is no gold available).
@@ -285,19 +344,23 @@ def buy(iterations: int) -> None:
             else:
                 return
 
+
 def click_ok_message() -> None:
     """Click the message OK button"""
-    click_to_middle(CONSTANTS['client']['messages']['buttons']['message_ok'])
+    click_to_middle(CONSTANTS["client"]["messages"]["buttons"]["message_ok"])
+
 
 def click_exit_message() -> None:
     """Click the message Exit button"""
-    click_to_middle(CONSTANTS['client']['messages']['buttons']['message_exit'])
+    click_to_middle(CONSTANTS["client"]["messages"]["buttons"]["message_exit"])
+
 
 def wait_for_internet() -> None:
     """Delay indefinitely until an internet is detected."""
     while not system_helpers.have_internet():
         logging.warning("Internet is not up, will retry in 60 seconds")
         time.sleep(60)
+
 
 def check_if_client_error() -> bool:
     """Check if any client error is detected.
@@ -306,20 +369,20 @@ def check_if_client_error() -> bool:
     Returns:
         bool: True if a client error message was detected.
     """
-    if onscreen(CONSTANTS['client']['messages']['session_expired']):
+    if onscreen(CONSTANTS["client"]["messages"]["session_expired"]):
         logging.info("Session expired!")
         click_ok_message()
         time.sleep(5)
         restart_league_client()
         return True
-    if onscreen(CONSTANTS['client']['messages']['failed_to_reconnect']):
+    if onscreen(CONSTANTS["client"]["messages"]["failed_to_reconnect"]):
         logging.info("Failed to reconnect!")
         click_exit_message()
         time.sleep(5)
         wait_for_internet()
         restart_league_client()
         return True
-    if onscreen(CONSTANTS['client']['messages']['login_servers_down']):
+    if onscreen(CONSTANTS["client"]["messages"]["login_servers_down"]):
         logging.info("Login servers down!")
         click_exit_message()
         time.sleep(5)
@@ -328,18 +391,20 @@ def check_if_client_error() -> bool:
         return True
     return False
 
+
 def check_if_client_popup() -> bool:
     """Checks if a popup may be interrupting the client
 
     Returns:
         bool: True if one is detected, False otherwise.
     """
-    if onscreen(CONSTANTS['client']['messages']['give_feedback']):
+    if onscreen(CONSTANTS["client"]["messages"]["give_feedback"]):
         logging.info("Client survey/feedback detected, clicking on (opening in browser) and continuing!")
-        click_to_middle(CONSTANTS['client']['messages']['give_feedback'])
+        click_to_middle(CONSTANTS["client"]["messages"]["give_feedback"])
         time.sleep(2)
         return True
     return False
+
 
 def exit_now_conditional() -> bool:
     """(Special function for `check_if_game_complete()` conditional.
@@ -349,6 +414,7 @@ def exit_now_conditional() -> bool:
         bool: False if the League game is running, True if it is running.
     """
     return not league_game_already_running()
+
 
 def check_if_game_complete() -> bool:
     """Check if the League game is complete.
@@ -362,18 +428,20 @@ def check_if_game_complete() -> bool:
         return True
     if check_if_client_popup():
         return True
-    if onscreen(CONSTANTS['client']['death']):
+    if onscreen(CONSTANTS["client"]["death"]):
         logging.info("Death detected")
-        click_to_middle(CONSTANTS['client']['death'])
+        click_to_middle(CONSTANTS["client"]["death"])
         time.sleep(3)
     if onscreen_multiple_any(exit_now_images):
         logging.info("End of game detected")
         exit_now_bool = click_to_middle_multiple(exit_now_images, conditional_func=exit_now_conditional, delay=1.5)
         logging.debug(f"Exit now clicking success: {exit_now_bool}")
         time.sleep(4)
-    return onscreen(CONSTANTS['client']['post_game']['play_again']) or \
-                onscreen(CONSTANTS['client']['pre_match']['quick_play']) or \
-                onscreen_multiple_any(skip_waiting_for_stats_images)
+    return (
+        onscreen(CONSTANTS["client"]["post_game"]["play_again"])
+        or onscreen(CONSTANTS["client"]["pre_match"]["quick_play"])
+        or onscreen_multiple_any(skip_waiting_for_stats_images)
+    )
 
 
 def attempt_reconnect_to_existing_game() -> bool:
@@ -382,9 +450,9 @@ def attempt_reconnect_to_existing_game() -> bool:
     Returns:
         bool: True if a reconnect is attempted, False otherwise.
     """
-    if onscreen(CONSTANTS['client']['reconnect']):
+    if onscreen(CONSTANTS["client"]["reconnect"]):
         logging.info("Reconnecting!")
-        click_to_middle(CONSTANTS['client']['reconnect'])
+        click_to_middle(CONSTANTS["client"]["reconnect"])
         return True
     return False
 
@@ -412,7 +480,7 @@ def check_if_gold_at_least(num: int) -> bool:
     logging.debug(f"Looking for at least {num} gold")
     for i in range(num + 1):
         try:
-            if onscreen_region_num_loop(CONSTANTS['game']['gold'][f"{i}"], 0.05, 5, 780, 850, 970, 920, 0.9):
+            if onscreen_region_num_loop(CONSTANTS["game"]["gold"][f"{i}"], 0.05, 5, 780, 850, 970, 920, 0.9):
                 logging.debug(f"Found {i} gold")
                 if i == num:
                     logging.debug("Correct")
@@ -425,7 +493,8 @@ def check_if_gold_at_least(num: int) -> bool:
             return True
     return True
 
-def main_game_loop() -> None: #pylint: disable=too-many-branches
+
+def main_game_loop() -> None:  # pylint: disable=too-many-branches
     """The main in-game loop.
 
     Skips 5 second increments if a pause logic request is made, repeating until toggled or an event triggers an early exit.
@@ -439,25 +508,25 @@ def main_game_loop() -> None: #pylint: disable=too-many-branches
         else:
             # Handle recurring round logic
             # Treasure dragon, dont reroll just take it
-            if onscreen(CONSTANTS['game']['gamelogic']['take_all']):
-                click_to_middle(CONSTANTS['game']['gamelogic']['take_all'])
+            if onscreen(CONSTANTS["game"]["gamelogic"]["take_all"]):
+                click_to_middle(CONSTANTS["game"]["gamelogic"]["take_all"])
                 time.sleep(0.25)
                 continue
             # Free champ round
-            if not onscreen(CONSTANTS['game']['round']['1-'], 0.9) and onscreen(CONSTANTS['game']['round']['-4'], 0.9):
+            if not onscreen(CONSTANTS["game"]["round"]["1-"], 0.9) and onscreen(CONSTANTS["game"]["round"]["-4"], 0.9):
                 logging.info("Round [X]-4, draft detected")
                 shared_draft_pathing()
                 continue
-            if onscreen(CONSTANTS['game']['round']['1-'], 0.9) or onscreen(CONSTANTS['game']['round']['2-'], 0.9):
+            if onscreen(CONSTANTS["game"]["round"]["1-"], 0.9) or onscreen(CONSTANTS["game"]["round"]["2-"], 0.9):
                 buy(3)
             # If round > 2, attempt re-rolls
-            if check_if_gold_at_least(4) and onscreen(CONSTANTS['game']['gamelogic']['xp_buy']):
-                click_to_middle(CONSTANTS['game']['gamelogic']['xp_buy'])
+            if check_if_gold_at_least(4) and onscreen(CONSTANTS["game"]["gamelogic"]["xp_buy"]):
+                click_to_middle(CONSTANTS["game"]["gamelogic"]["xp_buy"])
                 time.sleep(0.2)
                 continue
-            if not onscreen(CONSTANTS['game']['round']['1-'], 0.9) and not onscreen(CONSTANTS['game']['round']['2-'], 0.9):
-                if check_if_gold_at_least(2) and onscreen(CONSTANTS['game']['gamelogic']['reroll']):
-                    click_to_middle(CONSTANTS['game']['gamelogic']['reroll'])
+            if not onscreen(CONSTANTS["game"]["round"]["1-"], 0.9) and not onscreen(CONSTANTS["game"]["round"]["2-"], 0.9):
+                if check_if_gold_at_least(2) and onscreen(CONSTANTS["game"]["gamelogic"]["reroll"]):
+                    click_to_middle(CONSTANTS["game"]["gamelogic"]["reroll"])
 
             time.sleep(0.5)
 
@@ -465,7 +534,7 @@ def main_game_loop() -> None: #pylint: disable=too-many-branches
             match_complete()
             break
 
-        if CONFIG['FF_EARLY']:
+        if CONFIG["FF_EARLY"]:
             # Change the round to end the round early at a different time
             if not onscreen(CONSTANTS["game"]["1-"], 0.9) and not onscreen(CONSTANTS["game"]["2-", 0.9]):
                 if not onscreen("./captures/3-1.png", 0.9):
@@ -491,19 +560,20 @@ def end_match() -> None:
             logging.info("Skipping waiting for stats")
             click_to_middle_multiple(skip_waiting_for_stats_images)
             time.sleep(2)
-        if onscreen(CONSTANTS['client']['post_game']['play_again']):
+        if onscreen(CONSTANTS["client"]["post_game"]["play_again"]):
             logging.info("Attempting to play again")
             bring_league_client_to_forefront()
-            click_to_middle(CONSTANTS['client']['post_game']['play_again'], delay=0.5)
+            click_to_middle(CONSTANTS["client"]["post_game"]["play_again"], delay=0.5)
             time.sleep(2)
-        if onscreen(CONSTANTS['client']['pre_match']['quick_play']):
+        if onscreen(CONSTANTS["client"]["pre_match"]["quick_play"]):
             logging.info("Attempting to quick play")
-            click_to_middle(CONSTANTS['client']['pre_match']['quick_play'])
+            click_to_middle(CONSTANTS["client"]["pre_match"]["quick_play"])
             time.sleep(5)
-        if not onscreen_multiple_any(find_match_images) and onscreen(CONSTANTS['client']['tabs']['tft']['unselected'], precision=0.9):
+        if not onscreen_multiple_any(find_match_images) and onscreen(CONSTANTS["client"]["tabs"]["tft"]["unselected"], precision=0.9):
             logging.info("Detected that TFT tab is not selected, attempting to select")
-            click_to_middle(CONSTANTS['client']['tabs']['tft']['unselected'])
+            click_to_middle(CONSTANTS["client"]["tabs"]["tft"]["unselected"])
             time.sleep(2)
+
 
 def dismiss_interruptions() -> None:
     """Dismisses any 'earned key fragment' and 'mission completion' messages.
@@ -514,20 +584,21 @@ def dismiss_interruptions() -> None:
         logging.info("Dismissing key fragment")
         click_to_middle_multiple(key_fragment_images, 0.7)
         time.sleep(0.5)
-    while onscreen(CONSTANTS['client']['post_game']['missions_ok']):
+    while onscreen(CONSTANTS["client"]["post_game"]["missions_ok"]):
         logging.info("Dismissing mission")
         try:
-            localtime = time.localtime()    # added for printing time
-            current_time = time.strftime("%H%M%S", localtime) #for the changing file name
+            localtime = time.localtime()  # added for printing time
+            current_time = time.strftime("%H%M%S", localtime)  # for the changing file name
             Path(CONSTANTS["client"]["screenshot_location"]).mkdir(parents=True, exist_ok=True)
             my_screenshot = auto.screenshot()
             my_screenshot.save(rf'{CONSTANTS["client"]["screenshot_location"]}/{current_time}.png')
             time.sleep(0.5)
             logging.info("Screenshot of mission saved")
-            click_to_middle(CONSTANTS['client']['post_game']['missions_ok'])
+            click_to_middle(CONSTANTS["client"]["post_game"]["missions_ok"])
         except Exception as exception:
             logging.critical(exception)
         time.sleep(1)
+
 
 def match_complete() -> None:
     """Print a log timer to update the time passed and number of games completed (rough estimation), and begin the end of match logic."""
@@ -543,21 +614,21 @@ def surrender() -> None:
     """
     counter = 0
     surrenderwait = random.randint(100, 150)
-    logging.info(f'Waiting {surrenderwait} seconds ({surrenderwait / 60 } minutes) to surrender')
+    logging.info(f"Waiting {surrenderwait} seconds ({surrenderwait / 60 } minutes) to surrender")
     time.sleep(surrenderwait)
     logging.info("Starting surrender")
-    click_to_middle(CONSTANTS['game']['settings'])
+    click_to_middle(CONSTANTS["game"]["settings"])
 
-    while not onscreen(CONSTANTS['game']['surrender']['surrender_1']):
+    while not onscreen(CONSTANTS["game"]["surrender"]["surrender_1"]):
         # just in case it gets interrupted or misses
-        click_to_middle(CONSTANTS['game']['settings'])
+        click_to_middle(CONSTANTS["game"]["settings"])
         time.sleep(1)
         counter = counter + 1
         if counter > 20:
             break
     counter = 0
-    while not onscreen(CONSTANTS['game']['surrender']['surrender_2']):
-        click_to_middle(CONSTANTS['game']['surrender']['surrender_1'])
+    while not onscreen(CONSTANTS["game"]["surrender"]["surrender_2"]):
+        click_to_middle(CONSTANTS["game"]["surrender"]["surrender_1"])
         # added a check here for the rare case that the game ended before the surrender finished.
         if check_if_post_game():
             return
@@ -566,7 +637,7 @@ def surrender() -> None:
             break
 
     time.sleep(1)
-    click_to_middle(CONSTANTS['game']['surrender']['surrender_2'])
+    click_to_middle(CONSTANTS["game"]["surrender"]["surrender_2"])
     time.sleep(10)
     end_match()
     time.sleep(5)
@@ -580,11 +651,11 @@ def print_timer() -> None:
     global END_TIMER, GAME_COUNT
     END_TIMER = time.time()
     GAME_COUNT += 1
-    sec = (END_TIMER - START_TIMER)
+    sec = END_TIMER - START_TIMER
     hours = sec // 3600
-    sec = sec - hours*3600
+    sec = sec - hours * 3600
     mins = sec // 60
-    seconds = sec - mins*60
+    seconds = sec - mins * 60
     gamecount_string = str(GAME_COUNT)
 
     logging.info("-------------------------------------")
@@ -594,6 +665,7 @@ def print_timer() -> None:
     logging.info(f"Play Time : {int(float(hours))} Hour, {int(float(mins))} Min, {int(float(seconds))} Sec")
     logging.info(f"Gamecount : {gamecount_string}")
     logging.info("-------------------------------------")
+
 
 def tft_bot_loop() -> None:
     """Main loop to ensure various errors don't unhinge/break the bot.
@@ -607,22 +679,33 @@ def tft_bot_loop() -> None:
             time.sleep(5)
             continue
 
+
 def load_settings():
     """Load settings for the bot.
 
     Any CLI-set settings take highest precedence, then falling back on config values, then to defaults.
     """
     arg_parser = argparse.ArgumentParser(prog="TFT Bot")
-    arg_parser.add_argument("--ffearly", action='store_true', help="If the game should be surrendered at first available time.")
-    arg_parser.add_argument("-v", "--verbose", action="store_true", help="Increase output verbosity, mostly useful for debugging")
+    arg_parser.add_argument(
+        "--ffearly",
+        action="store_true",
+        help="If the game should be surrendered at first available time.",
+    )
+    arg_parser.add_argument(
+        "-v",
+        "--verbose",
+        action="store_true",
+        help="Increase output verbosity, mostly useful for debugging",
+    )
     parsed_args = arg_parser.parse_args()
 
     config = configparser.ConfigParser()
-    config.read('bot_settings.ini')
+    config.read("bot_settings.ini")
 
-    CONFIG['FF_EARLY'] = parsed_args.ffearly or config.getboolean('SETTINGS', 'ForfeitEarly', fallback=False)
-    CONFIG['VERBOSE'] = parsed_args.verbose or config.getboolean('SETTINGS', 'Verbose', fallback=False)
-    CONFIG['OVERRIDE_INSTALL_DIR'] = config.get('SETTINGS', 'OverrideInstallLocation', fallback=None)
+    CONFIG["FF_EARLY"] = parsed_args.ffearly or config.getboolean("SETTINGS", "ForfeitEarly", fallback=False)
+    CONFIG["VERBOSE"] = parsed_args.verbose or config.getboolean("SETTINGS", "Verbose", fallback=False)
+    CONFIG["OVERRIDE_INSTALL_DIR"] = config.get("SETTINGS", "OverrideInstallLocation", fallback=None)
+
 
 def update_league_constants(league_install_location: str) -> None:
     """Update League executable constants
@@ -630,9 +713,15 @@ def update_league_constants(league_install_location: str) -> None:
     Args:
         league_install_location (str): The determined location for the executables
     """
-    CONSTANTS['executables']['league']['client'] = rf"{league_install_location}{CONSTANTS['executables']['league']['client']}"
-    CONSTANTS['executables']['league']['client_ux'] = rf"{league_install_location}{CONSTANTS['executables']['league']['client_ux']}"
-    CONSTANTS['executables']['league']['game'] = rf"{league_install_location}{CONSTANTS['executables']['league']['game']}"
+    CONSTANTS["executables"]["league"]["client"] = rf"{league_install_location}{CONSTANTS['executables']['league']['client']}"
+    CONSTANTS["executables"]["league"]["client_ux"] = rf"{league_install_location}{CONSTANTS['executables']['league']['client_ux']}"
+    CONSTANTS["executables"]["league"]["game"] = rf"{league_install_location}{CONSTANTS['executables']['league']['game']}"
+
+
+def setup_hotkeys() -> None:
+    """Setup hotkey listeners"""
+    keyboard.add_hotkey("alt+p", lambda: toggle_pause())  # pylint: disable=unnecessary-lambda
+    keyboard.add_hotkey("alt+n", lambda: toggle_play_next_game())  # pylint: disable=unnecessary-lambda
 
 
 def main():
@@ -643,24 +732,25 @@ def main():
     load_settings()
 
     logging_handlers = [logging.StreamHandler()]
-    if CONFIG['VERBOSE']:
+    if CONFIG["VERBOSE"]:
         logging_handlers.append(logging.FileHandler("debug.log"))
 
-    if CONFIG['VERBOSE']:
+    if CONFIG["VERBOSE"]:
         logging.info("Will explain everything and be very verbose")
     else:
         logging.info("Will be quiet and not be very verbose")
 
-    if CONFIG['FF_EARLY']:
+    if CONFIG["FF_EARLY"]:
         logging.info("FF Early Specified - Will surrender at first available time")
     else:
         logging.info("FF Early Not Specified - Will play out games for their duration")
 
     system_helpers.disable_quickedit()
-    os.system('color 0F')
+    os.system("color 0F")
     # Start auth + main script
     logging.info("Initial codebase by:")
-    printy(r"""
+    printy(
+        r"""
     [c>] _____       _                            _   @
     [c>]|  __ \     | |                          | |  @
     [c>]| |  | | ___| |_ ___ _ __ __ _  ___ _ __ | |_ @
@@ -669,46 +759,64 @@ def main():
     [c>]|_____/ \___|\__\___|_|  \__, |\___|_| |_|\__|@
     [c>]                          __/ |               @
     [c>]                         |___/                @
-    """, "{k}")
+    """,
+        "{k}",
+    )
     logging.info("Re-written by:")
-    printy(r"""
+    printy(
+        r"""
     [c>]    __ __              __              __                __                  __  @
     [c>]   / //_/__  __ _____ / /__  __ _____ / /__ ___   _____ / /_   __  __ _____ / /__@
     [c>]  / ,<  / / / // ___// // / / // ___// //_// _ \ / ___// __ \ / / / // ___// //_/@
     [c>] / /| |/ /_/ // /   / // /_/ // /__ / ,<  /  __// /__ / / / // /_/ // /__ / ,<   @
     [c>]/_/ |_|\__, //_/   /_/ \__,_/ \___//_/|_| \___/ \___//_/ /_/ \__,_/ \___//_/|_|  @
     [c>]      /____/                                                                     @
-    """, "{k}")
-    os.system('color 0F')
+    """,
+        "{k}",
+    )
+    os.system("color 0F")
 
     script_name = os.path.splitext(os.path.basename(sys.argv[0]))[0]
-    appdata_path = system_helpers.expand_environment_variables(CONSTANTS['storage']['appdata'])
+    appdata_path = system_helpers.expand_environment_variables(CONSTANTS["storage"]["appdata"])
     if not setup_logging(
-            console_log_output="stdout",
-            console_log_level="debug" if CONFIG['VERBOSE'] else "info",
-            console_log_color=True,
-            logfile_file=f"{appdata_path}/{script_name}.log",
-            logfile_log_level="debug",
-            logfile_log_color=False,
-            log_line_template="%(color_on)s[%(created)d] [%(threadName)s] %(levelname)-8s || %(message)s%(color_off)s"
-        ):
+        console_log_output="stdout",
+        console_log_level="debug" if CONFIG["VERBOSE"] else "info",
+        console_log_color=True,
+        logfile_file=f"{appdata_path}/{script_name}.log",
+        logfile_log_level="debug",
+        logfile_log_color=False,
+        log_line_template="%(color_on)s[%(created)d] [%(threadName)s] %(levelname)-8s || %(message)s%(color_off)s",
+    ):
         print("Failed to set up logger, continue with caution!")
-        if auto.confirm(title="TFT Auto Bot - Logging Setup Failure",
-                text="Failed to set up logger, continue with caution!\n", buttons=['Proceed', 'Cancel']) == "Cancel":
+        if (
+            auto.confirm(
+                title="TFT Auto Bot - Logging Setup Failure",
+                text="Failed to set up logger, continue with caution!\n",
+                buttons=["Proceed", "Cancel"],
+            )
+            == "Cancel"
+        ):
             print("Startup aborted!")
             sys.exit(1)
     else:
         logging.info("===== TFT Bot Started =====")
 
+    setup_hotkeys()
+
     logging.info("Welcome! \nPlease feel free to ask questions or contribute at https://github.com/Kyrluckechuck/tft-bot")
-    if auto.confirm(title="TFT Auto Bot", text="Press Start when the bot should continue!\n", buttons=['Start', 'Cancel']) != 'Start':
+    if (
+        auto.confirm(
+            title="TFT Auto Bot",
+            text="Press Start when the bot should continue!\n",
+            buttons=["Start", "Cancel"],
+        )
+        != "Start"
+    ):
         logging.critical("Intialization completed but aborting by user choice!")
         sys.exit(1)
     logging.info("Bot started, queuing up!")
 
-    keyboard.add_hotkey('alt+p', lambda: toggle_pause()) #pylint: disable=unnecessary-lambda
-
-    league_directory_to_set = system_helpers.determine_league_install_location(CONFIG['OVERRIDE_INSTALL_DIR'])
+    league_directory_to_set = system_helpers.determine_league_install_location(CONFIG["OVERRIDE_INSTALL_DIR"])
     update_league_constants(league_directory_to_set)
 
     global START_TIMER

@@ -3,9 +3,7 @@
 import os
 
 CONSTANTS = {
-    "storage": {
-        "appdata": "%APPDATA%/TFT Bot"
-    },
+    "storage": {"appdata": "%APPDATA%/TFT Bot"},
     "executables": {
         "league": {
             "client": r"\LeagueClient.exe",
@@ -16,7 +14,7 @@ CONSTANTS = {
     "processes": {
         "client": "LeagueClient.exe",
         "client_ux": "LeagueClientUx.exe",
-        "game": "League of Legends.exe"
+        "game": "League of Legends.exe",
     },
     "tft_logo": {
         "base": "captures/tft_logo.png",
@@ -27,7 +25,7 @@ CONSTANTS = {
         "tabs": {
             "tft": {
                 "unselected": "captures/buttons/tab_tft_unselected.png",
-                "selected": "captures/buttons/tab_tft_selected.png"
+                "selected": "captures/buttons/tab_tft_selected.png",
             }
         },
         "pre_match": {
@@ -39,7 +37,7 @@ CONSTANTS = {
             },
             "lobby": {
                 "normal": "captures/tft_lobby_normal.png",
-            }
+            },
         },
         "in_queue": {
             "base": "captures/buttons/in_queue.png",
@@ -56,7 +54,7 @@ CONSTANTS = {
             "skip_waiting_for_stats": {
                 "original": "captures/buttons/skip_waiting_for_stats.png",
                 "base": "captures/buttons/skip_waiting_for_stats_base.png",
-                "highlighted": "captures/buttons/skip_waiting_for_stats_highlighted.png"
+                "highlighted": "captures/buttons/skip_waiting_for_stats_highlighted.png",
             },
             "play_again": "captures/buttons/play_again.png",
             "missions_ok": "captures/buttons/missions_ok.png",
@@ -70,8 +68,8 @@ CONSTANTS = {
             "buttons": {
                 "message_ok": "captures/buttons/message_ok.png",
                 "message_exit": "captures/buttons/message_exit.png",
-            }
-        }
+            },
+        },
     },
     "game": {
         "loading": "captures/loading.png",
@@ -146,29 +144,29 @@ CONSTANTS = {
 }
 
 find_match_images = [
-    CONSTANTS['client']['pre_match']['find_match']['base'],
-    CONSTANTS['client']['pre_match']['find_match']['highlighted'],
-    CONSTANTS['client']['pre_match']['find_match']['original'],
+    CONSTANTS["client"]["pre_match"]["find_match"]["base"],
+    CONSTANTS["client"]["pre_match"]["find_match"]["highlighted"],
+    CONSTANTS["client"]["pre_match"]["find_match"]["original"],
 ]
 
 exit_now_images = [
-    CONSTANTS['game']['exit_now']['base'],
-    CONSTANTS['game']['exit_now']['highlighted'],
+    CONSTANTS["game"]["exit_now"]["base"],
+    CONSTANTS["game"]["exit_now"]["highlighted"],
 ]
 
 skip_waiting_for_stats_images = [
-    CONSTANTS['client']['post_game']['skip_waiting_for_stats']['original'],
-    CONSTANTS['client']['post_game']['skip_waiting_for_stats']['base'],
-    CONSTANTS['client']['post_game']['skip_waiting_for_stats']['highlighted'],
+    CONSTANTS["client"]["post_game"]["skip_waiting_for_stats"]["original"],
+    CONSTANTS["client"]["post_game"]["skip_waiting_for_stats"]["base"],
+    CONSTANTS["client"]["post_game"]["skip_waiting_for_stats"]["highlighted"],
 ]
 
 key_fragment_images = [
-    CONSTANTS['client']['key_fragment']['one'],
-    CONSTANTS['client']['key_fragment']['two'],
+    CONSTANTS["client"]["key_fragment"]["one"],
+    CONSTANTS["client"]["key_fragment"]["two"],
 ]
 
 wanted_traits = [
-    CONSTANTS['game']['trait']['lasercorps'],
-    CONSTANTS['game']['trait']['brawler'],
-    CONSTANTS['game']['trait']['star_guardian']
+    CONSTANTS["game"]["trait"]["lasercorps"],
+    CONSTANTS["game"]["trait"]["brawler"],
+    CONSTANTS["game"]["trait"]["star_guardian"],
 ]
