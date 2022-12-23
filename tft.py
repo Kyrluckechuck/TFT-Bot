@@ -254,6 +254,9 @@ def queue() -> None:  # pylint: disable=too-many-branches
             bring_league_client_to_forefront()
             dismiss_interruptions()
             if not is_in_queue():
+                # If not already in queue, abort searching and loop
+                if not PLAY_NEXT_GAME:
+                    continue
                 if is_in_tft_lobby():
                     logging.info("TFT lobby detected, finding match")
                     find_match()
