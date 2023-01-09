@@ -6,7 +6,7 @@ psutil==5.9.4
 argparse==1.4.0
 pywin32==305
 pyinstaller==5.7.0
-pylint==2.15.9
+pylint==2.15.10
 keyboard==0.13.5
 isort[requirements_deprecated_finder,pipfile_deprecated_finder]==5.11.3
 pytest==7.2.0
