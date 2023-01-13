@@ -25,6 +25,7 @@ from constants import find_match_images
 from constants import key_fragment_images
 from constants import skip_waiting_for_stats_images
 from constants import wanted_traits
+from constants import unselected_tft_tabs
 from logging_helper import setup_logging
 from screen_helpers import onscreen
 from screen_helpers import onscreen_multiple_any
@@ -572,9 +573,9 @@ def end_match() -> None:
             logging.info("Attempting to quick play")
             click_to_middle(CONSTANTS["client"]["pre_match"]["quick_play"])
             time.sleep(5)
-        if not onscreen_multiple_any(find_match_images) and onscreen(CONSTANTS["client"]["tabs"]["tft"]["unselected"], precision=0.9):
+        if not onscreen_multiple_any(find_match_images) and onscreen_multiple_any(unselected_tft_tabs, precision=0.9):
             logging.info("Detected that TFT tab is not selected, attempting to select")
-            click_to_middle(CONSTANTS["client"]["tabs"]["tft"]["unselected"])
+            click_to_middle_multiple(unselected_tft_tabs)
             time.sleep(2)
 
 

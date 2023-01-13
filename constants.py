@@ -24,7 +24,10 @@ CONSTANTS = {
         "screenshot_location": f"{os.getcwd()}/screenshots",
         "tabs": {
             "tft": {
-                "unselected": "captures/buttons/tab_tft_unselected.png",
+                "unselected": {
+                    "1": "captures/buttons/tab_tft_unselected_1.png",
+                    "2": "captures/buttons/tab_tft_unselected_2.png",
+                },
                 "selected": "captures/buttons/tab_tft_selected.png",
             }
         },
@@ -33,7 +36,6 @@ CONSTANTS = {
             "find_match": {
                 "base": "captures/buttons/find_match.png",
                 "highlighted": "captures/buttons/find_match_highlighted.png",
-                "original": "captures/buttons/find_match_original.png",
             },
             "lobby": {
                 "normal": "captures/tft_lobby_normal.png",
@@ -146,7 +148,6 @@ CONSTANTS = {
 find_match_images = [
     CONSTANTS["client"]["pre_match"]["find_match"]["base"],
     CONSTANTS["client"]["pre_match"]["find_match"]["highlighted"],
-    CONSTANTS["client"]["pre_match"]["find_match"]["original"],
 ]
 
 exit_now_images = [
@@ -169,4 +170,9 @@ wanted_traits = [
     CONSTANTS["game"]["trait"]["lasercorps"],
     CONSTANTS["game"]["trait"]["brawler"],
     CONSTANTS["game"]["trait"]["star_guardian"],
+]
+
+unselected_tft_tabs = [
+    CONSTANTS["client"]["tabs"]["tft"]["unselected"]["1"],
+    CONSTANTS["client"]["tabs"]["tft"]["unselected"]["2"],
 ]
