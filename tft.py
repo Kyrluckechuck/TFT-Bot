@@ -24,8 +24,8 @@ from constants import exit_now_images
 from constants import find_match_images
 from constants import key_fragment_images
 from constants import skip_waiting_for_stats_images
-from constants import wanted_traits
 from constants import unselected_tft_tabs
+from constants import wanted_traits
 from logging_helper import setup_logging
 from screen_helpers import onscreen
 from screen_helpers import onscreen_multiple_any
