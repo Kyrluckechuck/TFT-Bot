@@ -19,6 +19,7 @@ import pyautogui as auto
 from click_helpers import click_right
 from click_helpers import click_to_middle
 from click_helpers import click_to_middle_multiple
+from constants import accept_match_images
 from constants import CONSTANTS
 from constants import exit_now_images
 from constants import find_match_images
@@ -186,7 +187,7 @@ def find_match() -> None:
         time.sleep(1)
         while not onscreen(CONSTANTS["game"]["loading"]) and not onscreen(CONSTANTS["game"]["round"]["1-1"]) and is_in_queue():
             bring_league_client_to_forefront()
-            click_to_middle(CONSTANTS["client"]["in_queue"]["accept"])
+            click_to_middle_multiple(accept_match_images)
             time.sleep(1)
 
             if not is_in_queue():
