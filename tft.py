@@ -574,6 +574,10 @@ def end_match() -> None:
             logging.info("Attempting to quick play")
             click_to_middle(CONSTANTS["client"]["pre_match"]["quick_play"])
             time.sleep(5)
+        if onscreen(CONSTANTS["client"]["tabs"]["tft"]["subtab_home"]):
+            logging.info("Attempting to select TFT subtab 'home'")
+            click_to_middle(CONSTANTS["client"]["tabs"]["tft"]["subtab_home"])
+            time.sleep(5)
         if not onscreen_multiple_any(find_match_images) and onscreen_multiple_any(unselected_tft_tabs, precision=0.9):
             logging.info("Detected that TFT tab is not selected, attempting to select")
             click_to_middle_multiple(unselected_tft_tabs)

@@ -29,6 +29,7 @@ CONSTANTS = {
                     "2": "captures/buttons/tab_tft_unselected_2.png",
                 },
                 "selected": "captures/buttons/tab_tft_selected.png",
+                "subtab_home": "captures/buttons/tft_subtab_home.png"
             }
         },
         "pre_match": {
