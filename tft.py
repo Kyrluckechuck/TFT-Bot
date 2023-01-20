@@ -209,11 +209,13 @@ def wait_for_league_running() -> bool:
     Returns:
         bool: True if the game is running, False otherwise.
     """
+    logging.info("Pausing bot to watch for league game startup (30 second timeout)")
     counter = 0
     while not league_game_already_running():
         counter = counter + 1
         time.sleep(0.5)
         if counter > 60:
+            logging.info("Timed out, moving on!")
             break
     return league_game_already_running()
 
@@ -394,6 +396,14 @@ def check_if_client_error() -> bool:
         wait_for_internet()
         restart_league_client()
         return True
+    if onscreen(CONSTANTS["client"]["messages"]["players_are_not_ready"]):
+        logging.info("Player not ready detected, waiting to see if it stays")
+        time.sleep(5)
+        if onscreen(CONSTANTS["client"]["messages"]["players_are_not_ready"]):
+            logging.error("Player not ready did not dismiss, restarting client!")
+            restart_league_client()
+            return True
+        logging.info("Player not ready dismissed, continuing on")
     return False
 
 

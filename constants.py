@@ -72,6 +72,7 @@ CONSTANTS = {
             "session_expired": "captures/messages/session_expired.png",
             "failed_to_reconnect": "captures/messages/failed_to_reconnect.png",
             "login_servers_down": "captures/messages/login_servers_down.png",
+            "players_are_not_ready": "captures/messages/players_are_not_ready.png",
             "buttons": {
                 "message_ok": "captures/buttons/message_ok.png",
                 "message_exit": "captures/buttons/message_exit.png",
