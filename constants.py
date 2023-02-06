@@ -27,8 +27,9 @@ CONSTANTS = {
                 "unselected": {
                     "1": "captures/buttons/tab_tft_unselected_1.png",
                     "2": "captures/buttons/tab_tft_unselected_2.png",
+                    "3": "captures/buttons/tab_tft_unselected_3.png",
+                    "4": "captures/buttons/tab_tft_unselected_highlighted.png",
                 },
-                "selected": "captures/buttons/tab_tft_selected.png",
                 "subtab_home": "captures/buttons/tft_subtab_home.png"
             }
         },
@@ -189,4 +190,6 @@ wanted_traits = [
 unselected_tft_tabs = [
     CONSTANTS["client"]["tabs"]["tft"]["unselected"]["1"],
     CONSTANTS["client"]["tabs"]["tft"]["unselected"]["2"],
+    CONSTANTS["client"]["tabs"]["tft"]["unselected"]["3"],
+    CONSTANTS["client"]["tabs"]["tft"]["unselected"]["4"],
 ]
