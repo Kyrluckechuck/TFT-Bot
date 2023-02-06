@@ -524,42 +524,38 @@ def main_game_loop() -> None:  # pylint: disable=too-many-branches
     while should_exit is False:
         if PAUSE_LOGIC:
             time.sleep(5)
-        else:
-            # Handle recurring round logic
-            # Treasure dragon, dont reroll just take it
-            if onscreen(CONSTANTS["game"]["gamelogic"]["take_all"]):
-                click_to_middle(CONSTANTS["game"]["gamelogic"]["take_all"])
-                time.sleep(0.25)
-                continue
-            # Free champ round
-            if not onscreen(CONSTANTS["game"]["round"]["1-"], 0.9) and onscreen(CONSTANTS["game"]["round"]["-4"], 0.9):
-                logging.info("Round [X]-4, draft detected")
-                shared_draft_pathing()
-                continue
-            if onscreen(CONSTANTS["game"]["round"]["1-"], 0.9) or onscreen(CONSTANTS["game"]["round"]["2-"], 0.9):
-                buy(3)
-            # If round > 2, attempt re-rolls
-            if check_if_gold_at_least(4) and onscreen(CONSTANTS["game"]["gamelogic"]["xp_buy"]):
-                click_to_middle(CONSTANTS["game"]["gamelogic"]["xp_buy"])
-                time.sleep(0.2)
-                continue
-            if not onscreen(CONSTANTS["game"]["round"]["1-"], 0.9) and not onscreen(CONSTANTS["game"]["round"]["2-"], 0.9):
-                if check_if_gold_at_least(2) and onscreen(CONSTANTS["game"]["gamelogic"]["reroll"]):
-                    click_to_middle(CONSTANTS["game"]["gamelogic"]["reroll"])
+            continue
 
-            time.sleep(0.5)
+        # Free champ round
+        if not onscreen(CONSTANTS["game"]["round"]["1-"], 0.9) and onscreen(CONSTANTS["game"]["round"]["-4"], 0.9):
+            logging.info("Round [X]-4, draft detected")
+            shared_draft_pathing()
+            continue
+
+        if onscreen(CONSTANTS["game"]["round"]["1-"], 0.9) or onscreen(CONSTANTS["game"]["round"]["2-"], 0.9):
+            buy(3)
+            continue
+
+        if CONFIG["FF_EARLY"] and onscreen(CONSTANTS["game"]["round"]["3-"]):
+            logging.info("Surrendering now!")
+            surrender()
+            break
+
+        # If round > 2, attempt re-rolls
+        if check_if_gold_at_least(4) and onscreen(CONSTANTS["game"]["gamelogic"]["xp_buy"]):
+            click_to_middle(CONSTANTS["game"]["gamelogic"]["xp_buy"])
+            time.sleep(0.2)
+            continue
+
+        if not onscreen(CONSTANTS["game"]["round"]["1-"], 0.9) and not onscreen(CONSTANTS["game"]["round"]["2-"], 0.9):
+            if check_if_gold_at_least(2) and onscreen(CONSTANTS["game"]["gamelogic"]["reroll"]):
+                click_to_middle(CONSTANTS["game"]["gamelogic"]["reroll"])
+
+        time.sleep(0.5)
 
         if check_if_post_game():
             match_complete()
             break
-
-        if CONFIG["FF_EARLY"]:
-            # Change the round to end the round early at a different time
-            if not onscreen(CONSTANTS["game"]["1-"], 0.9) and not onscreen(CONSTANTS["game"]["2-", 0.9]):
-                if not onscreen("./captures/3-1.png", 0.9):
-                    logging.info("Surrendering now!")
-                    surrender()
-                    break
 
 
 def end_match() -> None:
@@ -758,16 +754,6 @@ def main():
     if CONFIG["VERBOSE"]:
         logging_handlers.append(logging.FileHandler("debug.log"))
 
-    if CONFIG["VERBOSE"]:
-        logging.info("Will explain everything and be very verbose")
-    else:
-        logging.info("Will be quiet and not be very verbose")
-
-    if CONFIG["FF_EARLY"]:
-        logging.info("FF Early Specified - Will surrender at first available time")
-    else:
-        logging.info("FF Early Not Specified - Will play out games for their duration")
-
     system_helpers.disable_quickedit()
     os.system("color 0F")
     # Start auth + main script
@@ -823,6 +809,16 @@ def main():
             sys.exit(1)
     else:
         logging.info("===== TFT Bot Started =====")
+
+    if CONFIG["VERBOSE"]:
+        logging.info("Will explain everything and be very verbose")
+    else:
+        logging.info("Will be quiet and not be very verbose")
+
+    if CONFIG["FF_EARLY"]:
+        logging.info("FF Early Specified - Will surrender at first available time")
+    else:
+        logging.info("FF Early Not Specified - Will play out games for their duration")
 
     setup_hotkeys()
 

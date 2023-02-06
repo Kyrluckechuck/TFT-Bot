@@ -111,6 +111,7 @@ CONSTANTS = {
             "-4": "captures/round/-4.png",
             "1-": "captures/round/1-.png",
             "2-": "captures/round/2-.png",
+            "3-": "captures/round/3-.png",
             "1-1": "captures/round/1-1.png",
             "2-2": "captures/round/2-2.png",
             "2-3": "captures/round/2-3.png",
