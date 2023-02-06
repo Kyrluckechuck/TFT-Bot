@@ -23,6 +23,7 @@ from constants import accept_match_images
 from constants import CONSTANTS
 from constants import exit_now_images
 from constants import find_match_images
+from constants import give_feedback
 from constants import key_fragment_images
 from constants import skip_waiting_for_stats_images
 from constants import unselected_tft_tabs
@@ -413,9 +414,9 @@ def check_if_client_popup() -> bool:
     Returns:
         bool: True if one is detected, False otherwise.
     """
-    if onscreen(CONSTANTS["client"]["messages"]["give_feedback"]):
+    if onscreen_multiple_any(give_feedback) :
         logging.info("Client survey/feedback detected, clicking on (opening in browser) and continuing!")
-        click_to_middle(CONSTANTS["client"]["messages"]["give_feedback"])
+        onscreen_multiple_any(give_feedback)
         time.sleep(2)
         return True
     return False
