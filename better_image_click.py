@@ -1,11 +1,11 @@
 """A 'better' center-of-image clicking implementation."""
-import logging
 import time
 
 import cv2
 import pyautogui as auto
 
 from generic_helpers import rand_func
+from loguru import logger
 
 
 def click_image_rand(image, pos, action, move_duration, offset="half", delay=0.1) -> bool:  # pylint: disable=too-many-arguments
@@ -29,7 +29,7 @@ def click_image_rand(image, pos, action, move_duration, offset="half", delay=0.1
     """
     img = cv2.imread(image)
     if img is None:
-        logging.debug(f"Image file not found: {image}")
+        logger.debug(f"Image file not found: {image}")
         return False
     height, width, _channel = img.shape
     offset_to_use = min(height, width) / 2

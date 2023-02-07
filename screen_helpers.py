@@ -1,10 +1,9 @@
 """A collection of screen helpers for detecting when images are on screen."""
-
-import logging
 import time
 
 from python_imagesearch import imagesearch
 
+from loguru import logger
 from system_helpers import resource_path
 
 
@@ -39,11 +38,11 @@ def onscreen_multiple_any(paths: list[str], precision: float = 0.8) -> bool:
         for path in paths:
             path = resource_path(path)
             is_onscreen = imagesearch.imagesearch(path, precision)[0]
-            # logging.debug(f"is_onscreen: {is_onscreen != -1}") #Advanced debugging not even normally needed
+            # logger.debug(f"is_onscreen: {is_onscreen != -1}") #Advanced debugging not even normally needed
             if is_onscreen != -1:
                 return True
     except Exception as err:
-        logging.debug(f"multiple_onscreen_any error: {err}")
+        logger.debug(f"multiple_onscreen_any error: {err}")
 
     return False
 
@@ -175,12 +174,12 @@ def find_image_multiple_any(paths: list[str], precision: float = 0.8) -> (None |
         for path in paths:
             path = resource_path(path)
             pos = imagesearch.imagesearch(path, precision)
-            # logging.debug(f"is_onscreen: {pos[0] != -1}") #Advanced debugging not even normally needed
+            # logger.debug(f"is_onscreen: {pos[0] != -1}") #Advanced debugging not even normally needed
             if pos[0] != -1:
                 return pos
             return None
     except Exception as err:
-        logging.debug(f"multiple_onscreen_any error: {err}")
+        logger.debug(f"multiple_onscreen_any error: {err}")
 
     return None
 

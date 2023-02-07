@@ -1,5 +1,4 @@
 """A collection of click helpers."""
-import logging
 import random
 import time
 from typing import Callable
@@ -9,6 +8,7 @@ from python_imagesearch import imagesearch
 
 from better_image_click import click_image_rand
 import generic_helpers
+from loguru import logger
 from screen_helpers import find_image
 from screen_helpers import onscreen
 from system_helpers import resource_path
@@ -70,9 +70,9 @@ def click_to(path: str, precision: float = 0.8, delay: float = 0.1) -> None:
             auto.moveTo(imagesearch.imagesearch(path))
             click_left(delay)
         except Exception as err:
-            logging.debug(f"Failed to click to {err}")
+            logger.debug(f"Failed to click to {err}")
     else:
-        logging.debug(f"Could not find '{path}', skipping")
+        logger.debug(f"Could not find '{path}', skipping")
 
 
 def click_to_multiple(images: list[str], conditional_func: Callable | None = None, delay: float = None) -> bool:
@@ -91,7 +91,7 @@ def click_to_multiple(images: list[str], conditional_func: Callable | None = Non
         try:
             click_to(image)
         except Exception:
-            logging.debug(f"Failed to click {image}")
+            logger.debug(f"Failed to click {image}")
         if generic_helpers.is_var_number(delay):
             time.sleep(delay)
         if generic_helpers.is_var_function(conditional_func) and conditional_func():
@@ -153,9 +153,9 @@ def click_to_middle(  # pylint: disable=too-many-arguments
                 offset=offset,
             )
         except Exception as err:
-            logging.debug(f"M|Failed to click to {err}")
+            logger.debug(f"M|Failed to click to {err}")
     else:
-        logging.debug(f"M|Could not find '{path}', skipping")
+        logger.debug(f"M|Could not find '{path}', skipping")
     return False
 
 
@@ -183,7 +183,7 @@ def click_to_middle_multiple(
         try:
             click_to_middle(image, precision=precision, action=action)
         except Exception:
-            logging.debug(f"M|Failed to click {image}")
+            logger.debug(f"M|Failed to click {image}")
         if generic_helpers.is_var_number(delay):
             time.sleep(delay)
         if generic_helpers.is_var_function(conditional_func) and conditional_func():

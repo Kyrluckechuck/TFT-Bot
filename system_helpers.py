@@ -1,6 +1,5 @@
 """A collection of system-level helpers"""
 import http.client as httplib
-import logging
 import os
 import pathlib
 import sys
@@ -10,6 +9,8 @@ import psutil
 import win32com.client
 import win32gui
 import win32process
+
+from loguru import logger
 
 try:
     import ctypes
@@ -45,11 +46,11 @@ def bring_window_to_forefront(window_title: str, path_to_verify: str | None = No
             _, pid = win32process.GetWindowThreadProcessId(hwnd)
             path = psutil.Process(pid).exe()
             if path != path_to_verify:
-                logging.debug(f"Failed to find process to bring to forefront:\n\t{path} != {path_to_verify}")
+                logger.debug(f"Failed to find process to bring to forefront:\n\t{path} != {path_to_verify}")
                 return
         set_active_window(hwnd)
     except Exception as err:
-        logging.debug(f"Failed to click to {err}")
+        logger.debug(f"Failed to click to {err}")
 
 
 def find_in_processes(executable_path: str) -> bool:
@@ -83,10 +84,10 @@ def have_internet(ip_to_ping="1.1.1.1") -> bool:
     conn = httplib.HTTPSConnection(ip_to_ping, timeout=5)
     try:
         conn.request("HEAD", "/")
-        logging.debug(f"Success pinging {ip_to_ping}")
+        logger.debug(f"Success pinging {ip_to_ping}")
         return True
     except Exception:
-        logging.debug(f"Can not ping {ip_to_ping}")
+        logger.debug(f"Can not ping {ip_to_ping}")
         return False
     finally:
         conn.close()
@@ -101,10 +102,10 @@ def disable_quickedit() -> None:
             device = r"\\.\CONIN$"
             with open(device, "r") as con:  # pylint: disable=unspecified-encoding
                 file_handle = msvcrt.get_osfhandle(con.fileno())
-                kernel32.SetConsoleMode(file_handle, 0x0080)
+                kernel32.SetConsoleMode(file_handle, 0x0081)
         except Exception as err:
-            logging.warning(f"Cannot disable QuickEdit mode! : {str(err)}")
-            logging.warning("As a consequence, execution might be automatically paused, careful where you click!")
+            logger.warning(f"Cannot disable QuickEdit mode! : {str(err)}")
+            logger.warning("As a consequence, execution might be automatically paused, careful where you click!")
 
 
 def resource_path(relative_path: str) -> str:
@@ -151,7 +152,7 @@ def determine_league_install_location(override_path: str | None = None) -> str:
     league_path = r"C:\Riot Games\League of Legends"
 
     if override_path is not None:
-        logging.warning(f"Override path supplied, using '{override_path}' as League install directory.")
+        logger.warning(f"Override path supplied, using '{override_path}' as League install directory.")
         league_path = override_path
     else:
         try:
@@ -164,11 +165,11 @@ def determine_league_install_location(override_path: str | None = None) -> str:
             )
             [league_path, _] = winreg.QueryValueEx(access_key, "InstallLocation")
         except Exception as err:
-            logging.error(f"Could not dynamically determine League install location : {str(err)}")
-            logging.error(sys.exc_info())
+            logger.error(f"Could not dynamically determine League install location : {str(err)}")
+            logger.error(sys.exc_info())
 
     league_path = str(pathlib.PureWindowsPath(league_path))
 
-    logging.debug(f"League path determined to be: {league_path}")
+    logger.debug(f"League path determined to be: {league_path}")
 
     return league_path
