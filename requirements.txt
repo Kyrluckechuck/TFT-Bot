@@ -1,4 +1,4 @@
-opencv-python==4.7.0.68
+opencv-python==4.7.0.72
 PyAutoGUI==0.9.53
 python-imagesearch==1.2.2
 printy==2.2.0
