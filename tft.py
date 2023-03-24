@@ -23,6 +23,7 @@ from constants import exit_now_images
 from constants import find_match_images
 from constants import give_feedback
 from constants import key_fragment_images
+from constants import message_exit_buttons
 from constants import skip_waiting_for_stats_images
 from constants import unselected_tft_tabs
 from constants import wanted_traits
@@ -358,7 +359,7 @@ def click_ok_message() -> None:
 
 def click_exit_message() -> None:
     """Click the message Exit button"""
-    click_to_middle(CONSTANTS["client"]["messages"]["buttons"]["message_exit"])
+    click_to_middle_multiple(message_exit_buttons)
 
 
 def wait_for_internet() -> None:

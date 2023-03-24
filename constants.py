@@ -208,3 +208,8 @@ give_feedback = [
     CONSTANTS["client"]["messages"]["give_feedback"]["full"],
     CONSTANTS["client"]["messages"]["give_feedback"]["smaller"],
 ]
+
+message_exit_buttons = [
+    CONSTANTS["client"]["messages"]["buttons"]["message_exit"]["1"],
+    CONSTANTS["client"]["messages"]["buttons"]["message_exit"]["2"],
+]
