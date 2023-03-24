@@ -56,7 +56,7 @@ def bring_league_client_to_forefront() -> None:
 def bring_league_game_to_forefront() -> None:
     """Brings the league game to the forefront."""
     try:
-        system_helpers.bring_window_to_forefront("League of Legends", CONSTANTS["executables"]["league"]["game"])
+        system_helpers.bring_window_to_forefront("League of Legends (TM) Client", CONSTANTS["executables"]["league"]["game"])
     except Exception:
         logger.warning("Failed to bring League game to forefront, this should be non-fatal so let's continue")
 
@@ -297,7 +297,16 @@ def loading_match() -> None:
     logger.info("Match Loading!")
     bring_league_game_to_forefront()
 
-    while not onscreen(CONSTANTS["game"]["round"]["1-1"]) and not onscreen(CONSTANTS["game"]["gamelogic"]["timer_1"]):
+    while (
+        not onscreen(CONSTANTS["game"]["loading"]) and
+        not onscreen(CONSTANTS["game"]["gamelogic"]["timer_1"]) and
+        not onscreen(CONSTANTS["game"]["round"]["1-"]) and
+        not onscreen(CONSTANTS["game"]["round"]["2-"]) and
+        not onscreen(CONSTANTS["game"]["round"]["3-"]) and
+        not onscreen(CONSTANTS["game"]["round"]["4-"]) and
+        not onscreen(CONSTANTS["game"]["round"]["5-"]) and
+        not onscreen(CONSTANTS["game"]["round"]["6-"])
+    ):
         time.sleep(0.5)
         # In case the client isn't already running, try waiting for it
         wait_for_league_running()
