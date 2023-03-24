@@ -800,17 +800,20 @@ def main():
 
     logger.info("===== TFT Bot Started =====")
 
-    if CONFIG["VERBOSE"]:
-        logger.info("Will explain everything and be very verbose")
-    else:
-        logger.info("Will be quiet and not be very verbose")
+    # Display configuration to the user
+    logger.info(
+        f"Verbose logging (more information displayed) is "
+        f"{'en' if CONFIG['VERBOSE'] else 'dis'}abled."
+    )
+    logger.info(
+        f"The bot will {'' if CONFIG['FF_EARLY'] else 'not'} "
+        f"surrender as soon as possible."
+    )
 
-    if CONFIG["FF_EARLY"]:
-        logger.info("FF Early Specified - Will surrender at first available time")
-    else:
-        logger.info("FF Early Not Specified - Will play out games for their duration")
-
-    logger.info("Welcome! \nPlease feel free to ask questions or contribute at https://github.com/Kyrluckechuck/tft-bot")
+    logger.info(
+        "Welcome! \nPlease feel free to ask questions or contribute at "
+        "https://github.com/Kyrluckechuck/tft-bot"
+    )
     if (
         auto.confirm(
             title="TFT Auto Bot",
@@ -819,7 +822,7 @@ def main():
         )
         != "Start"
     ):
-        logger.warning("Intialization completed but aborting by user choice!")
+        logger.warning("Initialization completed but aborting by user choice!")
         sys.exit(1)
 
     setup_hotkeys()
