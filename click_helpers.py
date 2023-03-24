@@ -3,12 +3,12 @@ import random
 import time
 from typing import Callable
 
+from loguru import logger
 import pyautogui as auto
 from python_imagesearch import imagesearch
 
 from better_image_click import click_image_rand
 import generic_helpers
-from loguru import logger
 from screen_helpers import find_image
 from screen_helpers import onscreen
 from system_helpers import resource_path

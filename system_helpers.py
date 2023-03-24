@@ -5,12 +5,11 @@ import pathlib
 import sys
 import winreg
 
+from loguru import logger
 import psutil
 import win32com.client
 import win32gui
 import win32process
-
-from loguru import logger
 
 try:
     import ctypes

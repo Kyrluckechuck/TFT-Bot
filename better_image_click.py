@@ -2,10 +2,10 @@
 import time
 
 import cv2
+from loguru import logger
 import pyautogui as auto
 
 from generic_helpers import rand_func
-from loguru import logger
 
 
 def click_image_rand(image, pos, action, move_duration, offset="half", delay=0.1) -> bool:  # pylint: disable=too-many-arguments

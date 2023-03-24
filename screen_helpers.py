@@ -1,9 +1,9 @@
 """A collection of screen helpers for detecting when images are on screen."""
 import time
 
+from loguru import logger
 from python_imagesearch import imagesearch
 
-from loguru import logger
 from system_helpers import resource_path
 
 
