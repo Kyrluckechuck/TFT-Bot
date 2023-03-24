@@ -748,8 +748,23 @@ def main():
     """
     load_settings()
 
-    logger.add(f"tft-bot-debug.log", level="DEBUG")
-    logger.level("DEBUG" if CONFIG["VERBOSE"] else "INFO")
+    # Normal logging
+    if CONFIG["VERBOSE"]:
+        logger.level("DEBUG")
+    else:
+        # We need to remove the default logger if we want to
+        # change the default format.
+        # The supplied format is the default one, minus the module.
+        logger.remove()
+        logger.add(
+            sys.stderr,
+            format=(
+                "<green>{time:YYYY-MM-DD HH:mm:ss.SSS}</green> | "
+                "<level>{level: <8}</level> - "
+                "<level>{message}</level>"
+            ),
+            level="INFO"
+        )
 
     system_helpers.disable_quickedit()
     # Start auth + main script
