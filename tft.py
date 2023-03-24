@@ -375,26 +375,24 @@ def check_if_client_error() -> bool:
     Returns:
         bool: True if a client error message was detected.
     """
-    if onscreen(CONSTANTS["client"]["messages"]["session_expired"]):
-        logger.info("Session expired!")
-        click_ok_message()
-        time.sleep(5)
-        restart_league_client()
-        return True
+    if onscreen(CONSTANTS["client"]["messages"]["down_for_maintenance"]):
+        logger.info("League down for maintenance, delaying restart for 5 minutes!")
+        return acknowledge_error_and_restart_league(delay=300)
     if onscreen(CONSTANTS["client"]["messages"]["failed_to_reconnect"]):
         logger.info("Failed to reconnect!")
-        click_exit_message()
-        time.sleep(5)
-        wait_for_internet()
-        restart_league_client()
-        return True
+        return acknowledge_error_and_restart_league(internet_pause=True)
     if onscreen(CONSTANTS["client"]["messages"]["login_servers_down"]):
         logger.info("Login servers down!")
-        click_exit_message()
-        time.sleep(5)
-        wait_for_internet()
-        restart_league_client()
-        return True
+        return acknowledge_error_and_restart_league(internet_pause=True)
+    if onscreen(CONSTANTS["client"]["messages"]["session_expired"]):
+        logger.info("Session expired!")
+        return acknowledge_error_and_restart_league()
+    if onscreen(CONSTANTS["client"]["messages"]["unexpected_error_with_session"]):
+        logger.info("Unexpected error with session!")
+        return acknowledge_error_and_restart_league()
+    if onscreen(CONSTANTS["client"]["messages"]["unexpected_login_error"]):
+        logger.info("Unexpected login error!")
+        return acknowledge_error_and_restart_league()
     if onscreen(CONSTANTS["client"]["messages"]["players_are_not_ready"]):
         logger.info("Player not ready detected, waiting to see if it stays")
         time.sleep(5)
@@ -404,6 +402,18 @@ def check_if_client_error() -> bool:
             return True
         logger.info("Player not ready dismissed, continuing on")
     return False
+
+
+def acknowledge_error_and_restart_league(delay: int = 5, internet_pause: bool = False) -> bool:
+    """Acknowledge error message with ok or error button and restart league client
+    """
+    click_exit_message()
+    click_ok_message()
+    time.sleep(delay)
+    if internet_pause:
+        wait_for_internet()
+    restart_league_client()
+    return True
 
 
 def check_if_client_popup() -> bool:

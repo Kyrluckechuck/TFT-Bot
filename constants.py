@@ -69,17 +69,24 @@ CONSTANTS = {
         },
         "launcher_play": "captures/buttons/launcher_play.png",
         "messages": {
+            "failed_to_reconnect": "captures/messages/failed_to_reconnect.png",
             "give_feedback": {
                 "full": "captures/messages/give_feedback.png",
                 "smaller": "captures/messages/give_feedback_smaller.png",
             },
-            "session_expired": "captures/messages/session_expired.png",
-            "failed_to_reconnect": "captures/messages/failed_to_reconnect.png",
+            "down_for_maintenance": "captures/messages/down_for_maintenance.png",
+            "instant_feedback_report": "captures/messages/instant_feedback_report.png",
             "login_servers_down": "captures/messages/login_servers_down.png",
             "players_are_not_ready": "captures/messages/players_are_not_ready.png",
+            "session_expired": "captures/messages/session_expired.png",
+            "unexpected_error_with_session": "captures/messages/unexpected_error_with_session.png",
+            "unexpected_login_error": "captures/messages/unexpected_login_error.png",
             "buttons": {
                 "message_ok": "captures/buttons/message_ok.png",
-                "message_exit": "captures/buttons/message_exit.png",
+                "message_exit": {
+                    "1": "captures/buttons/message_exit_1.png",
+                    "2": "captures/buttons/message_exit_2.png",
+                }
             },
         },
     },
