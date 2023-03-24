@@ -239,6 +239,7 @@ def evaluate_next_game_logic() -> None:
 # Start between match logic
 
 
+@logger.catch
 def queue() -> None:  # pylint: disable=too-many-branches
     """Begin finding a match -- the start of the repeating game logic, dismissing any interruptions and bringing the League client to the forefront/focus."""
     # Queue search loop
@@ -741,6 +742,7 @@ def setup_hotkeys() -> None:
     keyboard.add_hotkey("alt+n", lambda: toggle_play_next_game())  # pylint: disable=unnecessary-lambda
 
 
+@logger.catch
 def main():
     """Entrypoint function to initialize most of the code.
 
