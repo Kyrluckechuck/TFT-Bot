@@ -766,6 +766,11 @@ def main():
             level="INFO"
         )
 
+    # File logging, writes to a file in the same folder as the executable.
+    # Logs at level DEBUG, so it's always verbose.
+    # retention=10 to only keep the 10 most recent files.
+    logger.add("tft-bot-debug-{time}.log", level="DEBUG", retention=10)
+
     system_helpers.disable_quickedit()
     # Start auth + main script
     logger.info(
