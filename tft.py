@@ -584,33 +584,37 @@ def end_match() -> None:
 
     Will dismiss various interruptions and screen such as 'waiting for stats' or 'play again'.
     """
+    counter = 0
     # added a main loop for the end match function to ensure you make it to the find match button.
     while not onscreen_multiple_any(find_match_images):
         bring_league_client_to_forefront()
         if check_if_client_error() or not league_client_running():
             return
         dismiss_interruptions()
+        time.sleep(2)
         if onscreen_multiple_any(skip_waiting_for_stats_images):
             logger.info("Skipping waiting for stats")
             click_to_middle_multiple(skip_waiting_for_stats_images)
-            time.sleep(2)
         if onscreen(CONSTANTS["client"]["post_game"]["play_again"]):
             logger.info("Attempting to play again")
             bring_league_client_to_forefront()
             click_to_middle(CONSTANTS["client"]["post_game"]["play_again"], delay=0.5)
-            time.sleep(2)
         if onscreen(CONSTANTS["client"]["pre_match"]["quick_play"]):
             logger.info("Attempting to quick play")
             click_to_middle(CONSTANTS["client"]["pre_match"]["quick_play"])
-            time.sleep(5)
+            time.sleep(3)
         if onscreen(CONSTANTS["client"]["tabs"]["tft"]["subtab_home"]):
             logger.info("Attempting to select TFT subtab 'home'")
             click_to_middle(CONSTANTS["client"]["tabs"]["tft"]["subtab_home"])
-            time.sleep(5)
+            time.sleep(3)
         if not onscreen_multiple_any(find_match_images) and onscreen_multiple_any(unselected_tft_tabs, precision=0.9):
             logger.info("Detected that TFT tab is not selected, attempting to select")
             click_to_middle_multiple(unselected_tft_tabs)
-            time.sleep(2)
+        # Account for weird scenario of most client UI not loading
+        counter += 1
+        if counter > 60:
+            restart_league_client()
+            return
 
 
 def dismiss_interruptions() -> None:
