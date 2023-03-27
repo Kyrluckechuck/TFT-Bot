@@ -2,9 +2,9 @@
 The main TFT Bot code
 """
 import argparse
+import asyncio
 import configparser
 from datetime import datetime
-from pathlib import Path
 import random
 import subprocess
 import sys
@@ -13,20 +13,17 @@ import time
 import keyboard
 from loguru import logger
 import pyautogui as auto
+import pydirectinput
 
 from click_helpers import click_right
 from click_helpers import click_to_middle
 from click_helpers import click_to_middle_multiple
-from constants import accept_match_images
 from constants import CONSTANTS
 from constants import exit_now_images
 from constants import find_match_images
-from constants import give_feedback
-from constants import key_fragment_images
 from constants import message_exit_buttons
-from constants import skip_waiting_for_stats_images
-from constants import unselected_tft_tabs
 from constants import wanted_traits
+import lcu_integration
 from screen_helpers import onscreen
 from screen_helpers import onscreen_multiple_any
 from screen_helpers import onscreen_region_num_loop
@@ -34,8 +31,7 @@ import system_helpers
 
 auto.FAILSAFE = False
 GAME_COUNT = -1
-END_TIMER = time.time()
-START_TIMER = time.time()
+PROGRAM_START: datetime
 PAUSE_LOGIC = False
 PLAY_NEXT_GAME = True
 CONFIG = {
@@ -175,34 +171,7 @@ def is_in_tft_lobby() -> bool:
     return onscreen(CONSTANTS["client"]["pre_match"]["lobby"]["normal"])
 
 
-def find_match() -> None:
-    """Begin actually finding a match, bringing the League client to the forefront/focus and dismissing any interruptions."""
-    counter = 0
-    while is_in_tft_lobby() and not check_if_client_error():
-        bring_league_client_to_forefront()
-        dismiss_interruptions()
-        find_match_click_success = click_to_middle_multiple(find_match_images, conditional_func=is_in_queue, delay=0.2)
-        logger.debug(f"Clicking find match success: {find_match_click_success}")
-        time.sleep(1)
-        while not onscreen(CONSTANTS["game"]["loading"]) and not onscreen(CONSTANTS["game"]["round"]["1-1"]) and is_in_queue():
-            bring_league_client_to_forefront()
-            click_to_middle_multiple(accept_match_images)
-            time.sleep(1)
-
-            if not is_in_queue():
-                counter = counter + 1
-
-            if counter > 60:
-                logger.info("Was not in queue for 60 seconds, aborting")
-                break
-
-        counter = counter + 1
-        if counter > 60:
-            logger.info("An exception occurred while finding match")
-            break
-
-
-def wait_for_league_running() -> bool:
+async def wait_for_league_running() -> bool:
     """Attempt to pause the bot logic evaluation until the league game client is running, or 30 seconds has passed.
 
     Returns:
@@ -212,7 +181,7 @@ def wait_for_league_running() -> bool:
     counter = 0
     while not league_game_already_running():
         counter = counter + 1
-        time.sleep(0.5)
+        await asyncio.sleep(0.5)
         if counter > 60:
             logger.info("Timed out, moving on!")
             break
@@ -241,55 +210,50 @@ def evaluate_next_game_logic() -> None:
 
 
 @logger.catch
-def queue() -> None:  # pylint: disable=too-many-branches
+async def queue() -> None:  # pylint: disable=too-many-branches
     """Begin finding a match -- the start of the repeating game logic, dismissing any interruptions and bringing the League client to the forefront/focus."""
     # Queue search loop
     while True:
         if PAUSE_LOGIC:
             time.sleep(5)
-        else:
-            if not PLAY_NEXT_GAME:
-                evaluate_next_game_logic()
+            continue
 
-            game_launched = False
-            if restart_league_if_not_running():
+        if not PLAY_NEXT_GAME:
+            evaluate_next_game_logic()
+
+        if restart_league_if_not_running():
+            continue
+
+        in_game = await lcu_integration.is_in_game()
+        if in_game:
+            logger.info("We're in a game.")
+            break
+
+        in_queue = await lcu_integration.is_in_queue()
+        if in_queue:
+            time.sleep(5)
+            has_found = await lcu_integration.has_found_queue()
+            if has_found:
+                await lcu_integration.accept_queue()
+                time.sleep(10)
                 continue
-            # Not already in queue
-            bring_league_client_to_forefront()
-            dismiss_interruptions()
-            if not is_in_queue():
-                # If not already in queue, abort searching and loop
-                if not PLAY_NEXT_GAME:
-                    continue
-                if is_in_tft_lobby():
-                    logger.info("TFT lobby detected, finding match")
-                    find_match()
-                    game_launched = True
-                elif league_game_already_running():
-                    logger.info("Already in game!")
-                    game_launched = True
-                    break
-                # Post-match screen
-                elif check_if_post_game():
-                    match_complete()
-                else:
-                    logger.warning("TFT lobby not detected!")
-                    restart_league_client()
-                    continue
+            continue
 
-            if game_launched:
-                wait_for_league_running()
+        if not PLAY_NEXT_GAME:
+            continue
 
-            if league_game_already_running() and onscreen(CONSTANTS["game"]["loading"]):
-                logger.info("Loading!")
-                break
-            if onscreen(CONSTANTS["game"]["gamelogic"]["timer_1"]) or league_game_already_running():
-                logger.info("Already in game :O!")
-                break
-    loading_match()
+        in_tft_lobby = await lcu_integration.is_in_lobby()
+        if in_tft_lobby:
+            await lcu_integration.start_queue()
+            time.sleep(3)
+            continue
+
+        if not await lcu_integration.create_lobby(check_if_post_game):
+            time.sleep(5)
+    await loading_match()
 
 
-def loading_match() -> None:
+async def loading_match() -> None:
     """Attempt to wait for the match to load, bringing the League game to the forefront/focus.
     After some time, if the game has not been detected as starting, it moves on anyways.
     """
@@ -307,9 +271,9 @@ def loading_match() -> None:
         not onscreen(CONSTANTS["game"]["round"]["5-"]) and
         not onscreen(CONSTANTS["game"]["round"]["6-"])
     ):
-        time.sleep(0.5)
+        await asyncio.sleep(0.5)
         # In case the client isn't already running, try waiting for it
-        wait_for_league_running()
+        await wait_for_league_running()
         bring_league_game_to_forefront()
         if counter > 60:
             logger.warning("Did not detect game start, continuing anyways :S")
@@ -317,15 +281,15 @@ def loading_match() -> None:
         counter = counter + 1
 
     logger.info("Match starting!")
-    start_match()
+    await start_match()
 
 
-def start_match() -> None:
+async def start_match() -> None:
     """Do initial first round pathing to pick the first champ."""
     while onscreen(CONSTANTS["game"]["round"]["1-1"]):
         shared_draft_pathing()
     logger.info("In the match now!")
-    main_game_loop()
+    await main_game_loop()
 
 
 def shared_draft_pathing() -> None:
@@ -426,20 +390,6 @@ def acknowledge_error_and_restart_league(delay: int = 5, internet_pause: bool = 
     return True
 
 
-def check_if_client_popup() -> bool:
-    """Checks if a popup may be interrupting the client
-
-    Returns:
-        bool: True if one is detected, False otherwise.
-    """
-    if onscreen_multiple_any(give_feedback) :
-        logger.info("Client survey/feedback detected, clicking on (opening in browser) and continuing!")
-        onscreen_multiple_any(give_feedback)
-        time.sleep(2)
-        return True
-    return False
-
-
 def exit_now_conditional() -> bool:
     """(Special function for `check_if_game_complete()` conditional.
     Checks if the League game is not running.
@@ -450,36 +400,43 @@ def exit_now_conditional() -> bool:
     return not league_game_already_running()
 
 
-def check_if_game_complete() -> bool:
+async def check_if_dead() -> bool:
+    if onscreen(CONSTANTS["client"]["death"]):
+        logger.info("Death detected")
+        click_to_middle(CONSTANTS["client"]["death"])
+        await asyncio.sleep(5)
+        return True
+
+    if onscreen_multiple_any(exit_now_images):
+        logger.info("End of game detected (exit now)")
+        exit_now_bool = click_to_middle_multiple(
+            exit_now_images,
+            conditional_func=exit_now_conditional,
+            delay=1.5
+        )
+        logger.debug(f"Exit now clicking success: {exit_now_bool}")
+        await asyncio.sleep(5)
+        return True
+
+
+async def check_if_game_complete() -> bool:
     """Check if the League game is complete.
 
     Returns:
         bool: True if any scenario in which the game is not active, False otherwise.
     """
-    if not league_game_already_running() and not attempt_reconnect_to_existing_game():
+    is_dead = await check_if_dead()
+    if is_dead:
         return True
-    if check_if_client_error():
-        return True
-    if check_if_client_popup():
-        return True
-    if onscreen(CONSTANTS["client"]["death"]):
-        logger.info("Death detected")
-        click_to_middle(CONSTANTS["client"]["death"])
-        time.sleep(3)
-    if onscreen_multiple_any(exit_now_images):
-        logger.info("End of game detected (exit now)")
-        exit_now_bool = click_to_middle_multiple(exit_now_images, conditional_func=exit_now_conditional, delay=1.5)
-        logger.debug(f"Exit now clicking success: {exit_now_bool}")
-        time.sleep(4)
-    if onscreen(CONSTANTS["client"]["continue"]):
-        logger.info("End of game detected (continue)")
-        click_to_middle(CONSTANTS["client"]["continue"])
-        time.sleep(3)
-    return (
-        onscreen(CONSTANTS["client"]["post_game"]["play_again"])
-        or onscreen(CONSTANTS["client"]["pre_match"]["quick_play"])
-        or onscreen_multiple_any(skip_waiting_for_stats_images)
-    )
+
+    in_game = await lcu_integration.is_in_game()
+    if in_game:
+        return False
+
+    if attempt_reconnect_to_existing_game():
+        return False
+
+    return check_if_client_error()
 
 
 def attempt_reconnect_to_existing_game() -> bool:
@@ -495,13 +452,14 @@ def attempt_reconnect_to_existing_game() -> bool:
     return False
 
 
-def check_if_post_game() -> bool:
+async def check_if_post_game() -> bool:
     """Checks to see if the game was interrupted.
 
     Returns:
         bool: True if the game was complete or a reconnection attempt is made, False otherwise.
     """
-    if check_if_game_complete():
+    game_complete = await check_if_game_complete()
+    if game_complete:
         return True
     return attempt_reconnect_to_existing_game()
 
@@ -532,7 +490,7 @@ def check_if_gold_at_least(num: int) -> bool:
     return True
 
 
-def main_game_loop() -> None:  # pylint: disable=too-many-branches
+async def main_game_loop() -> None:  # pylint: disable=too-many-branches
     """The main in-game loop.
 
     Skips 5 second increments if a pause logic request is made, repeating until toggled or an event triggers an early exit.
@@ -542,7 +500,7 @@ def main_game_loop() -> None:  # pylint: disable=too-many-branches
     should_exit = False
     while should_exit is False:
         if PAUSE_LOGIC:
-            time.sleep(5)
+            await asyncio.sleep(5)
             continue
 
         # Free champ round
@@ -556,28 +514,29 @@ def main_game_loop() -> None:  # pylint: disable=too-many-branches
             continue
 
         if CONFIG["FF_EARLY"] and onscreen(CONSTANTS["game"]["round"]["3-"]):
-            logger.info("Surrendering now!")
-            surrender()
+            logger.info("Attempting to surrender early.")
+            await surrender()
             break
 
         # If round > 2, attempt re-rolls
         if check_if_gold_at_least(4) and onscreen(CONSTANTS["game"]["gamelogic"]["xp_buy"]):
             click_to_middle(CONSTANTS["game"]["gamelogic"]["xp_buy"])
-            time.sleep(0.2)
+            await asyncio.sleep(0.2)
             continue
 
         if not onscreen(CONSTANTS["game"]["round"]["1-"], 0.9) and not onscreen(CONSTANTS["game"]["round"]["2-"], 0.9):
             if check_if_gold_at_least(2) and onscreen(CONSTANTS["game"]["gamelogic"]["reroll"]):
                 click_to_middle(CONSTANTS["game"]["gamelogic"]["reroll"])
 
-        time.sleep(0.5)
+        await asyncio.sleep(0.5)
 
-        if check_if_post_game():
-            match_complete()
+        post_game = await check_if_post_game()
+        if post_game:
+            await match_complete()
             break
 
 
-def end_match() -> None:
+async def end_match() -> None:
     """End of TFT game logic.
 
     Loops to ensure the various end-of-match scenarios are accounte for to help ensure we make it back to the next find match button.
@@ -585,137 +544,106 @@ def end_match() -> None:
     Will dismiss various interruptions and screen such as 'waiting for stats' or 'play again'.
     """
     counter = 0
-    # added a main loop for the end match function to ensure you make it to the find match button.
-    while not onscreen_multiple_any(find_match_images):
+    while True:
+        if counter >= 60:
+            restart_league_client()
+            return
+        in_game = await lcu_integration.is_in_game()
+        if in_game:
+            counter += 1
+            await asyncio.sleep(1)
+            continue
+        break
+
+    if not not onscreen_multiple_any(find_match_images):
         bring_league_client_to_forefront()
         if check_if_client_error() or not league_client_running():
             return
-        dismiss_interruptions()
-        time.sleep(2)
-        if onscreen_multiple_any(skip_waiting_for_stats_images):
-            logger.info("Skipping waiting for stats")
-            click_to_middle_multiple(skip_waiting_for_stats_images)
-        if onscreen(CONSTANTS["client"]["post_game"]["play_again"]):
-            logger.info("Attempting to play again")
-            bring_league_client_to_forefront()
-            click_to_middle(CONSTANTS["client"]["post_game"]["play_again"], delay=0.5)
-        if onscreen(CONSTANTS["client"]["pre_match"]["quick_play"]):
-            logger.info("Attempting to quick play")
-            click_to_middle(CONSTANTS["client"]["pre_match"]["quick_play"])
-            time.sleep(3)
-        if onscreen(CONSTANTS["client"]["tabs"]["tft"]["subtab_home"]):
-            logger.info("Attempting to select TFT subtab 'home'")
-            click_to_middle(CONSTANTS["client"]["tabs"]["tft"]["subtab_home"])
-            time.sleep(3)
-        if not onscreen_multiple_any(find_match_images) and onscreen_multiple_any(unselected_tft_tabs, precision=0.9):
-            logger.info("Detected that TFT tab is not selected, attempting to select")
-            click_to_middle_multiple(unselected_tft_tabs)
-        # Account for weird scenario of most client UI not loading
-        counter += 1
-        if counter > 60:
-            restart_league_client()
-            return
 
 
-def dismiss_interruptions() -> None:
-    """Dismisses any 'earned key fragment' and 'mission completion' messages.
-
-    If a mission completion is detected, it will attempt to take a screenshot of the message.
-    """
-    if onscreen_multiple_any(key_fragment_images, 0.7):
-        logger.info("Dismissing key fragment")
-        click_to_middle_multiple(key_fragment_images, 0.7)
-        time.sleep(0.5)
-    while onscreen(CONSTANTS["client"]["post_game"]["missions_ok"]):
-        logger.info("Dismissing mission")
-        try:
-            localtime = time.localtime()  # added for printing time
-            current_time = time.strftime("%H%M%S", localtime)  # for the changing file name
-            Path(CONSTANTS["client"]["screenshot_location"]).mkdir(parents=True, exist_ok=True)
-            my_screenshot = auto.screenshot()
-            my_screenshot.save(rf'{CONSTANTS["client"]["screenshot_location"]}/{current_time}.png')
-            time.sleep(0.5)
-            logger.info("Screenshot of mission saved")
-            click_to_middle(CONSTANTS["client"]["post_game"]["missions_ok"])
-        except Exception as exception:
-            logger.exception(exception)
-        time.sleep(1)
-
-
-def match_complete() -> None:
+async def match_complete() -> None:
     """Print a log timer to update the time passed and number of games completed (rough estimation), and begin the end of match logic."""
     print_timer()
     logger.info("Match complete! Cleaning up and restarting")
-    end_match()
+    await end_match()
 
 
-def surrender() -> None:
+async def surrender() -> None:
     """Attempt to surrender.
 
     *Notice:* The main author does not use this often, so this is not tested between most updates.
     """
-    counter = 0
+    # In case we lost before we could surrender
+    is_dead = await check_if_dead()
+    if is_dead:
+        await end_match()
+        await asyncio.sleep(5)
+        await match_complete()
+        return
+
     surrenderwait = random.randint(100, 150)
-    logger.info(f"Waiting {surrenderwait} seconds ({surrenderwait / 60 } minutes) to surrender")
-    time.sleep(surrenderwait)
-    logger.info("Starting surrender")
-    click_to_middle(CONSTANTS["game"]["settings"])
-
-    while not onscreen(CONSTANTS["game"]["surrender"]["surrender_1"]):
-        # just in case it gets interrupted or misses
-        click_to_middle(CONSTANTS["game"]["settings"])
-        time.sleep(1)
-        counter = counter + 1
-        if counter > 20:
-            break
-    counter = 0
+    logger.info(f"Waiting {surrenderwait} seconds before surrendering...")
+    await asyncio.sleep(surrenderwait)
+    logger.info("Starting surrender.")
+    # click_to_middle(CONSTANTS["game"]["settings"])
+    #
+    # counter = 0
+    # while not onscreen(CONSTANTS["game"]["surrender"]["surrender_1"]):
+    #     # just in case it gets interrupted or misses
+    #     click_to_middle(CONSTANTS["game"]["settings"])
+    #     time.sleep(1)
+    #     counter = counter + 1
+    #     if counter > 20:
+    #         break
+    # counter = 0
+    # while not onscreen(CONSTANTS["game"]["surrender"]["surrender_2"]):
+    #     click_to_middle(CONSTANTS["game"]["surrender"]["surrender_1"])
+    #     # added a check here for the rare case that the game ended before the surrender finished.
+    #     if check_if_post_game():
+    #         return
+    #     counter = counter + 1
+    #     if counter > 20:
+    #         break
+    # FIXME There's a bug in TFT right now where the surrender button
+    #  in the settings doesn't work. This is a temporary work-around.
+    #  We need to use PyDirectInput since the league client does not
+    #  always recognize the input of the method pyautogui uses.
     while not onscreen(CONSTANTS["game"]["surrender"]["surrender_2"]):
-        click_to_middle(CONSTANTS["game"]["surrender"]["surrender_1"])
-        # added a check here for the rare case that the game ended before the surrender finished.
-        if check_if_post_game():
-            return
-        counter = counter + 1
-        if counter > 20:
-            break
+        await asyncio.sleep(2)
+        bring_league_game_to_forefront()
+        pydirectinput.write(["enter", "/", "f", "f", "enter"], interval=0.1)
+        await asyncio.sleep(2)
 
-    time.sleep(1)
     click_to_middle(CONSTANTS["game"]["surrender"]["surrender_2"])
-    time.sleep(10)
-    end_match()
-    time.sleep(5)
+    await asyncio.sleep(10)
+    await end_match()
+    await asyncio.sleep(5)
 
     logger.info("Surrender Complete")
-    match_complete()
+    await match_complete()
 
 
 def print_timer() -> None:
     """Print a log timer to update the time passed and number of games completed (rough estimation)."""
-    global END_TIMER, GAME_COUNT
-    END_TIMER = time.time()
+    delta = datetime.now() - PROGRAM_START
+    duration = datetime.utcfromtimestamp(delta.total_seconds())
+    global GAME_COUNT
     GAME_COUNT += 1
-    sec = END_TIMER - START_TIMER
-    hours = sec // 3600
-    sec = sec - hours * 3600
-    mins = sec // 60
-    seconds = sec - mins * 60
-    gamecount_string = str(GAME_COUNT)
 
-    logger.info("-------------------------------------")
-    logger.info(f"Current Time = {datetime.now().strftime('%H:%M:%S')}")
     logger.info("-------------------------------------")
     logger.info("Game End")
-    logger.info(f"Play Time : {int(float(hours))} Hour, {int(float(mins))} Min, {int(float(seconds))} Sec")
-    logger.info(f"Gamecount : {gamecount_string}")
+    logger.info(f"Time since start: {duration.strftime('%H:%M:%S')}")
+    logger.info(f"Games played: {str(GAME_COUNT)}")
     logger.info("-------------------------------------")
 
 
-def tft_bot_loop() -> None:
+async def tft_bot_loop() -> None:
     """Main loop to ensure various errors don't unhinge/break the bot.
     Since the bot is able to reconnect and handle most errors, this should allow it to resume games in progress even if an 'uncaught exception' has occurred.
     """
     while True:
         try:
-            queue()
+            await queue()
         except AttributeError:
             logger.info("Not already in game, couldn't find game client on screen, looping")
             time.sleep(5)
@@ -767,7 +695,7 @@ def setup_hotkeys() -> None:
 
 
 @logger.catch
-def main():
+async def main():
     """Entrypoint function to initialize most of the code.
 
     Parses command line arguments, sets up console settings, logging, and kicks of the main bot loop.
@@ -848,15 +776,17 @@ def main():
 
     setup_hotkeys()
 
-    logger.info("Bot started, queuing up!")
+    await lcu_integration.start_willump()
 
-    league_directory_to_set = system_helpers.determine_league_install_location(CONFIG["OVERRIDE_INSTALL_DIR"])
+    league_directory_to_set = system_helpers.determine_league_install_location(
+        CONFIG["OVERRIDE_INSTALL_DIR"]
+    )
     update_league_constants(league_directory_to_set)
 
-    global START_TIMER
-    START_TIMER = time.time()
-    tft_bot_loop()
+    global PROGRAM_START
+    PROGRAM_START = datetime.now()
+    await tft_bot_loop()
 
 
 if __name__ == "__main__":
-    sys.exit(main())
+    sys.exit(asyncio.run(main()))
