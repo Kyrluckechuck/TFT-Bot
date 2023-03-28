@@ -767,11 +767,11 @@ def main():
 
     logger.info("===== TFT Bot Started =====")
     logger.info(
-        f"Bot will {'NOT' if CONFIG['VERBOSE'] else ''} be verbose "
+        f"Bot will {'' if CONFIG['VERBOSE'] else 'NOT '}be verbose "
         f"(display debug messages)."
     )
     logger.info(
-        f"Bot will {'NOT' if CONFIG['FF_EARLY'] else ''} surrender early."
+        f"Bot will {'' if CONFIG['FF_EARLY'] else 'NOT '}surrender early."
     )
 
     logger.info("Welcome! Please feel free to ask questions or contribute at https://github.com/Kyrluckechuck/tft-bot")
