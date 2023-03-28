@@ -506,7 +506,12 @@ def main_game_loop() -> None:  # pylint: disable=too-many-branches
             time.sleep(5)
             continue
 
-        if onscreen(CONSTANTS["game"]["gamelogic"]["choose_an_augment"], 0.9):
+        post_game = check_if_post_game()
+        if post_game:
+            match_complete()
+            break
+
+        if onscreen(CONSTANTS["game"]["gamelogic"]["choose_an_augment"], 0.95):
             logger.info("Detected augment offer, selecting one")
             auto.moveTo(960, 540)
             click_left()
@@ -542,11 +547,6 @@ def main_game_loop() -> None:  # pylint: disable=too-many-branches
             continue
 
         time.sleep(0.5)
-
-        post_game = check_if_post_game()
-        if post_game:
-            match_complete()
-            break
 
 
 def end_match() -> None:
