@@ -207,7 +207,7 @@ def queue() -> None:  # pylint: disable=too-many-branches
             continue
 
         if LCU_INTEGRATION.in_game():
-            logger.info("We're in a game")
+            logger.info("A game is running, switching to game logic")
             break
 
         if LCU_INTEGRATION.in_queue():
@@ -266,7 +266,7 @@ def loading_match() -> None:
             break
         counter = counter + 1
 
-    logger.info("Match started")
+    logger.info("Match loaded, starting initial draft pathfinding")
     start_match()
 
 
@@ -303,9 +303,9 @@ def buy(iterations: int) -> None:
     for i in range(iterations):
         if not check_if_gold_at_least(1):
             return
-        for i in wanted_traits:
-            if onscreen(i):
-                click_to_middle(i)
+        for trait in wanted_traits:
+            if onscreen(trait):
+                click_to_middle(trait)
                 time.sleep(0.5)
             else:
                 return
@@ -468,7 +468,15 @@ def check_if_gold_at_least(num: int) -> bool:
     return True
 
 
-def determine_minimum_round_based_on_pve() -> int:
+def determine_minimum_round() -> int:
+    """
+    Determines minimum round we are at.
+    Prioritizes PvE markers, falls back to the round display.
+
+    Returns:
+        The major round as an integer.
+
+    """
     if (
         onscreen(CONSTANTS["game"]["round"]["krugs_inactive"], 0.9)
         or onscreen(CONSTANTS["game"]["round"]["krugs_active"], 0.9)
@@ -490,6 +498,11 @@ def determine_minimum_round_based_on_pve() -> int:
     if onscreen(CONSTANTS["game"]["round"]["1-"]):
         return 1
 
+    for i in range(1, 7):
+        if onscreen(CONSTANTS["game"]["round"][f"{i}-"]):
+            return i
+
+    logger.debug("Could not determine minimum round, returning 0.")
     return 0
 
 
@@ -498,7 +511,7 @@ def main_game_loop() -> None:  # pylint: disable=too-many-branches
 
     Skips 5 second increments if a pause logic request is made, repeating until toggled or an event triggers an early exit.
 
-    Support for forfeiting early does exist but is rarely tested as the main author does not use this feature.
+    Support for forfeiting early does exist.
     """
     should_exit = False
     while should_exit is False:
@@ -511,18 +524,18 @@ def main_game_loop() -> None:  # pylint: disable=too-many-branches
             match_complete()
             break
 
+        minimum_round = determine_minimum_round()
+        # Free champ round
+        if minimum_round > 1 and onscreen(CONSTANTS["game"]["round"]["draft_active"], 0.95):
+            logger.info("Active draft detected, pathing to carousel")
+            shared_draft_pathing()
+            continue
+
         if onscreen(CONSTANTS["game"]["gamelogic"]["choose_an_augment"], 0.95):
             logger.info("Detected augment offer, selecting one")
             auto.moveTo(960, 540)
             click_left()
             time.sleep(0.5)
-            continue
-
-        minimum_round = determine_minimum_round_based_on_pve()
-        # Free champ round
-        if minimum_round > 1 and onscreen(CONSTANTS["game"]["round"]["draft_active"], 0.95):
-            logger.info("Active draft detected, pathing to carousel")
-            shared_draft_pathing()
             continue
 
         if minimum_round <= 2:
@@ -552,9 +565,9 @@ def main_game_loop() -> None:  # pylint: disable=too-many-branches
 def end_match() -> None:
     """End of TFT game logic.
 
-    Loops to ensure the various end-of-match scenarios are accounte for to help ensure we make it back to the next find match button.
+    Loops to ensure we are no longer in a game.
 
-    Will dismiss various interruptions and screen such as 'waiting for stats' or 'play again'.
+    Will check for client errors that require a restart.
     """
     counter = 0
     while True:
@@ -582,8 +595,6 @@ def match_complete() -> None:
 
 def surrender() -> None:
     """Attempt to surrender.
-
-    *Notice:* The main author does not use this often, so this is not tested between most updates.
     """
     random_seconds = random.randint(60, 90)
     logger.info(f"Waiting {random_seconds} seconds before surrendering...")
@@ -755,18 +766,15 @@ def main():
     )
 
     logger.info("===== TFT Bot Started =====")
+    logger.info(
+        f"Bot will {'NOT' if CONFIG['VERBOSE'] else ''} be verbose "
+        f"(display debug messages)."
+    )
+    logger.info(
+        f"Bot will {'NOT' if CONFIG['FF_EARLY'] else ''} surrender early."
+    )
 
-    if CONFIG["VERBOSE"]:
-        logger.info("Will explain everything and be very verbose")
-    else:
-        logger.info("Will be quiet and not be very verbose")
-
-    if CONFIG["FF_EARLY"]:
-        logger.info("FF Early Specified - Will surrender at first available time")
-    else:
-        logger.info("FF Early Not Specified - Will play out games for their duration")
-
-    logger.info("Welcome! \nPlease feel free to ask questions or contribute at https://github.com/Kyrluckechuck/tft-bot")
+    logger.info("Welcome! Please feel free to ask questions or contribute at https://github.com/Kyrluckechuck/tft-bot")
     if (
         auto.confirm(
             title="TFT Auto Bot",
@@ -775,7 +783,7 @@ def main():
         )
         != "Start"
     ):
-        logger.warning("Intialization completed but aborting by user choice!")
+        logger.warning("Initialization completed but aborting by user choice")
         sys.exit(1)
 
     setup_hotkeys()

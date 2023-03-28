@@ -49,7 +49,7 @@ class LCUIntegration:
             time.sleep(0.5)
             lcu_process = _get_lcu_process()
 
-        logger.debug("Found LCUx process " + lcu_process.name())
+        logger.debug("LCUx process found")
         process_arguments = _get_lcu_commandline_arguments(lcu_process)
         self.install_directory = process_arguments["install-directory"]
         self._url = f"https://127.0.0.1:{process_arguments['app-port']}"
@@ -84,7 +84,7 @@ class LCUIntegration:
                     "Can't connect to LCUx server. Retrying..."
                 )
                 time.sleep(0.5)
-        logger.info("Successfully connected to the League client.")
+        logger.info("Successfully connected to the League client")
 
     def get_installation_directory(self) -> str | None:
         return self.install_directory
@@ -105,7 +105,7 @@ class LCUIntegration:
         )
 
     def create_lobby(self) -> bool:
-        logger.debug("Attempting to create the lobby")
+        logger.info("Creating a TFT lobby")
         create_lobby_response = self._session.post(
             f"{self._url}/lol-lobby/v2/lobby",
             json={
@@ -116,7 +116,7 @@ class LCUIntegration:
         return create_lobby_response.status_code == 200
 
     def start_queue(self) -> bool:
-        logger.debug("Attempting to start the queue")
+        logger.debug("Starting the match finding queue")
         start_queue_response = self._session.post(
             f"{self._url}/lol-lobby/v2/lobby/matchmaking/search",
         )
