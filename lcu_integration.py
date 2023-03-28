@@ -1,154 +1,181 @@
-import asyncio
+import time
 
 from loguru import logger
-from willump import Willump
-from willump.proc_utils import find_LCU_process
-from willump.proc_utils import parse_cmdline_args
+from psutil import Process
+from psutil import process_iter
+import requests
 
-_willump = Willump()
 # Potentially make this configurable in the future
 # to let the user select their preferred tft mode.
+from requests import HTTPError
+import urllib3
+
 TFT_NORMAL_GAME_QUEUE_ID = 1090
 
 
-async def start_willump() -> None:
-    logger.info(
-        "Attempting to connect to League client, "
-        "please start it if you haven't yet..."
-    )
-    # Start up code taken from
-    # https://github.com/elliejs/Willump/blob/main/willump/willump.py
-    _willump.rest_alive = False
+# LCU logic taken from https://github.com/elliejs/Willump
+# We want to implement a synchronous approach,
+# so we are not using the library.
+def _get_lcu_process():
+    for process in process_iter():
+        if process.name() in {'LeagueClientUx.exe', 'LeagueClientUx'}:
+            return process
+    return None
 
-    lcu_process = find_LCU_process()
-    while not lcu_process:
-        logger.debug(
-            "Couldn't find LCUx process yet. Re-searching process list..."
-        )
-        await asyncio.sleep(0.5)
-        lcu_process = find_LCU_process()
 
-    logger.debug("Found LCUx process " + lcu_process.name())
-    process_args = parse_cmdline_args(lcu_process.cmdline())
-    _willump._port = int(process_args['app-port'])
-    _willump._auth_key = process_args['remoting-auth-token']
+def _get_lcu_commandline_arguments(lcu_process: Process):
+    commandline_arguments = {}
 
-    _willump.start_rest()
+    for commandline_argument in lcu_process.cmdline():
+        if len(commandline_argument) > 0 and '=' in commandline_argument:
+            key, value = commandline_argument[2:].split('=', 1)
+            commandline_arguments[key] = value
 
-    while True:
-        try:
-            resp = await _willump.request('get', '/riotclient/ux-state')
-            if resp.status == 200:
-                logger.debug(
-                    "Connected to LCUx server."
-                )
-            else:
-                logger.debug(
-                    "Connected to LCUx https server, "
-                    "but got an invalid response for a known uri. "
-                    f"Response status code: {resp.status}"
-                )
-            break
-        except Exception:
+    return commandline_arguments
+
+
+class LCUIntegration:
+    def __init__(self):
+        self._session = None
+        self._url = None
+        self.install_directory = None
+
+    def connect_to_lcu(self):
+        lcu_process = _get_lcu_process()
+        while not lcu_process:
             logger.debug(
-                "Can't connect to LCUx server. Retrying..."
+                "Couldn't find LCUx process yet. Re-searching process list..."
             )
-            await asyncio.sleep(0.5)
-    logger.info("Successfully connected to the League client.")
+            time.sleep(0.5)
+            lcu_process = _get_lcu_process()
 
+        logger.debug("Found LCUx process " + lcu_process.name())
+        process_arguments = _get_lcu_commandline_arguments(lcu_process)
+        self.install_directory = process_arguments["install-directory"]
+        self._url = f"https://127.0.0.1:{process_arguments['app-port']}"
+        _auth_key = process_arguments['remoting-auth-token']
 
-async def is_in_lobby() -> bool:
-    logger.debug("Checking if we are already in a lobby...")
-    get_lobby_response = await _willump.request(
-        "GET",
-        "/lol-lobby/v2/lobby",
-    )
+        if self._session is not None:
+            logger.debug(
+                "LCU session already existed, closing it just to be safe."
+            )
+            self._session.close()
 
-    if get_lobby_response.status != 200:
-        return False
+        self._session = requests.Session()
+        self._session.auth = ("riot", _auth_key)
+        self._session.headers.update({
+            "Content-Type": "application/json",
+            "Accept": "application/json",
+        })
+        # TODO Do proper SSL integration
+        self._session.verify = False
+        urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
 
-    get_lobby_response_data = await get_lobby_response.json()
-    return (
-            get_lobby_response_data["gameConfig"]["queueId"]
-            == TFT_NORMAL_GAME_QUEUE_ID
-    )
+        while True:
+            try:
+                response = self._session.get(
+                    url=f"{self._url}/riotclient/ux-state"
+                )
+                response.raise_for_status()
+                logger.debug("Connected to LCUx server.")
+                break
+            except requests.exceptions.RequestException as exc:
+                logger.debug(
+                    "Can't connect to LCUx server. Retrying..."
+                )
+                time.sleep(0.5)
+        logger.info("Successfully connected to the League client.")
 
+    def get_installation_directory(self) -> str | None:
+        return self.install_directory
 
-async def create_lobby(check_if_post_game) -> bool:
-    tft_lobby_data = {
-        "queueId": TFT_NORMAL_GAME_QUEUE_ID
-    }
-
-    create_lobby_response = await _willump.request(
-        "POST",
-        "/lol-lobby/v2/lobby",
-        data=tft_lobby_data
-    )
-    if create_lobby_response.status == 200:
-        logger.info("Created a TFT lobby.")
-        return True
-    else:
-        logger.warning(
-            "There was an issue creating a TFT lobby. Checking post-game..."
+    def in_lobby(self) -> bool:
+        get_lobby_response = self._session.get(
+            f"{self._url}/lol-lobby/v2/lobby",
         )
-        await check_if_post_game()
-        return False
 
+        try:
+            get_lobby_response.raise_for_status()
+        except HTTPError:
+            return False
 
-async def start_queue() -> bool:
-    logger.info("Starting the queue.")
-    start_queue_response = await _willump.request(
-        "POST",
-        "/lol-lobby/v2/lobby/matchmaking/search",
-    )
-    return start_queue_response.status == 204
+        return (
+                get_lobby_response.json()["gameConfig"]["queueId"]
+                == TFT_NORMAL_GAME_QUEUE_ID
+        )
 
+    def create_lobby(self) -> bool:
+        logger.debug("Attempting to create the lobby")
+        create_lobby_response = self._session.post(
+            f"{self._url}/lol-lobby/v2/lobby",
+            json={
+                "queueId": TFT_NORMAL_GAME_QUEUE_ID
+            }
+        )
 
-async def is_in_queue() -> bool:
-    logger.debug("Checking if we are already in a queue...")
-    get_queue_response = await _willump.request(
-        "GET",
-        "/lol-lobby/v2/lobby/matchmaking/search-state",
-    )
+        return create_lobby_response.status_code == 200
 
-    if get_queue_response.status != 200:
-        return False
+    def start_queue(self) -> bool:
+        logger.debug("Attempting to start the queue")
+        start_queue_response = self._session.post(
+            f"{self._url}/lol-lobby/v2/lobby/matchmaking/search",
+        )
+        return start_queue_response.status_code == 204
 
-    get_queue_response_data = await get_queue_response.json()
-    return get_queue_response_data["searchState"] in {"Searching", "Found"}
+    def in_queue(self) -> bool:
+        logger.debug("Checking if we are already in a queue")
+        get_queue_response = self._session.get(
+            f"{self._url}/lol-lobby/v2/lobby/matchmaking/search-state",
+        )
 
+        if get_queue_response.status_code != 200:
+            return False
 
-async def has_found_queue() -> bool:
-    logger.debug("Checking if we have found a match...")
-    get_queue_response = await _willump.request(
-        "GET",
-        "/lol-lobby/v2/lobby/matchmaking/search-state",
-    )
+        return get_queue_response.json()["searchState"] in {
+            "Searching", "Found"
+        }
 
-    if get_queue_response.status != 200:
-        return False
+    def found_queue(self) -> bool:
+        logger.debug("Checking if we have found a match")
+        get_queue_response = self._session.get(
+            f"{self._url}/lol-lobby/v2/lobby/matchmaking/search-state",
+        )
 
-    get_queue_response_data = await get_queue_response.json()
-    return get_queue_response_data["searchState"] == "Found"
+        if get_queue_response.status_code != 200:
+            return False
 
+        return get_queue_response.json()["searchState"] == "Found"
 
-async def accept_queue():
-    logger.debug("Accepting the queue.")
-    await _willump.request(
-        "POST",
-        "/lol-matchmaking/v1/ready-check/accept"
-    )
+    def accept_queue(self):
+        logger.info("Match ready, accepting the queue")
+        self._session.post(
+            f"{self._url}/lol-matchmaking/v1/ready-check/accept"
+        )
 
+    def in_game(self) -> bool:
+        logger.debug("Checking if we are in a game")
+        try:
+            session_response = self._session.get(
+                f"{self._url}/lol-gameflow/v1/session",
+            )
+        except requests.exceptions.ConnectionError:
+            self.connect_to_lcu()
+            return self.in_game()
 
-async def is_in_game() -> bool:
-    logger.debug("Checking if we are in a game...")
-    session_response = await _willump.request(
-        "GET",
-        "/lol-gameflow/v1/session",
-    )
+        if session_response.status_code != 200:
+            return False
 
-    if session_response.status != 200:
-        return False
+        return session_response.json()["phase"] in {
+            "ChampSelect", "GameStart", "InProgress", "Reconnect"
+        }
 
-    session_response_data = await session_response.json()
-    return session_response_data["phase"] == "InProgress"
+    def should_reconnect(self) -> bool:
+        logger.debug("Checking if we should reconnect")
+        session_response = self._session.get(
+            f"{self._url}/lol-gameflow/v1/session",
+        )
+
+        if session_response.status_code != 200:
+            return False
+
+        return session_response.json()["phase"] == "Reconnect"

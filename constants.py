@@ -103,6 +103,7 @@ CONSTANTS = {
             "surrender_2": "captures/buttons/surrender_2.png",
         },
         "gamelogic": {
+            "choose_an_augment": "captures/buttons/choose_an_augment.png",
             "choose_one": "captures/buttons/choose_one.png",
             "reroll": "captures/buttons/reroll.png",
             "take_all": "captures/buttons/take_all.png",
@@ -140,6 +141,13 @@ CONSTANTS = {
             "4-7": "captures/round/4-7.png",
             "6-5": "captures/round/6-5.png",
             "6-6": "captures/round/6-6.png",
+            "draft_active": "captures/round/draft_active.png",
+            "krugs_inactive": "captures/round/krugs_inactive.png",
+            "krugs_active": "captures/round/krugs_active.png",
+            "wolves_inactive": "captures/round/wolves_inactive.png",
+            "wolves_active": "captures/round/wolves_active.png",
+            "threat_inactive": "captures/round/threat_inactive.png",
+            "threat_active": "captures/round/threat_active.png",
         },
         "trait": {
             "ace": "captures/trait/ace.png",
@@ -197,7 +205,7 @@ key_fragment_images = [
 wanted_traits = [
     CONSTANTS["game"]["trait"]["lasercorps"],
     CONSTANTS["game"]["trait"]["brawler"],
-    CONSTANTS["game"]["trait"]["star_guardian"],
+    CONSTANTS["game"]["trait"]["renegade"],
 ]
 
 unselected_tft_tabs = [

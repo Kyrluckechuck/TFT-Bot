@@ -2,7 +2,6 @@
 The main TFT Bot code
 """
 import argparse
-import asyncio
 import configparser
 from datetime import datetime
 import random
@@ -15,6 +14,7 @@ from loguru import logger
 import pyautogui as auto
 import pydirectinput
 
+from click_helpers import click_left
 from click_helpers import click_right
 from click_helpers import click_to_middle
 from click_helpers import click_to_middle_multiple
@@ -30,7 +30,7 @@ from screen_helpers import onscreen_region_num_loop
 import system_helpers
 
 auto.FAILSAFE = False
-GAME_COUNT = -1
+GAME_COUNT = 0
 PROGRAM_START: datetime
 PAUSE_LOGIC = False
 PLAY_NEXT_GAME = True
@@ -39,6 +39,7 @@ CONFIG = {
     "VERBOSE": False,
     "OVERRIDE_INSTALL_DIR": None,
 }
+LCU_INTEGRATION = lcu_integration.LCUIntegration()
 
 
 def bring_league_client_to_forefront() -> None:
@@ -153,35 +154,16 @@ def toggle_play_next_game() -> None:
         logger.warning("Bot will queue a new game when in lobby!")
 
 
-def is_in_queue() -> bool:
-    """Checks if the League client is currently in queue / searching for a game.
-
-    Returns:
-        bool: True if the client is in queue, False otherwise.
-    """
-    return onscreen(CONSTANTS["client"]["in_queue"]["base"]) or onscreen(CONSTANTS["client"]["in_queue"]["overshadowed"])
-
-
-def is_in_tft_lobby() -> bool:
-    """Checks if the League client is currently in the TFT lobby.
-
-    Returns:
-        bool: True if the client is in the TFT lobby, False otherwise.
-    """
-    return onscreen(CONSTANTS["client"]["pre_match"]["lobby"]["normal"])
-
-
-async def wait_for_league_running() -> bool:
+def wait_for_league_running() -> bool:
     """Attempt to pause the bot logic evaluation until the league game client is running, or 30 seconds has passed.
 
     Returns:
         bool: True if the game is running, False otherwise.
     """
-    logger.info("Pausing bot to watch for league game startup (30 second timeout)")
     counter = 0
     while not league_game_already_running():
         counter = counter + 1
-        await asyncio.sleep(0.5)
+        time.sleep(0.5)
         if counter > 60:
             logger.info("Timed out, moving on!")
             break
@@ -210,7 +192,7 @@ def evaluate_next_game_logic() -> None:
 
 
 @logger.catch
-async def queue() -> None:  # pylint: disable=too-many-branches
+def queue() -> None:  # pylint: disable=too-many-branches
     """Begin finding a match -- the start of the repeating game logic, dismissing any interruptions and bringing the League client to the forefront/focus."""
     # Queue search loop
     while True:
@@ -224,17 +206,14 @@ async def queue() -> None:  # pylint: disable=too-many-branches
         if restart_league_if_not_running():
             continue
 
-        in_game = await lcu_integration.is_in_game()
-        if in_game:
-            logger.info("We're in a game.")
+        if LCU_INTEGRATION.in_game():
+            logger.info("We're in a game")
             break
 
-        in_queue = await lcu_integration.is_in_queue()
-        if in_queue:
+        if LCU_INTEGRATION.in_queue():
             time.sleep(5)
-            has_found = await lcu_integration.has_found_queue()
-            if has_found:
-                await lcu_integration.accept_queue()
+            if LCU_INTEGRATION.found_queue():
+                LCU_INTEGRATION.accept_queue()
                 time.sleep(10)
                 continue
             continue
@@ -242,25 +221,34 @@ async def queue() -> None:  # pylint: disable=too-many-branches
         if not PLAY_NEXT_GAME:
             continue
 
-        in_tft_lobby = await lcu_integration.is_in_lobby()
-        if in_tft_lobby:
-            await lcu_integration.start_queue()
+        if LCU_INTEGRATION.in_lobby():
+            LCU_INTEGRATION.start_queue()
             time.sleep(3)
             continue
 
-        if not await lcu_integration.create_lobby(check_if_post_game):
+        if not LCU_INTEGRATION.create_lobby():
             time.sleep(5)
-    await loading_match()
+    loading_match()
 
 
-async def loading_match() -> None:
+def loading_match() -> None:
     """Attempt to wait for the match to load, bringing the League game to the forefront/focus.
     After some time, if the game has not been detected as starting, it moves on anyways.
     """
     counter = 0
-    logger.info("Match Loading!")
+    logger.info("Match loading, waiting for game window (30s timeout)")
     bring_league_game_to_forefront()
+    if not wait_for_league_running():
+        if LCU_INTEGRATION.in_game():
+            logger.warning(
+                "We are in a game, but the game window is not opening. "
+                "Restarting client..."
+            )
+            restart_league_client()
+            time.sleep(30)
+        return
 
+    logger.info("Match loading, waiting for game to start (120s timeout)")
     while (
         not onscreen(CONSTANTS["game"]["loading"]) and
         not onscreen(CONSTANTS["game"]["gamelogic"]["timer_1"]) and
@@ -271,25 +259,23 @@ async def loading_match() -> None:
         not onscreen(CONSTANTS["game"]["round"]["5-"]) and
         not onscreen(CONSTANTS["game"]["round"]["6-"])
     ):
-        await asyncio.sleep(0.5)
-        # In case the client isn't already running, try waiting for it
-        await wait_for_league_running()
+        time.sleep(1)
         bring_league_game_to_forefront()
-        if counter > 60:
-            logger.warning("Did not detect game start, continuing anyways :S")
+        if counter > 120:
+            logger.warning("Did not detect game start, continuing anyway")
             break
         counter = counter + 1
 
-    logger.info("Match starting!")
-    await start_match()
+    logger.info("Match started")
+    start_match()
 
 
-async def start_match() -> None:
+def start_match() -> None:
     """Do initial first round pathing to pick the first champ."""
     while onscreen(CONSTANTS["game"]["round"]["1-1"]):
         shared_draft_pathing()
-    logger.info("In the match now!")
-    await main_game_loop()
+    logger.info("Initial draft complete, continuing with game")
+    main_game_loop()
 
 
 def shared_draft_pathing() -> None:
@@ -400,11 +386,16 @@ def exit_now_conditional() -> bool:
     return not league_game_already_running()
 
 
-async def check_if_dead() -> bool:
+def check_if_game_complete() -> bool:
+    """Check if the League game is complete.
+
+    Returns:
+        bool: True if any scenario in which the game is not active, False otherwise.
+    """
     if onscreen(CONSTANTS["client"]["death"]):
         logger.info("Death detected")
         click_to_middle(CONSTANTS["client"]["death"])
-        await asyncio.sleep(5)
+        time.sleep(5)
         return True
 
     if onscreen_multiple_any(exit_now_images):
@@ -415,25 +406,12 @@ async def check_if_dead() -> bool:
             delay=1.5
         )
         logger.debug(f"Exit now clicking success: {exit_now_bool}")
-        await asyncio.sleep(5)
+        time.sleep(5)
         return True
 
-
-async def check_if_game_complete() -> bool:
-    """Check if the League game is complete.
-
-    Returns:
-        bool: True if any scenario in which the game is not active, False otherwise.
-    """
-    is_dead = await check_if_dead()
-    if is_dead:
-        return True
-
-    in_game = await lcu_integration.is_in_game()
-    if in_game:
-        return False
-
-    if attempt_reconnect_to_existing_game():
+    if LCU_INTEGRATION.in_game():
+        if LCU_INTEGRATION.should_reconnect():
+            attempt_reconnect_to_existing_game()
         return False
 
     return check_if_client_error()
@@ -452,13 +430,13 @@ def attempt_reconnect_to_existing_game() -> bool:
     return False
 
 
-async def check_if_post_game() -> bool:
+def check_if_post_game() -> bool:
     """Checks to see if the game was interrupted.
 
     Returns:
         bool: True if the game was complete or a reconnection attempt is made, False otherwise.
     """
-    game_complete = await check_if_game_complete()
+    game_complete = check_if_game_complete()
     if game_complete:
         return True
     return attempt_reconnect_to_existing_game()
@@ -490,7 +468,32 @@ def check_if_gold_at_least(num: int) -> bool:
     return True
 
 
-async def main_game_loop() -> None:  # pylint: disable=too-many-branches
+def determine_minimum_round_based_on_pve() -> int:
+    if (
+        onscreen(CONSTANTS["game"]["round"]["krugs_inactive"], 0.9)
+        or onscreen(CONSTANTS["game"]["round"]["krugs_active"], 0.9)
+    ):
+        return 2
+
+    if (
+        onscreen(CONSTANTS["game"]["round"]["wolves_inactive"], 0.9)
+        or onscreen(CONSTANTS["game"]["round"]["wolves_active"], 0.9)
+    ):
+        return 3
+
+    if (
+        onscreen(CONSTANTS["game"]["round"]["threat_inactive"], 0.9)
+        or onscreen(CONSTANTS["game"]["round"]["threat_active"], 0.9)
+    ):
+        return 4
+
+    if onscreen(CONSTANTS["game"]["round"]["1-"]):
+        return 1
+
+    return 0
+
+
+def main_game_loop() -> None:  # pylint: disable=too-many-branches
     """The main in-game loop.
 
     Skips 5 second increments if a pause logic request is made, repeating until toggled or an event triggers an early exit.
@@ -500,43 +503,53 @@ async def main_game_loop() -> None:  # pylint: disable=too-many-branches
     should_exit = False
     while should_exit is False:
         if PAUSE_LOGIC:
-            await asyncio.sleep(5)
+            time.sleep(5)
             continue
 
+        if onscreen(CONSTANTS["game"]["gamelogic"]["choose_an_augment"], 0.9):
+            logger.info("Detected augment offer, selecting one")
+            auto.moveTo(960, 540)
+            click_left()
+            time.sleep(0.5)
+            continue
+
+        minimum_round = determine_minimum_round_based_on_pve()
         # Free champ round
-        if not onscreen(CONSTANTS["game"]["round"]["1-"], 0.9) and onscreen(CONSTANTS["game"]["round"]["-4"], 0.9):
-            logger.info("Round [X]-4, draft detected")
+        if minimum_round > 1 and onscreen(CONSTANTS["game"]["round"]["draft_active"], 0.95):
+            logger.info("Active draft detected, pathing to carousel")
             shared_draft_pathing()
             continue
 
-        if onscreen(CONSTANTS["game"]["round"]["1-"], 0.9) or onscreen(CONSTANTS["game"]["round"]["2-"], 0.9):
+        if minimum_round <= 2:
             buy(3)
             continue
 
-        if CONFIG["FF_EARLY"] and onscreen(CONSTANTS["game"]["round"]["3-"]):
-            logger.info("Attempting to surrender early.")
-            await surrender()
+        if CONFIG["FF_EARLY"] and minimum_round >= 3:
+            logger.info("Attempting to surrender early")
+            surrender()
             break
 
-        # If round > 2, attempt re-rolls
+        # If round > 2, buy champs, level and re-roll
+        buy(3)
         if check_if_gold_at_least(4) and onscreen(CONSTANTS["game"]["gamelogic"]["xp_buy"]):
             click_to_middle(CONSTANTS["game"]["gamelogic"]["xp_buy"])
-            await asyncio.sleep(0.2)
+            time.sleep(0.2)
             continue
 
-        if not onscreen(CONSTANTS["game"]["round"]["1-"], 0.9) and not onscreen(CONSTANTS["game"]["round"]["2-"], 0.9):
-            if check_if_gold_at_least(2) and onscreen(CONSTANTS["game"]["gamelogic"]["reroll"]):
-                click_to_middle(CONSTANTS["game"]["gamelogic"]["reroll"])
+        if check_if_gold_at_least(2) and onscreen(CONSTANTS["game"]["gamelogic"]["reroll"]):
+            click_to_middle(CONSTANTS["game"]["gamelogic"]["reroll"])
+            time.sleep(0.2)
+            continue
 
-        await asyncio.sleep(0.5)
+        time.sleep(0.5)
 
-        post_game = await check_if_post_game()
+        post_game = check_if_post_game()
         if post_game:
-            await match_complete()
+            match_complete()
             break
 
 
-async def end_match() -> None:
+def end_match() -> None:
     """End of TFT game logic.
 
     Loops to ensure the various end-of-match scenarios are accounte for to help ensure we make it back to the next find match button.
@@ -548,10 +561,9 @@ async def end_match() -> None:
         if counter >= 60:
             restart_league_client()
             return
-        in_game = await lcu_integration.is_in_game()
-        if in_game:
+        if LCU_INTEGRATION.in_game():
             counter += 1
-            await asyncio.sleep(1)
+            time.sleep(1)
             continue
         break
 
@@ -561,30 +573,22 @@ async def end_match() -> None:
             return
 
 
-async def match_complete() -> None:
+def match_complete() -> None:
     """Print a log timer to update the time passed and number of games completed (rough estimation), and begin the end of match logic."""
     print_timer()
     logger.info("Match complete! Cleaning up and restarting")
-    await end_match()
+    end_match()
 
 
-async def surrender() -> None:
+def surrender() -> None:
     """Attempt to surrender.
 
     *Notice:* The main author does not use this often, so this is not tested between most updates.
     """
-    # In case we lost before we could surrender
-    is_dead = await check_if_dead()
-    if is_dead:
-        await end_match()
-        await asyncio.sleep(5)
-        await match_complete()
-        return
-
-    surrenderwait = random.randint(100, 150)
-    logger.info(f"Waiting {surrenderwait} seconds before surrendering...")
-    await asyncio.sleep(surrenderwait)
-    logger.info("Starting surrender.")
+    random_seconds = random.randint(60, 90)
+    logger.info(f"Waiting {random_seconds} seconds before surrendering...")
+    time.sleep(random_seconds)
+    logger.info("Starting surrender")
     # click_to_middle(CONSTANTS["game"]["settings"])
     #
     # counter = 0
@@ -595,7 +599,6 @@ async def surrender() -> None:
     #     counter = counter + 1
     #     if counter > 20:
     #         break
-    # counter = 0
     # while not onscreen(CONSTANTS["game"]["surrender"]["surrender_2"]):
     #     click_to_middle(CONSTANTS["game"]["surrender"]["surrender_1"])
     #     # added a check here for the rare case that the game ended before the surrender finished.
@@ -609,18 +612,16 @@ async def surrender() -> None:
     #  We need to use PyDirectInput since the league client does not
     #  always recognize the input of the method pyautogui uses.
     while not onscreen(CONSTANTS["game"]["surrender"]["surrender_2"]):
-        await asyncio.sleep(2)
+        time.sleep(2)
         bring_league_game_to_forefront()
         pydirectinput.write(["enter", "/", "f", "f", "enter"], interval=0.1)
-        await asyncio.sleep(2)
+        time.sleep(1)
 
     click_to_middle(CONSTANTS["game"]["surrender"]["surrender_2"])
-    await asyncio.sleep(10)
-    await end_match()
-    await asyncio.sleep(5)
-
-    logger.info("Surrender Complete")
-    await match_complete()
+    time.sleep(10)
+    end_match()
+    logger.info("Surrender complete")
+    match_complete()
 
 
 def print_timer() -> None:
@@ -637,13 +638,13 @@ def print_timer() -> None:
     logger.info("-------------------------------------")
 
 
-async def tft_bot_loop() -> None:
+def tft_bot_loop() -> None:
     """Main loop to ensure various errors don't unhinge/break the bot.
     Since the bot is able to reconnect and handle most errors, this should allow it to resume games in progress even if an 'uncaught exception' has occurred.
     """
     while True:
         try:
-            await queue()
+            queue()
         except AttributeError:
             logger.info("Not already in game, couldn't find game client on screen, looping")
             time.sleep(5)
@@ -683,6 +684,9 @@ def update_league_constants(league_install_location: str) -> None:
     Args:
         league_install_location (str): The determined location for the executables
     """
+    logger.debug(
+        rf"Updating league install location to {league_install_location}"
+    )
     CONSTANTS["executables"]["league"]["client"] = rf"{league_install_location}{CONSTANTS['executables']['league']['client']}"
     CONSTANTS["executables"]["league"]["client_ux"] = rf"{league_install_location}{CONSTANTS['executables']['league']['client_ux']}"
     CONSTANTS["executables"]["league"]["game"] = rf"{league_install_location}{CONSTANTS['executables']['league']['game']}"
@@ -695,7 +699,7 @@ def setup_hotkeys() -> None:
 
 
 @logger.catch
-async def main():
+def main():
     """Entrypoint function to initialize most of the code.
 
     Parses command line arguments, sets up console settings, logging, and kicks of the main bot loop.
@@ -776,17 +780,19 @@ async def main():
 
     setup_hotkeys()
 
-    await lcu_integration.start_willump()
+    LCU_INTEGRATION.connect_to_lcu()
 
-    league_directory_to_set = system_helpers.determine_league_install_location(
-        CONFIG["OVERRIDE_INSTALL_DIR"]
-    )
-    update_league_constants(league_directory_to_set)
+    league_directory = LCU_INTEGRATION.get_installation_directory()
+    if not league_directory:
+        league_directory = system_helpers.determine_league_install_location(
+            CONFIG["OVERRIDE_INSTALL_DIR"]
+        )
+    update_league_constants(league_directory)
 
     global PROGRAM_START
     PROGRAM_START = datetime.now()
-    await tft_bot_loop()
+    tft_bot_loop()
 
 
 if __name__ == "__main__":
-    sys.exit(asyncio.run(main()))
+    sys.exit(main())
