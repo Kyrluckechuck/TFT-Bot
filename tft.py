@@ -558,9 +558,8 @@ def main_game_loop() -> None:  # pylint: disable=too-many-branches
         if check_if_gold_at_least(4) and onscreen(CONSTANTS["game"]["gamelogic"]["xp_buy"]):
             click_to_middle(CONSTANTS["game"]["gamelogic"]["xp_buy"])
             time.sleep(0.2)
-            continue
 
-        if check_if_gold_at_least(2) and onscreen(CONSTANTS["game"]["gamelogic"]["reroll"]):
+        if check_if_gold_at_least(5) and onscreen(CONSTANTS["game"]["gamelogic"]["reroll"]):
             click_to_middle(CONSTANTS["game"]["gamelogic"]["reroll"])
             time.sleep(0.2)
             continue
