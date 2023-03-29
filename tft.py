@@ -441,6 +441,20 @@ def check_if_post_game() -> bool:
     return attempt_reconnect_to_existing_game()
 
 
+def check_gold(num: int) -> bool:
+    try:
+        if onscreen_region_num_loop(
+                CONSTANTS["game"]["gold"][f"{num}"], 0.05, 5, 780, 850, 970, 920, 0.9
+        ):
+            logger.debug(f"Found {num} gold")
+            return True
+    except Exception:
+        logger.debug(f"Exception finding {num} gold, we possibly don't have the value as a file")
+        # We don't have this gold as a file
+        return True
+    return False
+
+
 def check_if_gold_at_least(num: int) -> bool:
     """Check if the gold on screen is at least the provided amount
 
@@ -451,19 +465,14 @@ def check_if_gold_at_least(num: int) -> bool:
         bool: True if the value is >= `num`, False otherwise.
     """
     logger.debug(f"Looking for at least {num} gold")
+    if check_gold(num):
+        return True
+
     for i in range(num + 1):
-        try:
-            if onscreen_region_num_loop(CONSTANTS["game"]["gold"][f"{i}"], 0.05, 5, 780, 850, 970, 920, 0.9):
-                logger.debug(f"Found {i} gold")
-                if i == num:
-                    logger.debug("Correct")
-                    return True
-                logger.debug("Incorrect")
-                return False
-        except Exception:
-            logger.debug(f"Exception finding {i} gold, we possibly don't have the value as a file")
-            # We don't have this gold as a file
-            return True
+        if check_gold(i):
+            return i >= num
+
+    logger.debug(f"No gold value found, assuming we have more")
     return True
 
 
