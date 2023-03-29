@@ -211,11 +211,11 @@ def queue() -> None:  # pylint: disable=too-many-branches
             break
 
         if LCU_INTEGRATION.in_queue():
-            time.sleep(5)
             if LCU_INTEGRATION.found_queue():
                 LCU_INTEGRATION.accept_queue()
-                time.sleep(10)
-                continue
+                time.sleep(3)
+            else:
+                time.sleep(3)
             continue
 
         if not PLAY_NEXT_GAME:
@@ -223,7 +223,6 @@ def queue() -> None:  # pylint: disable=too-many-branches
 
         if LCU_INTEGRATION.in_lobby():
             LCU_INTEGRATION.start_queue()
-            time.sleep(3)
             continue
 
         if not LCU_INTEGRATION.create_lobby():
