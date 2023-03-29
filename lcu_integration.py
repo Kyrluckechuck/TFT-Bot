@@ -40,14 +40,23 @@ class LCUIntegration:
         self._url = None
         self.install_directory = None
 
-    def connect_to_lcu(self):
+    def connect_to_lcu(self) -> bool:
+        logger.info("Waiting for the League client (5m timeout)")
         lcu_process = _get_lcu_process()
+
+        timeout = 0
         while not lcu_process:
+            if timeout >= 300:
+                logger.warning(
+                    "Couldn't find the League client within 5 minutes, exiting"
+                )
+                return False
             logger.debug(
                 "Couldn't find LCUx process yet. Re-searching process list..."
             )
-            time.sleep(0.5)
+            time.sleep(1)
             lcu_process = _get_lcu_process()
+            timeout += 1
 
         logger.debug("LCUx process found")
         process_arguments = _get_lcu_commandline_arguments(lcu_process)
@@ -71,7 +80,17 @@ class LCUIntegration:
         self._session.verify = False
         urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
 
+        logger.info(
+            "League client found, trying to connect to it (60s timeout)"
+        )
+        timeout = 0
         while True:
+            if timeout >= 60:
+                logger.warning(
+                    "Couldn't connect to the League client, exiting"
+                )
+                return False
+
             try:
                 response = self._session.get(
                     url=f"{self._url}/riotclient/ux-state"
@@ -79,11 +98,12 @@ class LCUIntegration:
                 response.raise_for_status()
                 logger.debug("Connected to LCUx server.")
                 break
-            except requests.exceptions.RequestException as exc:
+            except requests.exceptions.RequestException:
                 logger.debug(
                     "Can't connect to LCUx server. Retrying..."
                 )
-                time.sleep(0.5)
+                time.sleep(1)
+                timeout += 1
         logger.info("Successfully connected to the League client")
 
     def get_installation_directory(self) -> str | None:

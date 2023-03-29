@@ -788,7 +788,8 @@ def main():
 
     setup_hotkeys()
 
-    LCU_INTEGRATION.connect_to_lcu()
+    if not LCU_INTEGRATION.connect_to_lcu():
+        sys.exit(1)
 
     league_directory = LCU_INTEGRATION.get_installation_directory()
     if not league_directory:
