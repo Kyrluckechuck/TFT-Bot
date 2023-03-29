@@ -586,7 +586,7 @@ def end_match() -> None:
             continue
         break
 
-    if not not onscreen_multiple_any(find_match_images):
+    if not onscreen_multiple_any(find_match_images):
         bring_league_client_to_forefront()
         if check_if_client_error() or not league_client_running():
             return
