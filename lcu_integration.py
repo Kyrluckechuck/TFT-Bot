@@ -105,6 +105,7 @@ class LCUIntegration:
                 time.sleep(1)
                 timeout += 1
         logger.info("Successfully connected to the League client")
+        return True
 
     def get_installation_directory(self) -> str | None:
         return self.install_directory
@@ -136,7 +137,7 @@ class LCUIntegration:
         return create_lobby_response.status_code == 200
 
     def start_queue(self) -> bool:
-        logger.debug("Starting the match finding queue")
+        logger.info("Starting the match finding queue")
         start_queue_response = self._session.post(
             f"{self._url}/lol-lobby/v2/lobby/matchmaking/search",
         )
@@ -165,6 +166,17 @@ class LCUIntegration:
             return False
 
         return get_queue_response.json()["searchState"] == "Found"
+
+    def queue_accepted(self):
+        logger.debug("Checking if we already accepted the queue")
+        ready_check_state = self._session.get(
+            f"{self._url}/lol-matchmaking/v1/ready-check"
+        )
+
+        if ready_check_state.status_code != 200:
+            return False
+
+        return ready_check_state.json()["playerResponse"] == "Accepted"
 
     def accept_queue(self):
         logger.info("Match ready, accepting the queue")

@@ -212,7 +212,7 @@ def queue() -> None:  # pylint: disable=too-many-branches
             break
 
         if LCU_INTEGRATION.in_queue():
-            if LCU_INTEGRATION.found_queue():
+            if LCU_INTEGRATION.found_queue() and not LCU_INTEGRATION.queue_accepted():
                 LCU_INTEGRATION.accept_queue()
                 time.sleep(3)
             else:
