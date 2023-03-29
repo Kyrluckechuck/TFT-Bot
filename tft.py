@@ -113,6 +113,7 @@ def restart_league_client() -> None:
     time.sleep(1)
     subprocess.run(CONSTANTS["executables"]["league"]["client"], check=True)
     time.sleep(3)
+    LCU_INTEGRATION.connect_to_lcu()
 
 
 def restart_league_if_not_running() -> bool:
@@ -244,7 +245,6 @@ def loading_match() -> None:
                 "Restarting client..."
             )
             restart_league_client()
-            time.sleep(30)
         return
 
     logger.info("Match loading, waiting for game to start (120s timeout)")
