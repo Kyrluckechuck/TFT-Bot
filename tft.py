@@ -413,7 +413,7 @@ def check_if_game_complete() -> bool:
             attempt_reconnect_to_existing_game()
         return False
 
-    return check_if_client_error()
+    return not check_if_client_error()
 
 
 def attempt_reconnect_to_existing_game() -> bool:
