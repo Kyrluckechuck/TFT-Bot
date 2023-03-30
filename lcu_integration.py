@@ -136,6 +136,12 @@ class LCUIntegration:
 
         return create_lobby_response.status_code == 200
 
+    def delete_lobby(self):
+        logger.info("Closing the lobby because it seems we got stuck")
+        self._session.delete(
+            f"{self._url}/lol-lobby/v2/lobby",
+        )
+
     def start_queue(self) -> bool:
         logger.info("Starting the match finding queue")
         start_queue_response = self._session.post(

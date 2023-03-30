@@ -196,6 +196,7 @@ def evaluate_next_game_logic() -> None:
 def queue() -> None:  # pylint: disable=too-many-branches
     """Begin finding a match -- the start of the repeating game logic, dismissing any interruptions and bringing the League client to the forefront/focus."""
     # Queue search loop
+    start_queue_repeating = False
     while True:
         if PAUSE_LOGIC:
             time.sleep(5)
@@ -212,6 +213,7 @@ def queue() -> None:  # pylint: disable=too-many-branches
             break
 
         if LCU_INTEGRATION.in_queue():
+            start_queue_repeating = False
             if LCU_INTEGRATION.found_queue() and not LCU_INTEGRATION.queue_accepted():
                 LCU_INTEGRATION.accept_queue()
                 time.sleep(3)
@@ -223,7 +225,15 @@ def queue() -> None:  # pylint: disable=too-many-branches
             continue
 
         if LCU_INTEGRATION.in_lobby():
+            # Fix for if the user is considered not ready.
+            if start_queue_repeating:
+                LCU_INTEGRATION.delete_lobby()
+                start_queue_repeating = False
+                time.sleep(1)
+                continue
+
             LCU_INTEGRATION.start_queue()
+            start_queue_repeating = True
             continue
 
         if not LCU_INTEGRATION.create_lobby():
