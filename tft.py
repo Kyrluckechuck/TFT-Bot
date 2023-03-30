@@ -519,20 +519,10 @@ def main_game_loop() -> None:  # pylint: disable=too-many-branches
 
     Skips 5 second increments if a pause logic request is made, repeating until toggled or an event triggers an early exit.
     """
-    game_start_timestamp = datetime.now()
     while True:
         if PAUSE_LOGIC:
             time.sleep(5)
             continue
-
-        time_since_game_start = datetime.now() - game_start_timestamp
-        if time_since_game_start.seconds > 60 * 90:
-            logger.warning(
-                "Main game loop was active for more than 1.5 hours. "
-                "It is unlikely that we are still in a game, exiting."
-            )
-            match_complete()
-            break
 
         post_game = check_if_post_game()
         if post_game:
