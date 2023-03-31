@@ -233,6 +233,7 @@ def queue() -> None:  # pylint: disable=too-many-branches
                 continue
 
             LCU_INTEGRATION.start_queue()
+            time.sleep(1)
             start_queue_repeating = True
             continue
 
