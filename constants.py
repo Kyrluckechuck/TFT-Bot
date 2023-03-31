@@ -6,6 +6,9 @@ CONSTANTS = {
     "storage": {"appdata": "%APPDATA%/TFT Bot"},
     "executables": {
         "league": {
+            "client_base": r"\LeagueClient.exe",
+            "client_ux_base": r"\LeagueClientUx.exe",
+            "game_base": r"\Game\League of Legends.exe",
             "client": r"\LeagueClient.exe",
             "client_ux": r"\LeagueClientUx.exe",
             "game": r"\Game\League of Legends.exe",

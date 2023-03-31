@@ -16,7 +16,7 @@ TFT_NORMAL_GAME_QUEUE_ID = 1090
 # LCU logic taken from https://github.com/elliejs/Willump
 # We want to implement a synchronous approach,
 # so we are not using the library.
-def _get_lcu_process():
+def get_lcu_process():
     for process in process_iter():
         if process.name() in {'LeagueClientUx.exe', 'LeagueClientUx'}:
             return process
@@ -40,9 +40,9 @@ class LCUIntegration:
         self._url = None
         self.install_directory = None
 
-    def connect_to_lcu(self) -> bool:
+    def connect_to_lcu(self, wait_for_availability: bool = False) -> bool:
         logger.info("Waiting for the League client (~5m timeout)")
-        lcu_process = _get_lcu_process()
+        lcu_process = get_lcu_process()
 
         timeout = 0
         while not lcu_process:
@@ -55,7 +55,7 @@ class LCUIntegration:
                 "Couldn't find LCUx process yet. Re-searching process list..."
             )
             time.sleep(1)
-            lcu_process = _get_lcu_process()
+            lcu_process = get_lcu_process()
             timeout += 1
 
         logger.debug("LCUx process found")
@@ -81,7 +81,7 @@ class LCUIntegration:
         urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
 
         logger.info(
-            "League client found, trying to connect to it (60s timeout)"
+            "League client found, trying to connect to it (~60s timeout)"
         )
         timeout = 0
         while True:
@@ -104,7 +104,29 @@ class LCUIntegration:
                 )
                 time.sleep(1)
                 timeout += 1
+
         logger.info("Successfully connected to the League client")
+
+        if wait_for_availability:
+            logger.info(
+                "Waiting for client availability (~120s timeout)"
+            )
+            timeout = 0
+            while timeout < 120:
+                availability_response = self._session.get(
+                    url=f"{self._url}/lol-gameflow/v1/availability"
+                )
+                if (
+                        availability_response.status_code == 200
+                        and availability_response.json()["isAvailable"]
+                ):
+                    logger.info("Client available, queue logic should start")
+                    return True
+                time.sleep(1)
+                timeout += 1
+            logger.error("Client did not become available. Exiting.")
+            return False
+
         return True
 
     def get_installation_directory(self) -> str | None:

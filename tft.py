@@ -113,7 +113,8 @@ def restart_league_client() -> None:
     time.sleep(1)
     subprocess.run(CONSTANTS["executables"]["league"]["client"], check=True)
     time.sleep(3)
-    LCU_INTEGRATION.connect_to_lcu()
+    if not LCU_INTEGRATION.connect_to_lcu(wait_for_availability=True):
+        sys.exit(1)
 
 
 def restart_league_if_not_running() -> bool:
@@ -164,7 +165,7 @@ def wait_for_league_running() -> bool:
     counter = 0
     while not league_game_already_running():
         counter = counter + 1
-        time.sleep(1)
+        time.sleep(0.5)
         if counter > 60:
             logger.info("Timed out, moving on!")
             break
@@ -204,9 +205,6 @@ def queue() -> None:  # pylint: disable=too-many-branches
 
         if not PLAY_NEXT_GAME:
             evaluate_next_game_logic()
-
-        if restart_league_if_not_running():
-            continue
 
         if LCU_INTEGRATION.in_game():
             logger.info("A game is running, switching to game logic")
@@ -713,9 +711,9 @@ def update_league_constants(league_install_location: str) -> None:
     logger.debug(
         rf"Updating league install location to {league_install_location}"
     )
-    CONSTANTS["executables"]["league"]["client"] = rf"{league_install_location}{CONSTANTS['executables']['league']['client']}"
-    CONSTANTS["executables"]["league"]["client_ux"] = rf"{league_install_location}{CONSTANTS['executables']['league']['client_ux']}"
-    CONSTANTS["executables"]["league"]["game"] = rf"{league_install_location}{CONSTANTS['executables']['league']['game']}"
+    CONSTANTS["executables"]["league"]["client"] = rf"{league_install_location}{CONSTANTS['executables']['league']['client_base']}"
+    CONSTANTS["executables"]["league"]["client_ux"] = rf"{league_install_location}{CONSTANTS['executables']['league']['client_ux_base']}"
+    CONSTANTS["executables"]["league"]["game"] = rf"{league_install_location}{CONSTANTS['executables']['league']['game_base']}"
 
 
 def setup_hotkeys() -> None:
@@ -803,14 +801,17 @@ def main():
 
     setup_hotkeys()
 
-    if not LCU_INTEGRATION.connect_to_lcu():
-        sys.exit(1)
-
-    league_directory = LCU_INTEGRATION.get_installation_directory()
-    if not league_directory:
+    if not lcu_integration.get_lcu_process():
+        logger.warning("League client is not open, attempting to start it")
         league_directory = system_helpers.determine_league_install_location(
             CONFIG["OVERRIDE_INSTALL_DIR"]
         )
+        update_league_constants(league_directory)
+        restart_league_client()
+    elif not LCU_INTEGRATION.connect_to_lcu():
+        sys.exit(1)
+
+    league_directory = LCU_INTEGRATION.get_installation_directory()
     update_league_constants(league_directory)
 
     global PROGRAM_START
