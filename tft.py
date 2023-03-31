@@ -822,9 +822,6 @@ def main():
     league_directory = LCU_INTEGRATION.get_installation_directory()
     update_league_constants(league_directory)
 
-    logger.info("worked as expected")
-    sys.exit(0)
-
     global PROGRAM_START
     PROGRAM_START = datetime.now()
     tft_bot_loop()
