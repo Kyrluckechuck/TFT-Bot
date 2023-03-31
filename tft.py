@@ -21,9 +21,9 @@ from click_helpers import click_to_middle_multiple
 from constants import CONSTANTS
 from constants import exit_now_images
 from constants import find_match_images
+from constants import league_processes
 from constants import message_exit_buttons
 from constants import wanted_traits
-from constants import league_processes
 import lcu_integration
 from screen_helpers import onscreen
 from screen_helpers import onscreen_multiple_any
