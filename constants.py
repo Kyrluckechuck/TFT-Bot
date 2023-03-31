@@ -158,20 +158,25 @@ CONSTANTS = {
             "aegis": "captures/trait/aegis.png",
             "anima_squad": "captures/trait/anima_squad.png",
             "brawler": "captures/trait/brawler.png",
-            "civilian": "captures/trait/civilian.png",
             "defender": "captures/trait/defender.png",
             "duelist": "captures/trait/duelist.png",
             "gadgeteen": "captures/trait/gadgeteen.png",
             "hacker": "captures/trait/hacker.png",
             "heart": "captures/trait/heart.png",
+            "infiniteam": "captures/trait/infiniteam.png",
             "lasercorps": "captures/trait/lasercorps.png",
             "mascot": "captures/trait/mascot.png",
             "mecha_prime": "captures/trait/mecha_prime.png",
             "ox_force": "captures/trait/ox_force.png",
-            "recon": "captures/trait/recon.png",
+            "parallel": "captures/trait/parallel.png",
+            "prankster": "captures/trait/prankster.png",
+            "quickdraw": "captures/trait/quickdraw.png",
             "renegade": "captures/trait/renegade.png",
+            "riftwalker": "captures/trait/riftwalker.png",
             "spellslinger": "captures/trait/spellslinger.png",
             "star_guardian": "captures/trait/star_guardian.png",
+            "supers": "captures/trait/supers.png",
+            "sureshot": "captures/trait/sureshot.png",
             "threat": "captures/trait/threat.png",
             "underground": "captures/trait/underground.png",
         },
@@ -206,9 +211,8 @@ key_fragment_images = [
 ]
 
 wanted_traits = [
-    CONSTANTS["game"]["trait"]["lasercorps"],
+    CONSTANTS["game"]["trait"]["duelist"],
     CONSTANTS["game"]["trait"]["brawler"],
-    CONSTANTS["game"]["trait"]["renegade"],
 ]
 
 unselected_tft_tabs = [
