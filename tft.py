@@ -23,6 +23,7 @@ from constants import exit_now_images
 from constants import find_match_images
 from constants import message_exit_buttons
 from constants import wanted_traits
+from constants import league_processes
 import lcu_integration
 from screen_helpers import onscreen
 from screen_helpers import onscreen_multiple_any
@@ -93,23 +94,30 @@ def parse_task_kill_text(result: subprocess.CompletedProcess[str]) -> None:
         logger.debug(result)
 
 
+def kill_process(process_executable: str) -> str:
+    """Kill the process, and parse whether it was successfully killed
+
+    Args:
+        process_executable (str): The process executable to kill
+
+    Returns:
+        str: _description_
+    """
+    return subprocess.run(
+        ["taskkill", "/f", "/im", process_executable],
+        check=False,
+        capture_output=True,
+        text=True,
+    )
+
+
 def restart_league_client() -> None:
     """Restarts the league client."""
-    logger.debug("Killing League Client!")
-    result = subprocess.run(
-        ["taskkill", "/f", "/im", CONSTANTS["processes"]["client"]],
-        check=False,
-        capture_output=True,
-        text=True,
-    )
-    parse_task_kill_text(result)
-    result = subprocess.run(
-        ["taskkill", "/f", "/im", CONSTANTS["processes"]["client_ux"]],
-        check=False,
-        capture_output=True,
-        text=True,
-    )
-    parse_task_kill_text(result)
+    logger.debug("Killing League Processes!")
+    for process_to_kill in league_processes:
+        logger.debug(f"Killing {process_to_kill}")
+        result = kill_process(process_to_kill)
+        parse_task_kill_text(result)
     time.sleep(1)
     subprocess.run(CONSTANTS["executables"]["league"]["client"], check=True)
     time.sleep(3)
@@ -813,6 +821,9 @@ def main():
 
     league_directory = LCU_INTEGRATION.get_installation_directory()
     update_league_constants(league_directory)
+
+    logger.info("worked as expected")
+    sys.exit(0)
 
     global PROGRAM_START
     PROGRAM_START = datetime.now()

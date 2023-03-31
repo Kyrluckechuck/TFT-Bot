@@ -18,6 +18,7 @@ CONSTANTS = {
         "client": "LeagueClient.exe",
         "client_ux": "LeagueClientUx.exe",
         "game": "League of Legends.exe",
+        "rito_client": "RiotClientServices.exe",
     },
     "tft_logo": {
         "base": "captures/tft_logo.png",
@@ -226,4 +227,11 @@ give_feedback = [
 message_exit_buttons = [
     CONSTANTS["client"]["messages"]["buttons"]["message_exit"]["1"],
     CONSTANTS["client"]["messages"]["buttons"]["message_exit"]["2"],
+]
+
+league_processes = [
+    CONSTANTS["processes"]["client"],
+    CONSTANTS["processes"]["client_ux"],
+    CONSTANTS["processes"]["game"],
+    CONSTANTS["processes"]["rito_client"],
 ]
