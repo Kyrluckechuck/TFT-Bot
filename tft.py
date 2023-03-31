@@ -164,7 +164,7 @@ def wait_for_league_running() -> bool:
     counter = 0
     while not league_game_already_running():
         counter = counter + 1
-        time.sleep(0.5)
+        time.sleep(1)
         if counter > 60:
             logger.info("Timed out, moving on!")
             break
@@ -246,7 +246,7 @@ def loading_match() -> None:
     After some time, if the game has not been detected as starting, it moves on anyways.
     """
     counter = 0
-    logger.info("Match loading, waiting for game window (30s timeout)")
+    logger.info("Match loading, waiting for game window (~30s timeout)")
     bring_league_game_to_forefront()
     if not wait_for_league_running():
         if LCU_INTEGRATION.in_game():
@@ -257,7 +257,7 @@ def loading_match() -> None:
             restart_league_client()
         return
 
-    logger.info("Match loading, waiting for game to start (120s timeout)")
+    logger.info("Match loading, waiting for game to start (~120s timeout)")
     while (
         not onscreen(CONSTANTS["game"]["loading"]) and
         not onscreen(CONSTANTS["game"]["gamelogic"]["timer_1"]) and

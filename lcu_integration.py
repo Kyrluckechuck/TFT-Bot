@@ -41,7 +41,7 @@ class LCUIntegration:
         self.install_directory = None
 
     def connect_to_lcu(self) -> bool:
-        logger.info("Waiting for the League client (5m timeout)")
+        logger.info("Waiting for the League client (~5m timeout)")
         lcu_process = _get_lcu_process()
 
         timeout = 0
