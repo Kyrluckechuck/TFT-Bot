@@ -1,15 +1,9 @@
-[tool.autopep8]
-max_line_length = 160
-in-place = true
-recursive = true
-aggressive = 3
-
 [tool.black]
-line-length = 160
+line-length = 120
 
 [tool.isort]
 profile = "black"
-line_length = 180
+line_length = 120
 force_single_line = true
 force_sort_within_sections = true
 lexicographical = true

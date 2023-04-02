@@ -49,7 +49,7 @@ def onscreen_multiple_any(paths: list[str], precision: float = 0.8) -> bool:
 
 def onscreen_region(  # pylint: disable=invalid-name,too-many-arguments,disable=invalid-name
     path: str, x1: int, y1: int, x2: int, y2: int, precision: float = 0.8
-) -> (bool | list[int] | tuple[int, int]):
+) -> bool | list[int] | tuple[int, int]:
     """Search for a given image within a region on screen.
     The region is specified by the coordinates and a rectangular region is devised.
 
@@ -60,7 +60,8 @@ def onscreen_region(  # pylint: disable=invalid-name,too-many-arguments,disable=
         precision (float, optional): The precision to be used when matching the image. Defaults to 0.8.
 
     Returns:
-        (bool | list[int] | tuple[int, int]): The coordinates if the image is found on screen within the specified region, False otherwise.
+        (bool | list[int] | tuple[int, int]): Coordinates if the image is found on screen within the specified region,
+            False otherwise.
     """
     try:
         path = resource_path(path)
@@ -79,7 +80,7 @@ def onscreen_region_num_loop(  # pylint: disable=too-many-arguments,disable=inva
     x2: int,
     y2: int,
     precision: float = 0.8,
-) -> (bool | list[int] | tuple[int, int]):
+) -> bool | list[int] | tuple[int, int]:
     """Search for a given image within a region on screen, attempting multiple times.
     The region is specified by the coordinates and a rectangular region is devised.
 
@@ -111,7 +112,7 @@ def imagesearch_region_num_loop(  # pylint: disable=too-many-arguments,disable=i
     x2: int,
     y2: int,
     precision: float = 0.8,
-) -> (None | list[int] | tuple[int, int]):
+) -> None | list[int] | tuple[int, int]:
     """Search for a given image within a region on screen, attempting multiple times.
     The region is specified by the coordinates and a rectangular region is devised.
 
@@ -124,7 +125,8 @@ def imagesearch_region_num_loop(  # pylint: disable=too-many-arguments,disable=i
         precision (float, optional): The precision to be used when matching the image. Defaults to 0.8.
 
     Returns:
-        (bool | list[int] | tuple[int, int]): The coordinates of the image if found within the specified region, None otherwise.
+        (bool | list[int] | tuple[int, int]): The coordinates of the image if found within the specified region,
+            None otherwise.
     """
     try:
         image = resource_path(image)
@@ -142,7 +144,7 @@ def imagesearch_region_num_loop(  # pylint: disable=too-many-arguments,disable=i
         return None
 
 
-def find_image(path: str, precision: float = 0.8) -> (None | list[int] | tuple[int, int]):
+def find_image(path: str, precision: float = 0.8) -> None | list[int] | tuple[int, int]:
     """Search for a given image, returning the coordinates if found.
 
     Args:
@@ -150,7 +152,8 @@ def find_image(path: str, precision: float = 0.8) -> (None | list[int] | tuple[i
         precision (float, optional): The precision to be used when matching the image. Defaults to 0.8.
 
     Returns:
-        (None | list[int] | tuple[int, int]): The coordinates of the image if found within the specified region, None otherwise.
+        (None | list[int] | tuple[int, int]): The coordinates of the image if found within the specified region,
+            None otherwise.
     """
     try:
         path = resource_path(path)
@@ -160,7 +163,7 @@ def find_image(path: str, precision: float = 0.8) -> (None | list[int] | tuple[i
         return None
 
 
-def find_image_multiple_any(paths: list[str], precision: float = 0.8) -> (None | list[int] | tuple[int, int]):
+def find_image_multiple_any(paths: list[str], precision: float = 0.8) -> None | list[int] | tuple[int, int]:
     """Search for any of the given images, returning the coordinates of the first one if any are found.
 
     Args:
@@ -168,7 +171,8 @@ def find_image_multiple_any(paths: list[str], precision: float = 0.8) -> (None |
         precision (float, optional): The precision to be used when matching the image. Defaults to 0.8.
 
     Returns:
-        (None | list[int] | tuple[int, int]): The coordinates of the image if found within the specified region, None otherwise.
+        (None | list[int] | tuple[int, int]): The coordinates of the image if found within the specified region,
+            None otherwise.
     """
     try:
         for path in paths:
@@ -193,7 +197,7 @@ def find_image_in_region_num_loop(  # pylint: disable=too-many-arguments,disable
     x2: int,
     y2: int,
     precision: float = 0.8,
-) -> (None | list[int] | tuple[int, int]):
+) -> None | list[int] | tuple[int, int]:
     """Get the coorindates for a given image within a region on screen, attempting multiple times.
     The region is specified by the coordinates and a rectangular region is devised.
 
@@ -206,7 +210,8 @@ def find_image_in_region_num_loop(  # pylint: disable=too-many-arguments,disable
         precision (float, optional): The precision to be used when matching the image. Defaults to 0.8.
 
     Returns:
-        (bool | list[int] | tuple[int, int]): The coordinates of the image if found within the specified region, None otherwise.
+        (bool | list[int] | tuple[int, int]): The coordinates of the image if found within the specified region,
+            None otherwise.
     """
     try:
         path = resource_path(path)

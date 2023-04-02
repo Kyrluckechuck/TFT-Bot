@@ -54,7 +54,9 @@ def bring_league_client_to_forefront() -> None:
 def bring_league_game_to_forefront() -> None:
     """Brings the league game to the forefront."""
     try:
-        system_helpers.bring_window_to_forefront("League of Legends (TM) Client", CONSTANTS["executables"]["league"]["game"])
+        system_helpers.bring_window_to_forefront(
+            "League of Legends (TM) Client", CONSTANTS["executables"]["league"]["game"]
+        )
     except Exception:
         logger.warning("Failed to bring League game to forefront, this should be non-fatal so let's continue")
 
@@ -74,9 +76,9 @@ def league_client_running() -> bool:
     Returns:
         bool: True if the client is running, False otherwise.
     """
-    return system_helpers.find_in_processes(CONSTANTS["executables"]["league"]["client"]) and system_helpers.find_in_processes(
-        CONSTANTS["executables"]["league"]["client_ux"]
-    )
+    return system_helpers.find_in_processes(
+        CONSTANTS["executables"]["league"]["client"]
+    ) and system_helpers.find_in_processes(CONSTANTS["executables"]["league"]["client_ux"])
 
 
 def parse_task_kill_text(result: subprocess.CompletedProcess[str]) -> None:
@@ -140,7 +142,8 @@ def restart_league_if_not_running() -> bool:
 
 def toggle_pause() -> None:
     """Toggles whether the bots logic evaluation should pause.
-    *Note:* This does not entirely stop the bot, but does stop various state changes that can be annoying if you're trying to manually interact with it.
+    *Note:* This does not entirely stop the bot, but does stop various state changes that can be annoying if you're
+    trying to manually interact with it.
     """
     global PAUSE_LOGIC
     logger.debug(f"alt+p pressed, toggling pause from {PAUSE_LOGIC} to {not PAUSE_LOGIC}")
@@ -203,7 +206,7 @@ def evaluate_next_game_logic() -> None:
 
 @logger.catch
 def queue() -> None:  # pylint: disable=too-many-branches
-    """Begin finding a match -- the start of the repeating game logic, dismissing any interruptions and bringing the League client to the forefront/focus."""
+    """Begin finding a match -- the start of the repeating game logic."""
     # Queue search loop
     start_queue_repeating = False
     while True:
@@ -257,23 +260,20 @@ def loading_match() -> None:
     bring_league_game_to_forefront()
     if not wait_for_league_running():
         if LCU_INTEGRATION.in_game():
-            logger.warning(
-                "We are in a game, but the game window is not opening. "
-                "Restarting client..."
-            )
+            logger.warning("We are in a game, but the game window is not opening. Restarting client...")
             restart_league_client()
         return
 
     logger.info("Match loading, waiting for game to start (~120s timeout)")
     while (
-        not onscreen(CONSTANTS["game"]["loading"]) and
-        not onscreen(CONSTANTS["game"]["gamelogic"]["timer_1"]) and
-        not onscreen(CONSTANTS["game"]["round"]["1-"]) and
-        not onscreen(CONSTANTS["game"]["round"]["2-"]) and
-        not onscreen(CONSTANTS["game"]["round"]["3-"]) and
-        not onscreen(CONSTANTS["game"]["round"]["4-"]) and
-        not onscreen(CONSTANTS["game"]["round"]["5-"]) and
-        not onscreen(CONSTANTS["game"]["round"]["6-"])
+        not onscreen(CONSTANTS["game"]["loading"])
+        and not onscreen(CONSTANTS["game"]["gamelogic"]["timer_1"])
+        and not onscreen(CONSTANTS["game"]["round"]["1-"])
+        and not onscreen(CONSTANTS["game"]["round"]["2-"])
+        and not onscreen(CONSTANTS["game"]["round"]["3-"])
+        and not onscreen(CONSTANTS["game"]["round"]["4-"])
+        and not onscreen(CONSTANTS["game"]["round"]["5-"])
+        and not onscreen(CONSTANTS["game"]["round"]["6-"])
     ):
         time.sleep(1)
         bring_league_game_to_forefront()
@@ -311,12 +311,12 @@ def shared_draft_pathing() -> None:
 
 def buy(iterations: int) -> None:
     """Attempt to purchase champs with the designated `wanted_traits`.
-    This will iterate the attempts, but only if the gold is detected to at least be 1 (to avoid clicking when there is no gold available).
+    This will iterate the attempts, but only if the gold is detected to at least be 1.
 
     Args:
         iterations (int): The number of attempts to purchase a champ.
     """
-    for i in range(iterations):
+    for _ in range(iterations):
         if not check_if_gold_at_least(1):
             return
         for trait in wanted_traits:
@@ -344,7 +344,7 @@ def wait_for_internet() -> None:
         time.sleep(60)
 
 
-def check_if_client_error() -> bool:
+def check_if_client_error() -> bool:  # pylint: disable=too-many-return-statements
     """Check if any client error is detected.
     If any are detected, the League client is restarted.
 
@@ -381,8 +381,7 @@ def check_if_client_error() -> bool:
 
 
 def acknowledge_error_and_restart_league(delay: int = 5, internet_pause: bool = False) -> bool:
-    """Acknowledge error message with ok or error button and restart league client
-    """
+    """Acknowledge error message with ok or error button and restart league client"""
     click_exit_message()
     click_ok_message()
     time.sleep(delay)
@@ -416,11 +415,7 @@ def check_if_game_complete() -> bool:
 
     if onscreen_multiple_any(exit_now_images):
         logger.info("End of game detected (exit now)")
-        exit_now_bool = click_to_middle_multiple(
-            exit_now_images,
-            conditional_func=exit_now_conditional,
-            delay=1.5
-        )
+        exit_now_bool = click_to_middle_multiple(exit_now_images, conditional_func=exit_now_conditional, delay=1.5)
         logger.debug(f"Exit now clicking success: {exit_now_bool}")
         time.sleep(5)
         return True
@@ -459,10 +454,18 @@ def check_if_post_game() -> bool:
 
 
 def check_gold(num: int) -> bool:
+    """
+    Checks if there is N gold in the region of the gold display.
+
+    Args:
+        num: The amount of gold we're checking for, there should be a file for it in captures/gold .
+
+    Returns:
+        True if we found the amount of gold. False if not.
+
+    """
     try:
-        if onscreen_region_num_loop(
-                CONSTANTS["game"]["gold"][f"{num}"], 0.05, 5, 780, 850, 970, 920, 0.9
-        ):
+        if onscreen_region_num_loop(CONSTANTS["game"]["gold"][f"{num}"], 0.05, 5, 780, 850, 970, 920, 0.9):
             logger.debug(f"Found {num} gold")
             return True
     except Exception:
@@ -489,7 +492,7 @@ def check_if_gold_at_least(num: int) -> bool:
         if check_gold(i):
             return i >= num
 
-    logger.debug(f"No gold value found, assuming we have more")
+    logger.debug("No gold value found, assuming we have more")
     return True
 
 
@@ -502,21 +505,18 @@ def determine_minimum_round() -> int:
         The major round as an integer.
 
     """
-    if (
-        onscreen(CONSTANTS["game"]["round"]["krugs_inactive"], 0.9)
-        or onscreen(CONSTANTS["game"]["round"]["krugs_active"], 0.9)
+    if onscreen(CONSTANTS["game"]["round"]["krugs_inactive"], 0.9) or onscreen(
+        CONSTANTS["game"]["round"]["krugs_active"], 0.9
     ):
         return 2
 
-    if (
-        onscreen(CONSTANTS["game"]["round"]["wolves_inactive"], 0.9)
-        or onscreen(CONSTANTS["game"]["round"]["wolves_active"], 0.9)
+    if onscreen(CONSTANTS["game"]["round"]["wolves_inactive"], 0.9) or onscreen(
+        CONSTANTS["game"]["round"]["wolves_active"], 0.9
     ):
         return 3
 
-    if (
-        onscreen(CONSTANTS["game"]["round"]["threat_inactive"], 0.9)
-        or onscreen(CONSTANTS["game"]["round"]["threat_active"], 0.9)
+    if onscreen(CONSTANTS["game"]["round"]["threat_inactive"], 0.9) or onscreen(
+        CONSTANTS["game"]["round"]["threat_active"], 0.9
     ):
         return 4
 
@@ -534,7 +534,8 @@ def determine_minimum_round() -> int:
 def main_game_loop() -> None:  # pylint: disable=too-many-branches
     """The main in-game loop.
 
-    Skips 5 second increments if a pause logic request is made, repeating until toggled or an event triggers an early exit.
+    Skips 5-second increments if a pause logic request is made,
+    repeating until toggled or an event triggers an early exit.
     """
     while True:
         if PAUSE_LOGIC:
@@ -608,15 +609,16 @@ def end_match() -> None:
 
 
 def match_complete() -> None:
-    """Print a log timer to update the time passed and number of games completed (rough estimation), and begin the end of match logic."""
+    """Print a log timer to update the time passed and number of games completed (rough estimation),
+    and begin the end of match logic.
+    """
     print_timer()
     logger.info("Match complete! Cleaning up and restarting")
     end_match()
 
 
 def surrender() -> None:
-    """Attempt to surrender.
-    """
+    """Attempt to surrender."""
     random_seconds = random.randint(60, 90)
     logger.info(f"Waiting {random_seconds} seconds before surrendering...")
     time.sleep(random_seconds)
@@ -639,7 +641,7 @@ def surrender() -> None:
     #     counter = counter + 1
     #     if counter > 20:
     #         break
-    # FIXME There's a bug in TFT right now where the surrender button
+    # FIXME There's a bug in TFT right now where the surrender button  # pylint: disable=fixme
     #  in the settings doesn't work. This is a temporary work-around.
     #  We need to use PyDirectInput since the league client does not
     #  always recognize the input of the method pyautogui uses.
@@ -672,7 +674,8 @@ def print_timer() -> None:
 
 def tft_bot_loop() -> None:
     """Main loop to ensure various errors don't unhinge/break the bot.
-    Since the bot is able to reconnect and handle most errors, this should allow it to resume games in progress even if an 'uncaught exception' has occurred.
+    Since the bot is able to reconnect and handle most errors,
+    this should allow it to resume games in progress even if an 'uncaught exception' has occurred.
     """
     while True:
         try:
@@ -716,12 +719,16 @@ def update_league_constants(league_install_location: str) -> None:
     Args:
         league_install_location (str): The determined location for the executables
     """
-    logger.debug(
-        rf"Updating league install location to {league_install_location}"
-    )
-    CONSTANTS["executables"]["league"]["client"] = rf"{league_install_location}{CONSTANTS['executables']['league']['client_base']}"
-    CONSTANTS["executables"]["league"]["client_ux"] = rf"{league_install_location}{CONSTANTS['executables']['league']['client_ux_base']}"
-    CONSTANTS["executables"]["league"]["game"] = rf"{league_install_location}{CONSTANTS['executables']['league']['game_base']}"
+    logger.debug(rf"Updating league install location to {league_install_location}")
+    CONSTANTS["executables"]["league"][
+        "client"
+    ] = rf"{league_install_location}{CONSTANTS['executables']['league']['client_base']}"
+    CONSTANTS["executables"]["league"][
+        "client_ux"
+    ] = rf"{league_install_location}{CONSTANTS['executables']['league']['client_ux_base']}"
+    CONSTANTS["executables"]["league"][
+        "game"
+    ] = rf"{league_install_location}{CONSTANTS['executables']['league']['game_base']}"
 
 
 def setup_hotkeys() -> None:
@@ -753,7 +760,7 @@ def main():
                 "<level>{level: <8}</level> - "
                 "<level>{message}</level>"
             ),
-            level="INFO"
+            level="INFO",
         )
 
     # File logging, writes to a file in the same folder as the executable.
@@ -765,35 +772,30 @@ def main():
     # Start auth + main script
     logger.info(
         r"""Initial codebase by:
-         _____       _                            _   
-        |  __ \     | |                          | |  
-        | |  | | ___| |_ ___ _ __ __ _  ___ _ __ | |_ 
+         _____       _                            _
+        |  __ \     | |                          | |
+        | |  | | ___| |_ ___ _ __ __ _  ___ _ __ | |_
         | |  | |/ _ \ __/ _ \ '__/ _` |/ _ \ '_ \| __|
-        | |__| |  __/ ||  __/ | | (_| |  __/ | | | |_ 
+        | |__| |  __/ ||  __/ | | (_| |  __/ | | | |_
         |_____/ \___|\__\___|_|  \__, |\___|_| |_|\__|
-                                  __/ |               
-                                 |___/                
+                                  __/ |
+                                 |___/
         """
     )
     logger.info(
         r"""Re-written by:
-        __ __              __              __                __                  __  
+        __ __              __              __                __                  __
        / //_/__  __ _____ / /__  __ _____ / /__ ___   _____ / /_   __  __ _____ / /__
       / ,<  / / / // ___// // / / // ___// //_// _ \ / ___// __ \ / / / // ___// //_/
-     / /| |/ /_/ // /   / // /_/ // /__ / ,<  /  __// /__ / / / // /_/ // /__ / ,<   
-    /_/ |_|\__, //_/   /_/ \__,_/ \___//_/|_| \___/ \___//_/ /_/ \__,_/ \___//_/|_|  
-          /____/                                                                     
+     / /| |/ /_/ // /   / // /_/ // /__ / ,<  /  __// /__ / / / // /_/ // /__ / ,<
+    /_/ |_|\__, //_/   /_/ \__,_/ \___//_/|_| \___/ \___//_/ /_/ \__,_/ \___//_/|_|
+          /____/
         """
     )
 
     logger.info("===== TFT Bot Started =====")
-    logger.info(
-        f"Bot will {'' if CONFIG['VERBOSE'] else 'NOT '}be verbose "
-        f"(display debug messages)."
-    )
-    logger.info(
-        f"Bot will {'' if CONFIG['FF_EARLY'] else 'NOT '}surrender early."
-    )
+    logger.info(f"Bot will {'' if CONFIG['VERBOSE'] else 'NOT '}be verbose " f"(display debug messages).")
+    logger.info(f"Bot will {'' if CONFIG['FF_EARLY'] else 'NOT '}surrender early.")
 
     logger.info("Welcome! Please feel free to ask questions or contribute at https://github.com/Kyrluckechuck/tft-bot")
     if (
@@ -811,9 +813,7 @@ def main():
 
     if not lcu_integration.get_lcu_process():
         logger.warning("League client is not open, attempting to start it")
-        league_directory = system_helpers.determine_league_install_location(
-            CONFIG["OVERRIDE_INSTALL_DIR"]
-        )
+        league_directory = system_helpers.determine_league_install_location(CONFIG["OVERRIDE_INSTALL_DIR"])
         update_league_constants(league_directory)
         restart_league_client()
     elif not LCU_INTEGRATION.connect_to_lcu():

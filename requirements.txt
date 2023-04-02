@@ -15,3 +15,4 @@ black==23.1.0
 loguru==0.6.0
 pydirectinput==1.0.4
 requests==2.28.2
+pre-commit==3.2.1

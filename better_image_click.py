@@ -8,7 +8,9 @@ import pyautogui as auto
 from generic_helpers import rand_func
 
 
-def click_image_rand(image, pos, action, move_duration, offset="half", delay=0.1) -> bool:  # pylint: disable=too-many-arguments
+def click_image_rand(  # pylint: disable=too-many-arguments
+    image, pos, action, move_duration, offset="half", delay=0.1
+) -> bool:
     """
     Explanation from https://github.com/drov0/python-imagesearch/blob/master/python_imagesearch/imagesearch.py
     click on the center of an image with a bit of random.
@@ -19,9 +21,11 @@ def click_image_rand(image, pos, action, move_duration, offset="half", delay=0.1
     Args:
         image: Path to the image file (see opencv imread for supported types).
         pos: Array containing the position of the top left corner of the image [x,y].
-        action: Button of the mouse to activate : "left" "right" "middle", see pyautogui.click documentation for more info.
-        move_duration: Time taken for the mouse to move from where it was to the new position.
-        offset (str, optional): When specified, the manual offset from the relative center in pixels. Defaults to "half".
+        action: Button of the mouse to activate : "left" "right" "middle",
+            see pyautogui.click documentation for more info.
+        move_duration: Time taken for the mouse to move to the new position.
+        offset (str, optional): When specified, the manual offset from the relative center in pixels.
+            Defaults to "half".
         delay (float, optional): The delay between mouse down & up. Defaults to 0.1.
 
     Returns:
@@ -50,7 +54,8 @@ def mouse_button(delay=0.1, button="left") -> None:
 
     Args:
         delay (float, optional): The delay between button down & up. Defaults to .1.
-        button (str, optional): Button of the mouse to activate : "left" "right" "middle", see pyautogui.click documentation for more info. Defaults to "left".
+        button (str, optional): Button of the mouse to activate : "left" "right" "middle",
+            see pyautogui.click documentation for more info. Defaults to "left".
     """
     auto.mouseDown(button=button)
     time.sleep(delay)

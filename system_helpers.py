@@ -37,7 +37,8 @@ def bring_window_to_forefront(window_title: str, path_to_verify: str | None = No
 
     Args:
         window_title (str): The window title to match/look for.
-        path_to_verify (str | None, optional): If provided, validates the window found matching the title is this executable path. Defaults to None.
+        path_to_verify (str | None, optional): If provided, validates the window found matching the title is this
+            executable path. Defaults to None.
     """
     try:
         hwnd = win32gui.FindWindowEx(0, 0, 0, window_title)
@@ -94,7 +95,9 @@ def have_internet(ip_to_ping="1.1.1.1") -> bool:
 
 # Via https://gist.github.com/sthonnard/31106e47eab8d6f3329ef530717e8079
 def disable_quickedit() -> None:
-    """Disable QuickEdit mode on Windows terminal. QuickEdit pauses application execution if the user selects/highlights/clicks within the terminal."""
+    """Disable QuickEdit mode on Windows terminal. QuickEdit pauses application execution if the user
+    selects/highlights/clicks within the terminal.
+    """
     if not os.name == "posix":
         try:
             kernel32 = ctypes.WinDLL("kernel32", use_last_error=True)

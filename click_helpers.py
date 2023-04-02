@@ -19,7 +19,8 @@ def mouse_button(delay=0.1, button="left") -> None:
 
     Args:
         delay (float, optional): The delay between button down & up. Defaults to .1.
-        button (str, optional): Button of the mouse to activate : "left" "right" "middle", see pyautogui.click documentation for more info. Defaults to "left".
+        button (str, optional): Button of the mouse to activate : "left" "right" "middle",
+            see pyautogui.click documentation for more info. Defaults to "left".
     """
     auto.mouseDown(button=button)
     time.sleep(delay)
@@ -76,11 +77,13 @@ def click_to(path: str, precision: float = 0.8, delay: float = 0.1) -> None:
 
 
 def click_to_multiple(images: list[str], conditional_func: Callable | None = None, delay: float = None) -> bool:
-    """Click to the specified images, evaluating the condtional_func (if provided) after the specified delay (if provided) for if it was successfully clicked.
+    """Click to the specified images, evaluating the condtional_func (if provided)
+    after the specified delay (if provided) for if it was successfully clicked.
 
     Args:
         images (list[str]): The list of relative or absolute paths to images to attempt clicking.
-        conditional_func (Callable | None, optional): The function to evaluate if the click was successful. Defaults to None.
+        conditional_func (Callable | None, optional): The function to evaluate if the click was successful.
+            Defaults to None.
         delay (float, optional): The delay before evaluating the conditional function. Defaults to None.
 
     Returns:
@@ -99,7 +102,7 @@ def click_to_multiple(images: list[str], conditional_func: Callable | None = Non
     return False
 
 
-def search_to(path: str) -> (None | list[int] | tuple[int, int]):
+def search_to(path: str) -> None | list[int] | tuple[int, int]:
     """Search for the given image on the screen, and move the mouse to it.
 
     Args:
@@ -131,10 +134,13 @@ def click_to_middle(  # pylint: disable=too-many-arguments
 
     Args:
         path (str): The relative or absolute path to the image to be clicked.
-        precision (float, optional): The precision to be used when matching the image. Defaults to 0.8.
-        move_duration (float, optional): Time taken for the mouse to move from where it was to the new position. Defaults to random.uniform(0.1, 1.0).
+        precision (float, optional): The precision to be used when matching the image.
+            Defaults to 0.8.
+        move_duration (float, optional): Time taken for the mouse to move.
+            Defaults to random.uniform(0.1, 1.0).
         delay (float, optional): The delay between mouse down & up. Defaults to 0.2.
-        offset (float | str, optional): When specified, the manual offset from the relative center in pixels. Defaults to "half".
+        offset (float | str, optional): When specified, the manual offset from the relative center in pixels.
+            Defaults to "half".
         action (str, optional): The mouse button to perform. Defaults to "left".
 
     Returns:
@@ -170,8 +176,9 @@ def click_to_middle_multiple(
 
     Args:
         images (list[str]): The list of relative or absolute paths to images to attempt clicking.
-        precision (float, optional): he precision to be used when matching the image. Defaults to 0.8.
-        conditional_func (Callable | None, optional): The function to evaluate if the click was successful. Defaults to None.
+        precision (float, optional): The precision to be used when matching the image. Defaults to 0.8.
+        conditional_func (Callable | None, optional): The function to evaluate if the click was successful.
+            Defaults to None.
         delay (float, optional): The delay between mouse down & up. Defaults to None.
         action (str, optional): The mouse button to perform. Defaults to "left".
 

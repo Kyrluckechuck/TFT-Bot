@@ -5,5 +5,5 @@ extension-pkg-whitelist=cv2,win32gui,win32process
 generated-members=cv2.*,win32gui.*,win32process.*
 
 [tool.pylint.code_style]
-max-line-length = 160
+max-line-length = 120
 disable=broad-except,global-statement,logging-fstring-interpolation,logging-format-interpolation

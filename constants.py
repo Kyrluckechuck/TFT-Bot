@@ -34,7 +34,7 @@ CONSTANTS = {
                     "3": "captures/buttons/tab_tft_unselected_3.png",
                     "4": "captures/buttons/tab_tft_unselected_highlighted.png",
                 },
-                "subtab_home": "captures/buttons/tft_subtab_home.png"
+                "subtab_home": "captures/buttons/tft_subtab_home.png",
             }
         },
         "pre_match": {
@@ -53,7 +53,7 @@ CONSTANTS = {
             "accept": {
                 "zoomed": "captures/buttons/accept_zoomed.png",
                 "expanded": "captures/buttons/accept_expanded.png",
-            }
+            },
         },
         "continue": "captures/buttons/continue.png",
         "death": "captures/death.png",
@@ -90,7 +90,7 @@ CONSTANTS = {
                 "message_exit": {
                     "1": "captures/buttons/message_exit_1.png",
                     "2": "captures/buttons/message_exit_2.png",
-                }
+                },
             },
         },
     },
