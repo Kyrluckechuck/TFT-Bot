@@ -92,3 +92,16 @@ For example:
 - Added gold logic from [this pr](https://github.com/Detergent13/tft-bot/pull/91) which was stale/stuck
 
 On that note, if anyone has any suggestions / features they would like to see, please feel free to suggest in an [issue](https://github.com/Kyrluckechuck/tft-bot/issues), or by submitting your own PR to this!
+
+
+# Contributing
+
+Please follow the steps in [Installation (for source)](#installation-for-source) first.
+
+After you have installed the project locally and have made (and tested) your changes,
+please make sure that your changes are formatted correctly.
+
+To do so, you can either permanently install a hook that runs before all of your commits
+with `pre-commit install`, or run it once with `pre-commit run --all-files`.
+
+When opening a PR, please describe your changes and why you made them.
