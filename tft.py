@@ -411,12 +411,6 @@ def check_screen_for_exit_button() -> bool:
         True if any known exit buttons were found, False if not.
 
     """
-    if onscreen(CONSTANTS["client"]["death"]):
-        logger.info("Death detected")
-        click_to_middle(CONSTANTS["client"]["death"])
-        time.sleep(5)
-        return True
-
     if onscreen_multiple_any(exit_now_images):
         logger.info("End of game detected (exit now)")
         exit_now_bool = click_to_middle_multiple(exit_now_images, conditional_func=exit_now_conditional, delay=1.5)

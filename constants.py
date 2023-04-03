@@ -56,7 +56,6 @@ CONSTANTS = {
             },
         },
         "continue": "captures/buttons/continue.png",
-        "death": "captures/death.png",
         "reconnect": "captures/buttons/reconnect.png",
         "key_fragment": {
             "one": "captures/buttons/key_fragment.png",
