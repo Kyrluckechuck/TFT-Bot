@@ -40,12 +40,12 @@ XWehWA==
 """
 
 
-def write_root_certificate_to_file() -> None:
+def write_root_certificate_to_file(path: str) -> None:
     """
     Writes the Riot root certificate to a file in the file system, because requests needs it to be a file.
     We need the certificate for SSL connections to any of Riot's APIs.
     """
-    with open(file="riotgames_root_certificate.pem", mode="w", encoding="UTF-8") as file:
+    with open(file=f"{path}\\riotgames_root_certificate.pem", mode="w", encoding="UTF-8") as file:
         file.write(ROOT_CERTIFICATE)
 
 

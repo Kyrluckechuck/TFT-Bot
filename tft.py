@@ -11,6 +11,7 @@ import time
 
 import keyboard
 from loguru import logger
+import psutil
 import pyautogui as auto
 import pydirectinput
 
@@ -798,10 +799,16 @@ def main():
             level="INFO",
         )
 
+    storage_path = "output"
+    for process in psutil.process_iter():
+        if process.name() in {"TFT Bot", "TFT Bot.exe"}:
+            storage_path = system_helpers.expand_environment_variables(CONSTANTS["storage"]["appdata"])
+            break
+
     # File logging, writes to a file in the same folder as the executable.
     # Logs at level DEBUG, so it's always verbose.
     # retention=10 to only keep the 10 most recent files.
-    logger.add("tft-bot-debug-{time}.log", level="DEBUG", retention=10)
+    logger.add(storage_path + "\\tft-bot-debug-{time}.log", level="DEBUG", retention=10)
 
     system_helpers.disable_quickedit()
     # Start auth + main script
@@ -846,7 +853,7 @@ def main():
 
     setup_hotkeys()
 
-    league_api_integration.write_root_certificate_to_file()
+    league_api_integration.write_root_certificate_to_file(path=storage_path)
 
     if not league_api_integration.get_lcu_process():
         logger.warning("League client is not open, attempting to start it")
