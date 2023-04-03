@@ -109,7 +109,7 @@ class LCUIntegration:
                 "Accept": "application/json",
             }
         )
-        # TODO Do proper SSL integration  # pylint: disable=fixme
+        # TODO Do proper SSL integration
         self._session.verify = False
         urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
 

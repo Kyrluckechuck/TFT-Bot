@@ -641,7 +641,7 @@ def surrender() -> None:
     #     counter = counter + 1
     #     if counter > 20:
     #         break
-    # FIXME There's a bug in TFT right now where the surrender button  # pylint: disable=fixme
+    # FIXME There's a bug in TFT right now where the surrender button
     #  in the settings doesn't work. This is a temporary work-around.
     #  We need to use PyDirectInput since the league client does not
     #  always recognize the input of the method pyautogui uses.
