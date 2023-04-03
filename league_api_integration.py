@@ -38,6 +38,7 @@ EcGfKZ+g024k/J32XP4hdho7WYAS2xMiV83CfLR/MNi8oSMaVQTdKD8cpgiWJk3L
 XWehWA==
 -----END CERTIFICATE-----
 """
+ROOT_CERTIFICATE_PATH = ""
 
 
 def write_root_certificate_to_file(path: str) -> None:
@@ -47,6 +48,8 @@ def write_root_certificate_to_file(path: str) -> None:
     """
     with open(file=f"{path}\\riotgames_root_certificate.pem", mode="w", encoding="UTF-8") as file:
         file.write(ROOT_CERTIFICATE)
+    global ROOT_CERTIFICATE_PATH
+    ROOT_CERTIFICATE_PATH = path
 
 
 # LCU logic taken from https://github.com/elliejs/Willump
@@ -142,7 +145,7 @@ class LCUIntegration:
                 "Accept": "application/json",
             }
         )
-        self._session.verify = "riotgames_root_certificate.pem"
+        self._session.verify = f"{ROOT_CERTIFICATE_PATH}\\riotgames_root_certificate.pem"
 
         logger.info("League client found, trying to connect to it (~60s timeout)")
         timeout = 0
@@ -369,7 +372,7 @@ class GameClientIntegration:
                 "Accept": "application/json",
             }
         )
-        self._session.verify = "riotgames_root_certificate.pem"
+        self._session.verify = f"{ROOT_CERTIFICATE_PATH}\\riotgames_root_certificate.pem"
 
     def is_dead(self) -> bool:
         """
