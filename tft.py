@@ -829,6 +829,8 @@ def main():
 
     setup_hotkeys()
 
+    league_api_integration.write_root_certificate_to_file()
+
     if not league_api_integration.get_lcu_process():
         logger.warning("League client is not open, attempting to start it")
         league_directory = system_helpers.determine_league_install_location(CONFIG["OVERRIDE_INSTALL_DIR"])
