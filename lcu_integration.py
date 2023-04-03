@@ -5,14 +5,15 @@ The endpoints we use are stable-ish, and we do not expect them to change soonTM.
 """
 import time
 
-import requests
-import urllib3
 from loguru import logger
-from psutil import Process, process_iter
+from psutil import Process
+from psutil import process_iter
+import requests
 
 # Potentially make this configurable in the future
 # to let the user select their preferred tft mode.
 from requests import HTTPError
+import urllib3
 
 TFT_NORMAL_GAME_QUEUE_ID = 1090
 
