@@ -1,7 +1,5 @@
 """
-Integrates the bot with League Client Update (LCU) API.
-Note that the API is allowed to use, but not officially supported by Rito.
-The endpoints we use are stable-ish, and we do not expect them to change soonTM.
+Integrations with the Rito API to have the most reliable data where possible.
 """
 import time
 
@@ -9,12 +7,10 @@ from loguru import logger
 from psutil import Process
 from psutil import process_iter
 import requests
+from requests import HTTPError
 
 # Potentially make this configurable in the future
 # to let the user select their preferred tft mode.
-from requests import HTTPError
-import urllib3
-
 TFT_NORMAL_GAME_QUEUE_ID = 1090
 
 
@@ -58,7 +54,9 @@ def _get_lcu_commandline_arguments(lcu_process: Process):
 
 class LCUIntegration:
     """
-    LCU integration as a class enables us to properly cache and access the session and other variables we might re-use.
+    Integrates the bot with League Client Update (LCU) API.
+    Note that the API is allowed to use, but not officially supported by Rito.
+    The endpoints we use are stable-ish, and we do not expect them to change soonTM.
     """
 
     def __init__(self):
@@ -109,9 +107,7 @@ class LCUIntegration:
                 "Accept": "application/json",
             }
         )
-        # TODO Do proper SSL integration  # pylint: disable=fixme
-        self._session.verify = False
-        urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
+        self._session.verify = "riotgames_root_certificate.pem"
 
         logger.info("League client found, trying to connect to it (~60s timeout)")
         timeout = 0
@@ -313,3 +309,51 @@ class LCUIntegration:
             return False
 
         return session_response.json()["phase"] == "Reconnect"
+
+
+class GameClientIntegration:
+    """
+    Class to integrate with the official Rito Game Client API.
+    Sadly the TFT endpoint is re-using the normal League data format.
+    At the moment the only useful data returned are the player health and the player level.
+    """
+
+    def __init__(self):
+        self._url = "https://127.0.0.1:2999"
+        self._session = None
+
+    def create_live_game_client_session(self) -> None:
+        """
+        Creates and caches a session that sets default headers and holds the Rito root SSL certificate.
+        """
+        logger.debug("Creating a session object that holds the root SSL certificate")
+        self._session = requests.Session()
+        self._session.headers.update(
+            {
+                "Content-Type": "application/json",
+                "Accept": "application/json",
+            }
+        )
+        self._session.verify = "riotgames_root_certificate.pem"
+
+    def is_dead(self) -> bool:
+        """
+        Checks if the user is considered dead, aka. has less than or equal to 0 HP.
+
+        Returns:
+            True if the user has less than or equal to 0 HP, else False
+
+        """
+        logger.debug("Checking if we have more than 0 HP")
+        if not self._session:
+            self.create_live_game_client_session()
+
+        active_player_response = self._session.get(f"{self._url}/liveclientdata/activeplayer")
+        try:
+            active_player_response.raise_for_status()
+        except HTTPError:
+            logger.debug("There was an error in the response, assuming that we are dead")
+            return True
+
+        active_player_data = active_player_response.json()
+        return active_player_data["championStats"]["currentHealth"] <= 0.0
