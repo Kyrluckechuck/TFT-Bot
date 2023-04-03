@@ -48,7 +48,12 @@ def onscreen_multiple_any(paths: list[str], precision: float = 0.8) -> bool:
 
 
 def onscreen_region(  # pylint: disable=invalid-name,too-many-arguments,disable=invalid-name
-    path: str, x1: int, y1: int, x2: int, y2: int, precision: float = 0.8
+    path: str,
+    x1: int,
+    y1: int,
+    x2: int,
+    y2: int,
+    precision: float = 0.8,
 ) -> bool | list[int] | tuple[int, int]:
     """Search for a given image within a region on screen.
     The region is specified by the coordinates and a rectangular region is devised.
@@ -179,9 +184,7 @@ def find_image_multiple_any(paths: list[str], precision: float = 0.8) -> None | 
             path = resource_path(path)
             pos = imagesearch.imagesearch(path, precision)
             # logger.debug(f"is_onscreen: {pos[0] != -1}") #Advanced debugging not even normally needed
-            if pos[0] != -1:
-                return pos
-            return None
+            return pos if pos[0] != -1 else None
     except Exception as err:
         logger.debug(f"multiple_onscreen_any error: {err}")
 

@@ -1,21 +1,21 @@
 """A collection of system-level helpers"""
+
+import contextlib
 import http.client as httplib
 import os
 import pathlib
 import sys
 import winreg
 
-from loguru import logger
 import psutil
 import win32com.client
 import win32gui
 import win32process
+from loguru import logger
 
-try:
+with contextlib.suppress(Exception):
     import ctypes
     import msvcrt
-except Exception:
-    pass
 
 
 def set_active_window(window_id: int) -> None:
@@ -72,7 +72,7 @@ def find_in_processes(executable_path: str) -> bool:
     return False
 
 
-def have_internet(ip_to_ping="1.1.1.1") -> bool:
+def have_internet(ip_to_ping: str = "1.1.1.1") -> bool:
     """Checks if there is an active internet connection to the given IP address, checking if a HEAD request succeeds.
 
     Args:
@@ -98,11 +98,11 @@ def disable_quickedit() -> None:
     """Disable QuickEdit mode on Windows terminal. QuickEdit pauses application execution if the user
     selects/highlights/clicks within the terminal.
     """
-    if not os.name == "posix":
+    if os.name != "posix":
         try:
             kernel32 = ctypes.WinDLL("kernel32", use_last_error=True)
             device = r"\\.\CONIN$"
-            with open(device, "r") as con:  # pylint: disable=unspecified-encoding
+            with open(device) as con:  # pylint: disable=unspecified-encoding
                 file_handle = msvcrt.get_osfhandle(con.fileno())
                 kernel32.SetConsoleMode(file_handle, 0x0081)
         except Exception as err:
@@ -167,8 +167,8 @@ def determine_league_install_location(override_path: str | None = None) -> str:
             )
             [league_path, _] = winreg.QueryValueEx(access_key, "InstallLocation")
         except Exception as err:
-            logger.error(f"Could not dynamically determine League install location : {str(err)}")
-            logger.error(sys.exc_info())
+            logger.exception(f"Could not dynamically determine League install location : {str(err)}")
+            logger.exception(sys.exc_info())
 
     league_path = str(pathlib.PureWindowsPath(league_path))
 

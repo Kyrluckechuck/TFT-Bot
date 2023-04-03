@@ -5,15 +5,14 @@ The endpoints we use are stable-ish, and we do not expect them to change soonTM.
 """
 import time
 
-from loguru import logger
-from psutil import Process
-from psutil import process_iter
 import requests
+import urllib3
+from loguru import logger
+from psutil import Process, process_iter
 
 # Potentially make this configurable in the future
 # to let the user select their preferred tft mode.
 from requests import HTTPError
-import urllib3
 
 TFT_NORMAL_GAME_QUEUE_ID = 1090
 
@@ -21,7 +20,7 @@ TFT_NORMAL_GAME_QUEUE_ID = 1090
 # LCU logic taken from https://github.com/elliejs/Willump
 # We want to implement a synchronous approach,
 # so we are not using the library.
-def get_lcu_process():
+def get_lcu_process() -> Process | None:
     """
     Get the LeagueClientUx process, aka. the process of the League client.
 
@@ -29,13 +28,13 @@ def get_lcu_process():
         The process if found, else None.
 
     """
-    for process in process_iter():
-        if process.name() in {"LeagueClientUx.exe", "LeagueClientUx"}:
-            return process
-    return None
+    return next(
+        (process for process in process_iter() if process.name() in {"LeagueClientUx.exe", "LeagueClientUx"}),
+        None,
+    )
 
 
-def _get_lcu_commandline_arguments(lcu_process: Process):
+def _get_lcu_commandline_arguments(lcu_process: Process) -> dict[str, str]:
     """
     Get the commandline arguments of the LCU process.
 
@@ -61,7 +60,7 @@ class LCUIntegration:
     LCU integration as a class enables us to properly cache and access the session and other variables we might re-use.
     """
 
-    def __init__(self):
+    def __init__(self) -> None:
         self._session = None
         self._url = None
         self.install_directory = None
@@ -107,7 +106,7 @@ class LCUIntegration:
             {
                 "Content-Type": "application/json",
                 "Accept": "application/json",
-            }
+            },
         )
         # TODO Do proper SSL integration  # pylint: disable=fixme
         self._session.verify = False
@@ -134,14 +133,12 @@ class LCUIntegration:
 
         if wait_for_availability:
             logger.info("Waiting for client availability (~120s timeout)")
-            timeout = 0
-            while timeout < 120:
+            for _ in range(120):
                 availability_response = self._session.get(url=f"{self._url}/lol-gameflow/v1/availability")
                 if availability_response.status_code == 200 and availability_response.json()["isAvailable"]:
                     logger.info("Client available, queue logic should start")
                     return True
                 time.sleep(1)
-                timeout += 1
             logger.error("Client did not become available. Exiting.")
             return False
 
@@ -187,7 +184,8 @@ class LCUIntegration:
         """
         logger.info("Creating a TFT lobby")
         create_lobby_response = self._session.post(
-            f"{self._url}/lol-lobby/v2/lobby", json={"queueId": TFT_NORMAL_GAME_QUEUE_ID}
+            f"{self._url}/lol-lobby/v2/lobby",
+            json={"queueId": TFT_NORMAL_GAME_QUEUE_ID},
         )
 
         return create_lobby_response.status_code == 200

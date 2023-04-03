@@ -1,20 +1,19 @@
 """A collection of click helpers."""
 import random
 import time
-from typing import Callable
+from collections.abc import Callable
 
-from loguru import logger
 import pyautogui as auto
+from loguru import logger
 from python_imagesearch import imagesearch
 
-from better_image_click import click_image_rand
 import generic_helpers
-from screen_helpers import find_image
-from screen_helpers import onscreen
+from better_image_click import click_image_rand
+from screen_helpers import find_image, onscreen
 from system_helpers import resource_path
 
 
-def mouse_button(delay=0.1, button="left") -> None:
+def mouse_button(delay: float = 0.1, button: str = "left") -> None:
     """A click helper to simulate clicking the specified button.
 
     Args:
@@ -39,7 +38,7 @@ def click_key(key: str, delay: float = 0.1) -> None:
     auto.keyUp(key)
 
 
-def click_left(delay=0.1) -> None:
+def click_left(delay: float = 0.1) -> None:
     """Simulate a click on the left mouse button.
 
     Args:
@@ -48,7 +47,7 @@ def click_left(delay=0.1) -> None:
     mouse_button(delay=delay, button="left")
 
 
-def click_right(delay=0.1) -> None:
+def click_right(delay: float = 0.1) -> None:
     """Simulate a click on the right mouse button.
 
     Args:
@@ -147,8 +146,7 @@ def click_to_middle(  # pylint: disable=too-many-arguments
         bool: True if successfully clicked, False otherwise.
     """
     path = resource_path(path)
-    pos = find_image(path, precision)
-    if pos:
+    if pos := find_image(path, precision):
         try:
             return click_image_rand(
                 path,

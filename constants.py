@@ -35,7 +35,7 @@ CONSTANTS = {
                     "4": "captures/buttons/tab_tft_unselected_highlighted.png",
                 },
                 "subtab_home": "captures/buttons/tft_subtab_home.png",
-            }
+            },
         },
         "pre_match": {
             "quick_play": "captures/buttons/quick_play.png",

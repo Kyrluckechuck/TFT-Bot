@@ -19,5 +19,5 @@ PyInstaller.__main__.run(
         "--clean",
         "--runtime-tmpdir",
         constants.CONSTANTS["storage"]["appdata"],
-    ]
+    ],
 )

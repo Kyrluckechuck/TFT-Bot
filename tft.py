@@ -3,32 +3,34 @@ The main TFT Bot code
 """
 import argparse
 import configparser
-from datetime import datetime
 import random
 import subprocess
 import sys
 import time
+from datetime import datetime
 
 import keyboard
-from loguru import logger
 import pyautogui as auto
 import pydirectinput
+from loguru import logger
 
-from click_helpers import click_left
-from click_helpers import click_right
-from click_helpers import click_to_middle
-from click_helpers import click_to_middle_multiple
-from constants import CONSTANTS
-from constants import exit_now_images
-from constants import find_match_images
-from constants import league_processes
-from constants import message_exit_buttons
-from constants import wanted_traits
 import lcu_integration
-from screen_helpers import onscreen
-from screen_helpers import onscreen_multiple_any
-from screen_helpers import onscreen_region_num_loop
 import system_helpers
+from click_helpers import (
+    click_left,
+    click_right,
+    click_to_middle,
+    click_to_middle_multiple,
+)
+from constants import (
+    CONSTANTS,
+    exit_now_images,
+    find_match_images,
+    league_processes,
+    message_exit_buttons,
+    wanted_traits,
+)
+from screen_helpers import onscreen, onscreen_multiple_any, onscreen_region_num_loop
 
 auto.FAILSAFE = False
 GAME_COUNT = 0
@@ -55,7 +57,8 @@ def bring_league_game_to_forefront() -> None:
     """Brings the league game to the forefront."""
     try:
         system_helpers.bring_window_to_forefront(
-            "League of Legends (TM) Client", CONSTANTS["executables"]["league"]["game"]
+            "League of Legends (TM) Client",
+            CONSTANTS["executables"]["league"]["game"],
         )
     except Exception:
         logger.warning("Failed to bring League game to forefront, this should be non-fatal so let's continue")
@@ -77,7 +80,7 @@ def league_client_running() -> bool:
         bool: True if the client is running, False otherwise.
     """
     return system_helpers.find_in_processes(
-        CONSTANTS["executables"]["league"]["client"]
+        CONSTANTS["executables"]["league"]["client"],
     ) and system_helpers.find_in_processes(CONSTANTS["executables"]["league"]["client_ux"])
 
 
@@ -191,8 +194,8 @@ def evaluate_next_game_logic() -> None:
     if not league_game_already_running():
         logger.warning("Play next game disabled, waiting for user to toggle or program close")
         wait_counter = 0
+        sleep_time = 30
         while not PLAY_NEXT_GAME:
-            sleep_time = 30
             if wait_counter > 0:
                 logger.debug(f"Play next game still disabled after {sleep_time * wait_counter} seconds")
             time.sleep(sleep_time)
@@ -225,9 +228,7 @@ def queue() -> None:  # pylint: disable=too-many-branches
             start_queue_repeating = False
             if LCU_INTEGRATION.found_queue() and not LCU_INTEGRATION.queue_accepted():
                 LCU_INTEGRATION.accept_queue()
-                time.sleep(3)
-            else:
-                time.sleep(3)
+            time.sleep(3)
             continue
 
         if not PLAY_NEXT_GAME:
@@ -447,8 +448,7 @@ def check_if_post_game() -> bool:
     Returns:
         bool: True if the game was complete or a reconnection attempt is made, False otherwise.
     """
-    game_complete = check_if_game_complete()
-    if game_complete:
+    if game_complete := check_if_game_complete():
         return True
     return attempt_reconnect_to_existing_game()
 
@@ -506,17 +506,20 @@ def determine_minimum_round() -> int:
 
     """
     if onscreen(CONSTANTS["game"]["round"]["krugs_inactive"], 0.9) or onscreen(
-        CONSTANTS["game"]["round"]["krugs_active"], 0.9
+        CONSTANTS["game"]["round"]["krugs_active"],
+        0.9,
     ):
         return 2
 
     if onscreen(CONSTANTS["game"]["round"]["wolves_inactive"], 0.9) or onscreen(
-        CONSTANTS["game"]["round"]["wolves_active"], 0.9
+        CONSTANTS["game"]["round"]["wolves_active"],
+        0.9,
     ):
         return 3
 
     if onscreen(CONSTANTS["game"]["round"]["threat_inactive"], 0.9) or onscreen(
-        CONSTANTS["game"]["round"]["threat_active"], 0.9
+        CONSTANTS["game"]["round"]["threat_active"],
+        0.9,
     ):
         return 4
 
@@ -542,8 +545,7 @@ def main_game_loop() -> None:  # pylint: disable=too-many-branches
             time.sleep(5)
             continue
 
-        post_game = check_if_post_game()
-        if post_game:
+        if post_game := check_if_post_game():
             match_complete()
             break
 
@@ -668,7 +670,7 @@ def print_timer() -> None:
     logger.info("-------------------------------------")
     logger.info("Game End")
     logger.info(f"Time since start: {duration.strftime('%H:%M:%S')}")
-    logger.info(f"Games played: {str(GAME_COUNT)}")
+    logger.info(f"Games played: {GAME_COUNT}")
     logger.info("-------------------------------------")
 
 
@@ -686,7 +688,7 @@ def tft_bot_loop() -> None:
             continue
 
 
-def load_settings():
+def load_settings() -> None:
     """Load settings for the bot.
 
     Any CLI-set settings take highest precedence, then falling back on config values, then to defaults.
@@ -738,7 +740,7 @@ def setup_hotkeys() -> None:
 
 
 @logger.catch
-def main():
+def main() -> None:
     """Entrypoint function to initialize most of the code.
 
     Parses command line arguments, sets up console settings, logging, and kicks of the main bot loop.
@@ -780,7 +782,7 @@ def main():
         |_____/ \___|\__\___|_|  \__, |\___|_| |_|\__|
                                   __/ |
                                  |___/
-        """
+        """,
     )
     logger.info(
         r"""Re-written by:
@@ -790,7 +792,7 @@ def main():
      / /| |/ /_/ // /   / // /_/ // /__ / ,<  /  __// /__ / / / // /_/ // /__ / ,<
     /_/ |_|\__, //_/   /_/ \__,_/ \___//_/|_| \___/ \___//_/ /_/ \__,_/ \___//_/|_|
           /____/
-        """
+        """,
     )
 
     logger.info("===== TFT Bot Started =====")

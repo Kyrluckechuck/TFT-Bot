@@ -36,9 +36,7 @@ def click_image_rand(  # pylint: disable=too-many-arguments
         logger.debug(f"Image file not found: {image}")
         return False
     height, width, _channel = img.shape
-    offset_to_use = min(height, width) / 2
-    if offset != "half":
-        offset_to_use = offset
+    offset_to_use = offset if offset != "half" else min(height, width) / 2
     auto.moveTo(
         pos[0] + rand_func(width / 2, offset_to_use),
         pos[1] + rand_func(height / 2, offset_to_use),
@@ -48,7 +46,7 @@ def click_image_rand(  # pylint: disable=too-many-arguments
     return True
 
 
-def mouse_button(delay=0.1, button="left") -> None:
+def mouse_button(delay: float = 0.1, button: str = "left") -> None:
     """A click helper to simulate clicking the specified button.
     *NOTE* Copied from `click_helpers` to avoid a cyclical import
 

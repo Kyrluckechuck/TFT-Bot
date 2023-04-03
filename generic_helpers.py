@@ -1,4 +1,5 @@
 """Generic helper functions."""
+import contextlib
 import random
 
 
@@ -11,10 +12,8 @@ def is_var_number(var) -> bool:
     Returns:
         bool: True if the provide variable is a number type, False otherwise.
     """
-    try:
-        return type(var) == int or type(var) == float  # pylint: disable=unidiomatic-typecheck
-    except Exception:
-        pass
+    with contextlib.suppress(Exception):
+        return type(var) in [int, float]
     return False
 
 
@@ -27,10 +26,8 @@ def is_var_function(var) -> bool:
     Returns:
         bool: True if the provided variable is a function, False otherwise.
     """
-    try:
+    with contextlib.suppress(Exception):
         return callable(var)
-    except Exception:
-        pass
     return False
 
 
