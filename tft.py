@@ -402,16 +402,14 @@ def exit_now_conditional() -> bool:
     return not league_game_already_running()
 
 
-def check_if_game_complete(wait_for_exit_buttons: bool = False) -> bool:
-    """Check if the League game is complete.
+def check_screen_for_exit_button() -> bool:
+    """
+    Checks the screen for any exit buttons we expect to appear when the player dies.
 
     Returns:
-        bool: True if any scenario in which the game is not active, False otherwise.
-    """
-    if wait_for_exit_buttons:
-        logger.info("Waiting an additional ~25s for any exit buttons")
-        time.sleep(25)
+        True if any known exit buttons were found, False if not.
 
+    """
     if onscreen(CONSTANTS["client"]["death"]):
         logger.info("Death detected")
         click_to_middle(CONSTANTS["client"]["death"])
@@ -423,6 +421,25 @@ def check_if_game_complete(wait_for_exit_buttons: bool = False) -> bool:
         exit_now_bool = click_to_middle_multiple(exit_now_images, conditional_func=exit_now_conditional, delay=1.5)
         logger.debug(f"Exit now clicking success: {exit_now_bool}")
         time.sleep(5)
+        return True
+
+    return False
+
+
+def check_if_game_complete(wait_for_exit_buttons: bool = False) -> bool:
+    """Check if the League game is complete.
+
+    Returns:
+        bool: True if any scenario in which the game is not active, False otherwise.
+    """
+    if wait_for_exit_buttons:
+        logger.info("Waiting an additional ~25s for any exit buttons")
+        for _ in range(24):
+            if check_screen_for_exit_button():
+                return True
+            time.sleep(1)
+
+    if check_screen_for_exit_button():
         return True
 
     if LCU_INTEGRATION.in_game():
