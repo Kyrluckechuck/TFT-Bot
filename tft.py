@@ -11,6 +11,7 @@ import time
 
 import keyboard
 from loguru import logger
+import psutil
 import pyautogui as auto
 import pydirectinput
 
@@ -24,7 +25,7 @@ from constants import find_match_images
 from constants import league_processes
 from constants import message_exit_buttons
 from constants import wanted_traits
-import lcu_integration
+import league_api_integration
 from screen_helpers import onscreen
 from screen_helpers import onscreen_multiple_any
 from screen_helpers import onscreen_region_num_loop
@@ -40,7 +41,8 @@ CONFIG = {
     "VERBOSE": False,
     "OVERRIDE_INSTALL_DIR": None,
 }
-LCU_INTEGRATION = lcu_integration.LCUIntegration()
+LCU_INTEGRATION = league_api_integration.LCUIntegration()
+GAME_CLIENT_INTEGRATION = league_api_integration.GameClientIntegration()
 
 
 def bring_league_client_to_forefront() -> None:
@@ -400,18 +402,14 @@ def exit_now_conditional() -> bool:
     return not league_game_already_running()
 
 
-def check_if_game_complete() -> bool:
-    """Check if the League game is complete.
+def check_screen_for_exit_button() -> bool:
+    """
+    Checks the screen for any exit buttons we expect to appear when the player dies.
 
     Returns:
-        bool: True if any scenario in which the game is not active, False otherwise.
-    """
-    if onscreen(CONSTANTS["client"]["death"]):
-        logger.info("Death detected")
-        click_to_middle(CONSTANTS["client"]["death"])
-        time.sleep(5)
-        return True
+        True if any known exit buttons were found, False if not.
 
+    """
     if onscreen_multiple_any(exit_now_images):
         logger.info("End of game detected (exit now)")
         exit_now_bool = click_to_middle_multiple(exit_now_images, conditional_func=exit_now_conditional, delay=1.5)
@@ -419,9 +417,41 @@ def check_if_game_complete() -> bool:
         time.sleep(5)
         return True
 
+    return False
+
+
+def check_if_game_complete(wait_for_exit_buttons: bool = False) -> bool:
+    """Check if the League game is complete.
+
+    Returns:
+        bool: True if any scenario in which the game is not active, False otherwise.
+    """
+    if wait_for_exit_buttons:
+        logger.info("Waiting an additional ~25s for any exit buttons")
+        for _ in range(24):
+            if check_screen_for_exit_button():
+                return True
+            time.sleep(1)
+
+    if check_screen_for_exit_button():
+        return True
+
     if LCU_INTEGRATION.in_game():
         if LCU_INTEGRATION.should_reconnect():
             attempt_reconnect_to_existing_game()
+
+        if GAME_CLIENT_INTEGRATION.is_dead():
+            if not wait_for_exit_buttons:
+                logger.info("The game considers us dead, checking the screen again for exit buttons")
+                return check_if_game_complete(wait_for_exit_buttons=True)
+
+            logger.warning("We are in-game and considered dead, but no death button has been found.")
+            logger.info("Clicking approximate 'Exit Now' location, please ensure your game is in English.")
+            auto.moveTo(827, 553)
+            click_left()
+            time.sleep(5)
+            return True
+
         return False
 
     return not check_if_client_error()
@@ -763,10 +793,16 @@ def main() -> None:
             level="INFO",
         )
 
+    storage_path = "output"
+    for process in psutil.process_iter():
+        if process.name() in {"TFT Bot", "TFT Bot.exe"}:
+            storage_path = system_helpers.expand_environment_variables(CONSTANTS["storage"]["appdata"])
+            break
+
     # File logging, writes to a file in the same folder as the executable.
     # Logs at level DEBUG, so it's always verbose.
     # retention=10 to only keep the 10 most recent files.
-    logger.add("tft-bot-debug-{time}.log", level="DEBUG", retention=10)
+    logger.add(storage_path + "\\tft-bot-debug-{time}.log", level="DEBUG", retention=10)
 
     system_helpers.disable_quickedit()
     # Start auth + main script
@@ -811,7 +847,9 @@ def main() -> None:
 
     setup_hotkeys()
 
-    if not lcu_integration.get_lcu_process():
+    league_api_integration.write_root_certificate_to_file(path=storage_path)
+
+    if not league_api_integration.get_lcu_process():
         logger.warning("League client is not open, attempting to start it")
         league_directory = system_helpers.determine_league_install_location(CONFIG["OVERRIDE_INSTALL_DIR"])
         update_league_constants(league_directory)
