@@ -799,7 +799,7 @@ def main():
 
     storage_path = "output"
     for process in psutil.process_iter():
-        if process.name() in {"TFT Bot", "TFT Bot.exe"}:
+        if process.name() in {"TFT Bot.exe", "TFT.Bot.exe"}:
             storage_path = system_helpers.expand_environment_variables(CONSTANTS["storage"]["appdata"])
             break
 
