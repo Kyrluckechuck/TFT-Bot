@@ -83,32 +83,34 @@ def league_client_running() -> bool:
     ) and system_helpers.find_in_processes(CONSTANTS["executables"]["league"]["client_ux"])
 
 
-def parse_task_kill_text(result: subprocess.CompletedProcess[str]) -> None:
+def parse_task_kill_result(result: subprocess.CompletedProcess[str]) -> None:
     """Parses the task kill text to log the result.
 
     Args:
         result (subprocess.CompletedProcess[str]): the return value of the subprocess run.
     """
-    if "not found." in result.stderr:
-        logger.debug(f"{result.args[-1]} was not running.")
-    elif "has been terminated." in result.stdout:
-        logger.debug(f"{result.args[-1]} has been terminated.")
+    process_name = result.args.replace("taskkill ", "").replace("/f ", "").replace("/im ", "")
+    if result.returncode == 128:
+        logger.debug(f"{process_name} was not running.")
+    elif result.returncode == 0:
+        logger.debug(f"{process_name} has been terminated.")
     else:
-        logger.warning(f"An unknown exception ocurred attempting to end {result.args[-1]}")
-        logger.debug(result)
+        logger.warning(f"An  error was received while trying to ending {process_name}")
+        logger.debug(result.stderr)
 
 
-def kill_process(process_executable: str) -> str:
+def kill_process(process_executable: str, force: bool = True) -> subprocess.CompletedProcess[str]:
     """Kill the process, and parse whether it was successfully killed
 
     Args:
         process_executable (str): The process executable to kill
+        force (bool): Whether to force the process termination
 
     Returns:
         str: _description_
     """
     return subprocess.run(
-        ["taskkill", "/f", "/im", process_executable],
+        f"taskkill{' /f' if force else ''} /im \"{process_executable}\"",
         check=False,
         capture_output=True,
         text=True,
@@ -121,7 +123,7 @@ def restart_league_client() -> None:
     for process_to_kill in league_processes:
         logger.debug(f"Killing {process_to_kill}")
         result = kill_process(process_to_kill)
-        parse_task_kill_text(result)
+        parse_task_kill_result(result)
     time.sleep(1)
     subprocess.run(CONSTANTS["executables"]["league"]["client"], check=True)
     time.sleep(3)
@@ -446,10 +448,12 @@ def check_if_game_complete(wait_for_exit_buttons: bool = False) -> bool:
                 logger.info("The game considers us dead, checking the screen again for exit buttons")
                 return check_if_game_complete(wait_for_exit_buttons=True)
 
-            logger.warning("We are in-game and considered dead, but no death button has been found.")
-            logger.info("Clicking approximate 'Exit Now' location, please ensure your game is in English.")
-            auto.moveTo(827, 553)
-            click_left()
+            logger.warning("We are in-game and considered dead, but no death button has been found. Exiting gracefully")
+            # A non-forceful taskkill tries to tell the process to exit gracefully, similar to Alt+F4.
+            # The first request opens the "Are you sure you want to exit?" window.
+            parse_task_kill_result(kill_process(CONSTANTS["processes"]["game"], force=False))
+            # The second request "confirms" the wish.
+            parse_task_kill_result(kill_process(CONSTANTS["processes"]["game"], force=False))
             time.sleep(5)
             return True
 
