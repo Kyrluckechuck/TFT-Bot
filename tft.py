@@ -89,13 +89,12 @@ def parse_task_kill_result(result: subprocess.CompletedProcess[str]) -> None:
     Args:
         result (subprocess.CompletedProcess[str]): the return value of the subprocess run.
     """
-    process_name = result.args.replace("taskkill ", "").replace("/f ", "").replace("/im ", "")
     if result.returncode == 128:
-        logger.debug(f"{process_name} was not running.")
+        logger.debug(f"{result.args[-1]} was not running.")
     elif result.returncode == 0:
-        logger.debug(f"{process_name} has been terminated.")
+        logger.debug(f"{result.args[-1]} has been terminated.")
     else:
-        logger.warning(f"An  error was received while trying to ending {process_name}")
+        logger.warning(f"An  error was received while trying to ending {result.args[-1]}")
         logger.debug(result.stderr)
 
 
