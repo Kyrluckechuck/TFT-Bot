@@ -30,8 +30,7 @@ jobs:
 
   # Only perform release when manually triggered and on main branch
   release:
-  #  && github.ref == 'refs/heads/main'
-    if: ${{ github.event_name == 'workflow_dispatch' }}
+    if: ${{ github.event_name == 'workflow_dispatch' && github.ref == 'refs/heads/main' }}
     needs: build
     runs-on: [ubuntu-latest]
     steps:
@@ -59,4 +58,4 @@ jobs:
           # prerelease: true
           draft: true
           tag_name: v${{ steps.getversion.outputs.version }}.${{ steps.buildnumber.outputs.build_number }}
-          default_release_name: v${{ steps.getversion.outputs.version }}.${{ steps.buildnumber.outputs.build_number }}
+          default_release_name: Release v${{ steps.getversion.outputs.version }}.${{ steps.buildnumber.outputs.build_number }}
