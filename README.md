@@ -27,24 +27,29 @@ I recorded this screenshot after a couple days if it running straight, and the b
 
 # Usage / Settings
 
-* Adding the `--ffearly` argument will make it forfeit at the first opportunity
+* Adding the (`-f` or `--ffearly`) argument will make it forfeit at the first opportunity
 * Adding the (`-v` or `--verbose`) argument will enable more verbose debug logging
   * This toggles whether the verbose logging should log to console / window. Verbose logging will always log to the log file.
 * You can use the config file below to "save" these settings
 
-## Config Structure
-If you want to use frequent settings / "set it and forget it", you can do so by creating `bot-settings.ini` in the same directory as the python script or release executable with the following structure:
-```ini
-[SETTINGS]
-; Enable verbose output to console
-Verbose = True
-; For most scenarios I do not recommend enabling ForfeitEarly, since if you're botting pass EXP you get the most from staying in matches longer.
-ForfeitEarly = False
-; In most scenarios the below setting should not be required
-OverrideInstallLocation = C:\Riot Games\League of Legends
-```
+## Configuration
+If you want to use frequent settings / "set it and forget it", you can do so by editing the `config.yaml` file in the data folder (`%APPDATA%\TFT Bot`).
+If you don't see the file or folder, start the bot once, and it should be created.  
+You can set the following settings:
 
-Any setting not specified will fall back on the default behaviour, though CLI settings will take highest precedence (overriding config settings).
+* Verbosity
+* Forfeiting early
+* Overriding the assumed League Of Legends installation path
+
+The settings are explained below but also in more detail in the file itself.
+
+The priority for configuration is as follows:
+
+1. CLI Arguments - Anything passed directly in the command-line takes the highest priority
+2. Configuration - Anything set in the configuration file
+3. Fallback default - Default values the developers deemed sensible
+
+***Note for developers**: The data folder is `./output` when running the python script directly.*
 
 ### *Advanced Setting Info*
 #### **Verbose**
@@ -73,7 +78,10 @@ If running from source:
 * If you're having issues with Python not working properly, please make sure you have the correct version installed, and have done a `pip install -r requirements.txt` prior to running.
 
 
-If your issue isn't listed here, please create an [issue](https://github.com/Kyrluckechuck/tft-bot/issues), including the log file located at `%APPDATA%/TFT Bot/TFT Bot.log` (running from release/executable) or `%APPDATA%/TFT Bot/tft.log` (running from Python), and any relevant screenshots or information that may help speed up resolving your issue.
+If your issue isn't listed here, please create an [issue](https://github.com/Kyrluckechuck/tft-bot/issues), including the log file located at  
+`%APPDATA%\TFT Bot\tft-bot-debug-TIMESTAMP.log` (running from release/executable) or  
+`output\tft-bot-debug-TIMESTAMP.log` (running from Python),  
+and any relevant screenshots or information that may help speed up resolving your issue.
 
 ## Info / Why I forked it
 I've fairly heavily forked this from what it originally was, but if you'd like to see the original, I'm not claiming to have made this from scratch:

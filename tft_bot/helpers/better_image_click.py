@@ -5,7 +5,7 @@ import cv2
 from loguru import logger
 import pyautogui as auto
 
-from generic_helpers import rand_func
+from .generic_helpers import rand_func
 
 
 def click_image_rand(  # pylint: disable=too-many-arguments

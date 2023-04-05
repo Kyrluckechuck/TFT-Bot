@@ -7,11 +7,11 @@ from loguru import logger
 import pyautogui as auto
 from python_imagesearch import imagesearch
 
-from better_image_click import click_image_rand
-import generic_helpers
-from screen_helpers import find_image
-from screen_helpers import onscreen
-from system_helpers import resource_path
+from . import generic_helpers
+from .better_image_click import click_image_rand
+from .screen_helpers import find_image
+from .screen_helpers import onscreen
+from .system_helpers import resource_path
 
 
 def mouse_button(delay=0.1, button="left") -> None:

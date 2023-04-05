@@ -1,8 +1,6 @@
 """
 The main TFT Bot code
 """
-import argparse
-import configparser
 from datetime import datetime
 import random
 import subprocess
@@ -15,32 +13,28 @@ import psutil
 import pyautogui as auto
 import pydirectinput
 
-from click_helpers import click_left
-from click_helpers import click_right
-from click_helpers import click_to_middle
-from click_helpers import click_to_middle_multiple
-from constants import CONSTANTS
-from constants import exit_now_images
-from constants import find_match_images
-from constants import league_processes
-from constants import message_exit_buttons
-from constants import wanted_traits
-import league_api_integration
-from screen_helpers import onscreen
-from screen_helpers import onscreen_multiple_any
-from screen_helpers import onscreen_region_num_loop
-import system_helpers
+from tft_bot import config
+from tft_bot.constants import CONSTANTS
+from tft_bot.constants import exit_now_images
+from tft_bot.constants import find_match_images
+from tft_bot.constants import league_processes
+from tft_bot.constants import message_exit_buttons
+from tft_bot.constants import wanted_traits
+from tft_bot.helpers import system_helpers
+from tft_bot.helpers.click_helpers import click_left
+from tft_bot.helpers.click_helpers import click_right
+from tft_bot.helpers.click_helpers import click_to_middle
+from tft_bot.helpers.click_helpers import click_to_middle_multiple
+from tft_bot.helpers.screen_helpers import onscreen
+from tft_bot.helpers.screen_helpers import onscreen_multiple_any
+from tft_bot.helpers.screen_helpers import onscreen_region_num_loop
+from tft_bot.league_api import league_api_integration
 
 auto.FAILSAFE = False
 GAME_COUNT = 0
 PROGRAM_START: datetime
 PAUSE_LOGIC = False
 PLAY_NEXT_GAME = True
-CONFIG = {
-    "FF_EARLY": False,
-    "VERBOSE": False,
-    "OVERRIDE_INSTALL_DIR": None,
-}
 LCU_INTEGRATION = league_api_integration.LCUIntegration()
 GAME_CLIENT_INTEGRATION = league_api_integration.GameClientIntegration()
 
@@ -608,7 +602,7 @@ def main_game_loop() -> None:  # pylint: disable=too-many-branches
             buy(3)
             continue
 
-        if CONFIG["FF_EARLY"] and minimum_round >= 3:
+        if config.forfeit_early() and minimum_round >= 3:
             logger.info("Attempting to surrender early")
             surrender()
             break
@@ -729,33 +723,6 @@ def tft_bot_loop() -> None:
             continue
 
 
-def load_settings():
-    """Load settings for the bot.
-
-    Any CLI-set settings take highest precedence, then falling back on config values, then to defaults.
-    """
-    arg_parser = argparse.ArgumentParser(prog="TFT Bot")
-    arg_parser.add_argument(
-        "--ffearly",
-        action="store_true",
-        help="If the game should be surrendered at first available time.",
-    )
-    arg_parser.add_argument(
-        "-v",
-        "--verbose",
-        action="store_true",
-        help="Increase output verbosity, mostly useful for debugging",
-    )
-    parsed_args = arg_parser.parse_args()
-
-    config = configparser.ConfigParser()
-    config.read("bot_settings.ini")
-
-    CONFIG["FF_EARLY"] = parsed_args.ffearly or config.getboolean("SETTINGS", "ForfeitEarly", fallback=False)
-    CONFIG["VERBOSE"] = parsed_args.verbose or config.getboolean("SETTINGS", "Verbose", fallback=False)
-    CONFIG["OVERRIDE_INSTALL_DIR"] = config.get("SETTINGS", "OverrideInstallLocation", fallback=None)
-
-
 def update_league_constants(league_install_location: str) -> None:
     """Update League executable constants
 
@@ -786,10 +753,16 @@ def main():
 
     Parses command line arguments, sets up console settings, logging, and kicks of the main bot loop.
     """
-    load_settings()
+    storage_path = "output"
+    for process in psutil.process_iter():
+        if process.name() in {"TFT Bot.exe", "TFT.Bot.exe"}:
+            storage_path = system_helpers.expand_environment_variables(CONSTANTS["storage"]["appdata"])
+            break
+
+    config.load_config(storage_path=storage_path)
 
     # Normal logging
-    if CONFIG["VERBOSE"]:
+    if config.verbose():
         logger.level("DEBUG")
     else:
         # We need to remove the default logger if we want to
@@ -805,12 +778,6 @@ def main():
             ),
             level="INFO",
         )
-
-    storage_path = "output"
-    for process in psutil.process_iter():
-        if process.name() in {"TFT Bot.exe", "TFT.Bot.exe"}:
-            storage_path = system_helpers.expand_environment_variables(CONSTANTS["storage"]["appdata"])
-            break
 
     # File logging, writes to a file in the same folder as the executable.
     # Logs at level DEBUG, so it's always verbose.
@@ -843,8 +810,8 @@ def main():
     )
 
     logger.info("===== TFT Bot Started =====")
-    logger.info(f"Bot will {'' if CONFIG['VERBOSE'] else 'NOT '}be verbose (display debug messages).")
-    logger.info(f"Bot will {'' if CONFIG['FF_EARLY'] else 'NOT '}surrender early.")
+    logger.info(f"Bot will {'' if config.verbose() else 'NOT '}be verbose (display debug messages).")
+    logger.info(f"Bot will {'' if config.forfeit_early() else 'NOT '}surrender early.")
 
     logger.info("Welcome! Please feel free to ask questions or contribute at https://github.com/Kyrluckechuck/tft-bot")
     if (
@@ -864,7 +831,7 @@ def main():
 
     if not league_api_integration.get_lcu_process():
         logger.warning("League client is not open, attempting to start it")
-        league_directory = system_helpers.determine_league_install_location(CONFIG["OVERRIDE_INSTALL_DIR"])
+        league_directory = system_helpers.determine_league_install_location(config.get_override_install_location())
         update_league_constants(league_directory)
         restart_league_client()
     elif not LCU_INTEGRATION.connect_to_lcu():

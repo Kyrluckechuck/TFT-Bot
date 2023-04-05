@@ -132,8 +132,5 @@ dmypy.json
 .pyre/
 
 screenshots/
-*.log
+output/
 bot_settings.ini
-
-# Certificates
-*.pem

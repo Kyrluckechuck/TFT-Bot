@@ -4,7 +4,7 @@ import time
 from loguru import logger
 from python_imagesearch import imagesearch
 
-from system_helpers import resource_path
+from .system_helpers import resource_path
 
 
 def onscreen(path: str, precision: float = 0.8) -> bool:

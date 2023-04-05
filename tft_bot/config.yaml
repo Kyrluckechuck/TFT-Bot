@@ -1,0 +1,20 @@
+# Whether to log more output.
+# The CLI flag -v/--verbose will override this.
+verbose: false
+# Whether to surrender as soon as possible.
+# To farm regular League pass EXP (that has tokens) it is recommended to leave this on false,
+# since the repeating mission gives out EXP based on playtime and winning (being top 4).
+# To farm TFT pass EXP it is recommended to set this to true,
+# since the TFT pass receives a flat 100 EXP per normal tft game played, regardless of any other factors.
+# The CLI flag -f/--ffearly will override this.
+forfeit_early: false
+
+# Override where League is installed.
+# The only reason you would set this is if all of these conditions apply:
+# 1. You're initially starting the bot while the League Client is closed
+# 2. You want the bot to start the League Client for you
+# 3. The bot is unable to determine the League installation path by itself
+override_install_location: ''
+
+# Version of the YAML. Changing this manually can potentially break the bot, so don't!
+version: 2
