@@ -29,6 +29,8 @@ jobs:
         with:
           name: tft-bot-build
           path: dist/TFT Bot.exe
+      - name: cat VERSION file
+        run: cat VERSION
       - name: Read VERSION file
         id: getversion
         run: echo "version=$(cat VERSION)" >> $GITHUB_OUTPUT
