@@ -26,23 +26,26 @@ def load_config(storage_path: str) -> None:
     """
     yaml = YAML()
 
-    with open(system_helpers.resource_path("tft_bot/config.yaml"), mode="r", encoding="UTF-8") as config_resource:
-        if not os.path.isfile(f"{storage_path}\\config.yaml"):
-            with open(f"{storage_path}\\config.yaml", mode="w", encoding="UTF-8") as config_file:
-                config_file.writelines(config_resource.readlines())
+    config_resource_path = system_helpers.resource_path("tft_bot/config.yaml")
+    config_path = f"{storage_path}\\config.yaml"
+
+    if not os.path.isfile(config_path):
+        shutil.copyfile(config_resource_path, config_path)
+
+    with open(config_resource_path, mode="r", encoding="UTF-8") as config_resource:
         _config_resource: dict[str, Any] = yaml.load(config_resource)
 
-    with open(f"{storage_path}\\config.yaml", mode="r", encoding="UTF-8") as config_file:
+    with open(config_path, mode="r", encoding="UTF-8") as config_file:
         global _SELF
         _SELF = yaml.load(config_file)
 
-    if _config_resource.get("version") > _SELF.get("version"):
+    if _config_resource.get("version") > _SELF.get("version", 0):
         logger.warning("Config is outdated, creating a back-up and updating it")
 
-        shutil.copyfile(f"{storage_path}\\config.yaml", f"{storage_path}\\config.yaml.bak")
+        shutil.copyfile(config_path, f"{config_path}.bak")
 
         _config_resource.update((key, _SELF[key]) for key in _SELF.keys() & _config_resource.keys() if key != "version")
-        with open(f"{storage_path}\\config.yaml", mode="w", encoding="UTF-8") as config_file:
+        with open(config_path, mode="w", encoding="UTF-8") as config_file:
             yaml.dump(_config_resource, config_file)
 
         _SELF = _config_resource
