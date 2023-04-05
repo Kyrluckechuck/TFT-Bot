@@ -454,7 +454,15 @@ def check_if_game_complete(wait_for_exit_buttons: bool = False) -> bool:
             parse_task_kill_result(kill_process(CONSTANTS["processes"]["game"], force=False))
             # The second request "confirms" the wish.
             parse_task_kill_result(kill_process(CONSTANTS["processes"]["game"], force=False))
-            time.sleep(5)
+            logger.info("Waiting ~60s for graceful exit")
+            for _ in range(60):
+                if not LCU_INTEGRATION.in_game():
+                    break
+                time.sleep(1)
+            else:
+                logger.error("Game did not exit gracefully, restarting everything to be safe")
+                restart_league_client()
+                return True
             return True
 
         return False
