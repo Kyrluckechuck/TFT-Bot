@@ -12,6 +12,8 @@ jobs:
         python-version: [
           "3.11"
         ]
+    outputs:
+      version: ${{ steps.getversion.outputs.version }}
     steps:
       - uses: actions/checkout@v3
       - name: Set Up Python ${{ matrix.python-version }}
@@ -27,13 +29,16 @@ jobs:
         with:
           name: tft-bot-build
           path: dist/TFT Bot.exe
+      - name: Read VERSION file
+        id: getversion
+        run: echo "version=$(cat VERSION)" >> $GITHUB_OUTPUT
 
   # Only perform release when manually triggered and on main branch
   release:
   #  && github.ref == 'refs/heads/main'
     if: ${{ github.event_name == 'workflow_dispatch' }}
     needs: build
-    runs-on: [ubuntu-latest]
+    runs-on: [windows-latest]
     steps:
       - name: Download build
         uses: actions/download-artifact@v3
@@ -45,9 +50,6 @@ jobs:
         uses: onyxmueller/build-tag-number@v1
         with:
           token: ${{secrets.github_token}}
-      - name: Read VERSION file
-        id: getversion
-        run: echo "version=$(cat VERSION)" >> $GITHUB_OUTPUT
       - uses: xresloader/upload-to-github-release@main
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
@@ -57,5 +59,5 @@ jobs:
           verbose: true
           # prerelease: true
           draft: true
-          tag_name: v${{ steps.getversion.outputs.version }}.${{ steps.buildnumber.outputs.build_number }}
-          default_release_name: v${{ steps.getversion.outputs.version }}.${{ steps.buildnumber.outputs.build_number }}
+          tag_name: v${{ needs.build.outputs.version }}.${{ steps.buildnumber.outputs.build_number }}
+          default_release_name: v${{ needs.build.outputs.version }}.${{ steps.buildnumber.outputs.build_number }}
