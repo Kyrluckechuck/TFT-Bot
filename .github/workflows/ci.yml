@@ -33,6 +33,9 @@ jobs:
         id: getversion
         run: echo "version=$(cat VERSION)" >> $GITHUB_OUTPUT
 
+      - name: DEBUG| Echo Version1
+        run: echo "${{ steps.getversion.outputs.version }}"
+
   # Only perform release when manually triggered and on main branch
   release:
   #  && github.ref == 'refs/heads/main'
@@ -50,6 +53,8 @@ jobs:
         uses: onyxmueller/build-tag-number@v1
         with:
           token: ${{secrets.github_token}}
+      - name: DEBUG| Echo Version2
+        run: echo "${{ needs.build.outputs.version }}"
       - uses: xresloader/upload-to-github-release@main
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
