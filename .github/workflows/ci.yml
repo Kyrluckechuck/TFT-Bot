@@ -16,24 +16,24 @@ jobs:
       version: ${{ steps.getversion.outputs.version }}
     steps:
       - uses: actions/checkout@v3
-      - name: Set Up Python ${{ matrix.python-version }}
-        uses: actions/setup-python@v4
-        with:
-          python-version: ${{ matrix.python-version }}
-          cache: 'pip'
-      - name: Install Dependencies
-        run: pip install -r requirements.txt
-      - run: python installer.py
-      - name: Upload build
-        uses: actions/upload-artifact@v3
-        with:
-          name: tft-bot-build
-          path: dist/TFT Bot.exe
+      # - name: Set Up Python ${{ matrix.python-version }}
+      #   uses: actions/setup-python@v4
+      #   with:
+      #     python-version: ${{ matrix.python-version }}
+      #     cache: 'pip'
+      # - name: Install Dependencies
+      #   run: pip install -r requirements.txt
+      # - run: python installer.py
+      # - name: Upload build
+      #   uses: actions/upload-artifact@v3
+      #   with:
+      #     name: tft-bot-build
+      #     path: dist/TFT Bot.exe
       - name: cat VERSION file
         run: cat VERSION
       - name: Read VERSION file
         id: getversion
-        run: echo "version=$(cat VERSION)" >> $GITHUB_OUTPUT
+        run: echo \"version=$(cat VERSION)\" >> $GITHUB_OUTPUT
 
       - name: DEBUG| Echo Version1
         run: echo "${{ steps.getversion.outputs.version }}"
