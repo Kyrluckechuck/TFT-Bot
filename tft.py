@@ -465,7 +465,6 @@ def check_if_game_complete(wait_for_exit_buttons: bool = False) -> bool:
             else:
                 logger.error("Game did not exit gracefully, restarting everything to be safe")
                 restart_league_client()
-                return True
             return True
 
         return False
