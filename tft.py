@@ -109,8 +109,11 @@ def kill_process(process_executable: str, force: bool = True) -> subprocess.Comp
     Returns:
         str: _description_
     """
+    task_kill_args = ["taskkill", "/im", process_executable]
+    if force:
+        task_kill_args.insert(1, "/f")
     return subprocess.run(
-        f"taskkill{' /f' if force else ''} /im \"{process_executable}\"",
+        task_kill_args,
         check=False,
         capture_output=True,
         text=True,
