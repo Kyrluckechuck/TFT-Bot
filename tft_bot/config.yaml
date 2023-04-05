@@ -17,4 +17,4 @@ forfeit_early: false
 override_install_location: ''
 
 # Version of the YAML. Changing this manually can potentially break the bot, so don't!
-version: 2
+version: 1
