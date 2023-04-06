@@ -697,14 +697,13 @@ def surrender() -> None:
 
 def print_timer() -> None:
     """Print a log timer to update the time passed and number of games completed (rough estimation)."""
-    delta = datetime.now() - PROGRAM_START
-    duration = datetime.utcfromtimestamp(delta.total_seconds())
+    delta_seconds = int((datetime.now() - PROGRAM_START).total_seconds())
     global GAME_COUNT
     GAME_COUNT += 1
 
     logger.info("-------------------------------------")
     logger.info("Game End")
-    logger.info(f"Time since start: {duration.strftime('%H:%M:%S')}")
+    logger.info(f"Time since start: {delta_seconds // 3600}h {(delta_seconds // 60) % 60}m {delta_seconds % 60}s")
     logger.info(f"Games played: {str(GAME_COUNT)}")
     logger.info("-------------------------------------")
 
