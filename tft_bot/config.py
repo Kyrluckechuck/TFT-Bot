@@ -12,7 +12,6 @@ from ruamel.yaml import YAML
 from .helpers import system_helpers
 
 _SELF: dict[str, Any] = {}
-_CLI_FLAGS = {}
 
 
 def load_config(storage_path: str) -> None:
@@ -50,10 +49,10 @@ def load_config(storage_path: str) -> None:
 
         _SELF = _config_resource
 
-    parse_cli_flags()
+    _parse_cli_flags()
 
 
-def parse_cli_flags() -> None:
+def _parse_cli_flags() -> None:
     """
     Override settings for the bot with CLI flags, since they take higher precedence.
     """
@@ -73,10 +72,10 @@ def parse_cli_flags() -> None:
     parsed_args = arg_parser.parse_args()
 
     if parsed_args.ffearly:
-        _CLI_FLAGS["FORFEIT_EARLY"] = True
+        _SELF["forfeit_early"] = True
 
     if parsed_args.verbose:
-        _CLI_FLAGS["VERBOSE"] = True
+        _SELF["verbose"] = True
 
 
 def verbose() -> bool:
@@ -87,7 +86,7 @@ def verbose() -> bool:
         True if we should be verbose, False if not.
 
     """
-    return _CLI_FLAGS.get("VERBOSE") or _SELF.get("verbose", False)
+    return _SELF.get("verbose", False)
 
 
 def forfeit_early() -> bool:
@@ -98,7 +97,7 @@ def forfeit_early() -> bool:
         True if we should surrender early, False if not.
 
     """
-    return _CLI_FLAGS.get("FORFEIT_EARLY") or _SELF.get("forfeit_early", False)
+    return _SELF.get("forfeit_early", False)
 
 
 def get_override_install_location() -> str | None:
