@@ -830,7 +830,7 @@ def main():
 
     if not league_api_integration.get_lcu_process():
         logger.warning("League client is not open, attempting to start it")
-        league_directory = system_helpers.determine_league_install_location(config.get_override_install_location())
+        league_directory = system_helpers.determine_league_install_location()
         update_league_constants(league_directory)
         restart_league_client()
     elif not LCU_INTEGRATION.connect_to_lcu():

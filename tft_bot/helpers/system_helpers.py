@@ -11,6 +11,8 @@ import win32com.client
 import win32gui
 import win32process
 
+from tft_bot import config
+
 try:
     import ctypes
     import msvcrt
@@ -141,17 +143,15 @@ def expand_environment_variables(var: str) -> str:
     return os.path.expandvars(var)
 
 
-def determine_league_install_location(override_path: str | None = None) -> str:
+def determine_league_install_location() -> str:
     """Determine the location League was installed.
-
-    Args:
-        override_path (str): A path to override any client detection logic.
 
     Returns:
         str: If successful, the determined install location. If unsuccessful, the default install location.
     """
     # Assign default just in case it failed to be found
     league_path = r"C:\Riot Games\League of Legends"
+    override_path = config.get_override_install_location()
 
     if override_path is not None:
         logger.warning(f"Override path supplied, using '{override_path}' as League install directory.")
