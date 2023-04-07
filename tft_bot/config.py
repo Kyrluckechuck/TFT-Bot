@@ -25,7 +25,7 @@ def load_config(storage_path: str) -> None:
     """
     yaml = YAML()
 
-    config_resource_path = system_helpers.resource_path("tft_bot/config.yaml")
+    config_resource_path = system_helpers.resource_path("tft_bot/resources/config.yaml")
     config_path = f"{storage_path}\\config.yaml"
 
     if not os.path.isfile(config_path):
