@@ -10,7 +10,7 @@ PyInstaller.__main__.run(
         "--add-data",
         "captures;captures",
         "--add-data",
-        "tft_bot/resources;tft_bot",
+        "tft_bot/resources;tft_bot/resources",
         "-n",
         "TFT Bot",
         "-i",
