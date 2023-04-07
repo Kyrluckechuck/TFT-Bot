@@ -255,34 +255,22 @@ def loading_match() -> None:
     """Attempt to wait for the match to load, bringing the League game to the forefront/focus.
     After some time, if the game has not been detected as starting, it moves on anyways.
     """
-    counter = 0
-    logger.info("Match loading, waiting for game window (~30s timeout)")
-    bring_league_game_to_forefront()
-    if not wait_for_league_running():
+    if not GAME_CLIENT_INTEGRATION.wait_for_game_window():
         if LCU_INTEGRATION.in_game():
             logger.warning("We are in a game, but the game window is not opening. Restarting client...")
             restart_league_client()
         return
 
     logger.info("Match loading, waiting for game to start (~120s timeout)")
-    while (
-        not onscreen(CONSTANTS["game"]["loading"])
-        and not onscreen(CONSTANTS["game"]["gamelogic"]["timer_1"])
-        and not onscreen(CONSTANTS["game"]["round"]["1-"])
-        and not onscreen(CONSTANTS["game"]["round"]["2-"])
-        and not onscreen(CONSTANTS["game"]["round"]["3-"])
-        and not onscreen(CONSTANTS["game"]["round"]["4-"])
-        and not onscreen(CONSTANTS["game"]["round"]["5-"])
-        and not onscreen(CONSTANTS["game"]["round"]["6-"])
-    ):
-        time.sleep(1)
-        bring_league_game_to_forefront()
-        if counter > 120:
-            logger.warning("Did not detect game start, continuing anyway")
+    for _ in range(120):
+        if GAME_CLIENT_INTEGRATION.game_loaded():
             break
-        counter = counter + 1
+        time.sleep(1)
+    else:
+        logger.warning("Did not detect game start, continuing anyway. This means things COULD break, but shouldn't")
 
     logger.info("Match loaded, starting initial draft pathfinding")
+    bring_league_game_to_forefront()
     start_match()
 
 

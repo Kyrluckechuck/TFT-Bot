@@ -313,7 +313,7 @@ class LCUIntegration:
         return session_response.json()["phase"] == "Reconnect"
 
 
-class GameClientIntegration:  # pylint: disable=too-few-public-methods
+class GameClientIntegration:
     """
     Class to integrate with the official Rito Game Client API.
     Sadly the TFT endpoint is re-using the normal League data format.
@@ -330,6 +330,35 @@ class GameClientIntegration:  # pylint: disable=too-few-public-methods
             }
         )
         self._session.verify = system_helpers.resource_path("tft_bot/resources/riotgames_root_certificate.pem")
+
+    def wait_for_game_window(self) -> bool:
+        """
+        Waits for the API to be responsive, which also means the game window is available.
+
+        Returns:
+            True if we could connect to the API within a specified time, False if not
+
+        """
+        logger.info("Waiting for the game window (30s timeout)")
+        try:
+            self._session.get(f"{self._url}", timeout=(30, None))
+        except requests.exceptions.Timeout:
+            return False
+
+        return True
+
+    def game_loaded(self) -> bool:
+        """
+        Checks if the game has loaded.
+
+        Returns:
+            True if the game has loaded, False if not.
+
+        """
+        logger.debug("Checking if the game has loaded")
+
+        event_data_response = self._session.get(f"{self._url}/liveclientdata/eventdata")
+        return event_data_response.status_code == 200 and len(event_data_response.json()["Events"]) > 0
 
     def is_dead(self) -> bool:
         """
