@@ -210,11 +210,6 @@ key_fragment_images = [
     CONSTANTS["client"]["key_fragment"]["two"],
 ]
 
-wanted_traits = [
-    CONSTANTS["game"]["trait"]["duelist"],
-    CONSTANTS["game"]["trait"]["brawler"],
-]
-
 unselected_tft_tabs = [
     CONSTANTS["client"]["tabs"]["tft"]["unselected"]["1"],
     CONSTANTS["client"]["tabs"]["tft"]["unselected"]["2"],

@@ -109,3 +109,25 @@ def get_override_install_location() -> str | None:
 
     """
     return _SELF.get("override_install_location") or None
+
+
+def get_wanted_traits() -> list[str]:
+    """
+    Get the list of traits we attempt to purchase.
+
+    Returns:
+        A list of traits we look for.
+
+    """
+    return _SELF.get("wanted_traits", ["duelist", "brawler"])
+
+
+def purchase_traits_in_prioritized_order() -> bool:
+    """
+    Get if we should purchase traits in prioritized order.
+
+    Returns:
+        True if we should only buy a trait if the trait before it has been found, False if not.
+
+    """
+    return _SELF.get("purchase_traits_in_prioritized_order", True)
