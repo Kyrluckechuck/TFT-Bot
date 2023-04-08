@@ -40,6 +40,7 @@ You can set the following settings:
 * Verbosity
 * Forfeiting early
 * Overriding the assumed League Of Legends installation path
+* Traits the bot should look for and how they should be bought
 
 The settings are explained below but also in more detail in the file itself.
 
@@ -54,10 +55,14 @@ The priority for configuration is as follows:
 ### *Advanced Setting Info*
 #### **Verbose**
 Enable verbose logging to the console window.
-#### **ForfeitEarly**
+#### **Forfeit Early**
 Forfeit at first opportunity instead of playing it out until eliminated.
-#### **OverrideInstallLocation**
+#### **Override Install Location**
 Override any League client detection logic. This should be set to whichever directory contains your `LeagueClient.exe`, `LeagueClientUx.exe`, and `Game\League of Legends.exe` executables, which is especially useful for Garena players as I can not automate this detection (from what I've heard).
+#### **Wanted Traits**
+Which traits the bot should look for.
+#### **Purchase traits in prioritized order**
+If a trait in the configured trait list should only be bought if the trait that comes before it was bought. 
 
 # Installation (for source):
 
