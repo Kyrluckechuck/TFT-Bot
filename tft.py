@@ -6,12 +6,15 @@ import random
 import subprocess
 import sys
 import time
+import webbrowser
 
 import keyboard
 from loguru import logger
 import psutil
 import pyautogui as auto
 import pydirectinput
+import requests
+from requests import HTTPError
 
 from tft_bot import config
 from tft_bot.constants import CONSTANTS
@@ -734,6 +737,41 @@ def setup_hotkeys() -> None:
     keyboard.add_hotkey("alt+n", lambda: toggle_play_next_game())  # pylint: disable=unnecessary-lambda
 
 
+def get_newer_version() -> tuple[str, str] | None:
+    """
+    Get any newer version from GitHub.
+
+    Returns:
+        A tuple of local version and repository version, or None if there is no newer version.
+
+    """
+    logger.info("Checking if there is a newer version (10s timeout)")
+    try:
+        repository_version_response = requests.get(
+            "https://api.github.com/repos/Kyrluckechuck/TFT-Bot/releases/latest", timeout=10
+        )
+    except requests.exceptions.Timeout:
+        logger.debug("Could not connect to GitHub API, continuing as if there is no newer version")
+        return None
+
+    try:
+        repository_version_response.raise_for_status()
+    except HTTPError as err:
+        logger.opt(exception=err).debug("There was an error fetching the latest version")
+        return None
+
+    repository_version = repository_version_response.json()["tag_name"].replace("v", "").split(".")
+
+    with open(system_helpers.resource_path("VERSION"), mode="r", encoding="UTF-8") as version_file:
+        local_version = version_file.readline().replace("\r", "").replace("\n", "").split(".")
+
+    for i in range(3):
+        if repository_version[i] > local_version[i]:
+            return ".".join(local_version), ".".join(repository_version)
+
+    return None
+
+
 @logger.catch
 def main():
     """Entrypoint function to initialize most of the code.
@@ -800,7 +838,31 @@ def main():
     logger.info(f"Bot will {'' if config.verbose() else 'NOT '}be verbose (display debug messages).")
     logger.info(f"Bot will {'' if config.forfeit_early() else 'NOT '}surrender early.")
 
-    logger.info("Welcome! Please feel free to ask questions or contribute at https://github.com/Kyrluckechuck/tft-bot")
+    repository_url = "https://github.com/Kyrluckechuck/tft-bot"
+    logger.info(f"Welcome! Please feel free to ask questions or contribute at {repository_url}")
+
+    releases_url = f"{repository_url}/releases/latest"
+    versions = get_newer_version()
+    if versions:
+        logger.warning("There is a newer version available")
+        if (
+            auto.confirm(
+                title="TFT Auto Bot",
+                text=(
+                    "There is a newer version available!\n"
+                    f"Your version: {versions[0]}\n"
+                    f"Current version: {versions[1]}"
+                ),
+                buttons=["Download", "Ignore"],
+            )
+            == "Download"
+        ):
+            logger.info(f"{releases_url} should open in your browser now")
+            webbrowser.open(f"{releases_url}", new=0, autoraise=True)
+            sys.exit(1)
+    else:
+        logger.info("You're up to date!")
+
     if (
         auto.confirm(
             title="TFT Auto Bot",
