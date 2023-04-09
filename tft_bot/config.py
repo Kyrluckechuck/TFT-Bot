@@ -28,6 +28,9 @@ def load_config(storage_path: str) -> None:
     config_resource_path = system_helpers.resource_path("tft_bot/resources/config.yaml")
     config_path = f"{storage_path}\\config.yaml"
 
+    # Create output directory if it does not exist
+    os.makedirs(os.path.dirname(config_path), exist_ok=True)
+
     if not os.path.isfile(config_path):
         shutil.copyfile(config_resource_path, config_path)
 
