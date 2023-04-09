@@ -691,11 +691,12 @@ def print_timer() -> None:
     global GAME_COUNT
     GAME_COUNT += 1
 
-    logger.info("-------------------------------------")
+    logger.info("-----------------------------------------")
     logger.info("Game End")
     logger.info(f"Time since start: {delta_seconds // 3600}h {(delta_seconds // 60) % 60}m {delta_seconds % 60}s")
     logger.info(f"Games played: {str(GAME_COUNT)}")
-    logger.info("-------------------------------------")
+    logger.info(f"Win rate (at most last 20 games): {LCU_INTEGRATION.get_win_rate(GAME_COUNT)}%")
+    logger.info("-----------------------------------------")
 
 
 def tft_bot_loop() -> None:

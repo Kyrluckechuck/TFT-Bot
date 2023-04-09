@@ -312,6 +312,59 @@ class LCUIntegration:
 
         return session_response.json()["phase"] == "Reconnect"
 
+    def _get_player_uid(self) -> str | None:
+        """
+        Get the PUUID (globally unique ID) of the player.
+
+        Returns:
+            The PUUID as a string or None if there was an issue getting it.
+
+        """
+        session_response = self._session.get(
+            f"{self._url}/lol-login/v1/session",
+        )
+
+        try:
+            session_response.raise_for_status()
+        except HTTPError:
+            return None
+
+        return session_response.json()["puuid"]
+
+    def get_win_rate(self, number_of_games: int) -> str:
+        """
+        Get the win rate for the last N games.
+
+        Args:
+            number_of_games: The amount of the games to get the win rate for, min 1 max 20.
+
+        Returns:
+            A human-readable string holding the percentage, for example '20.3'.
+
+        """
+        player_uid = self._get_player_uid()
+        # Clamp to min 1, max 20 games
+        number_of_games = max(1, min(number_of_games, 20))
+
+        matches_response = self._session.get(
+            f"{self._url}/lol-match-history/v1/products/tft/{player_uid}/matches?count={number_of_games}"
+        )
+
+        try:
+            matches_response.raise_for_status()
+        except HTTPError:
+            return "ERROR"
+
+        games = matches_response.json()["games"]
+        games_played = len(games)
+        wins = 0
+        for game in games:
+            player = [player for player in game["json"]["participants"] if player["puuid"] == player_uid][0]
+            if player["placement"] <= 4:
+                wins += 1
+
+        return f"{(wins / games_played) * 100:.2f}"
+
 
 class GameClientIntegration:
     """
