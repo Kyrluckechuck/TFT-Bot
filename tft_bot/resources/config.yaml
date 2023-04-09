@@ -12,6 +12,7 @@ forfeit_early: false
 # The traits you want the bot to roll for.
 # The trait names are almost as written in-game, with spaces replaced by _ and . and : being ignored.
 # For example: admin, star_guardian, mecha_prime, lasercorps
+# For a full list, visit https://github.com/Kyrluckechuck/TFT-Bot/tree/main/captures/trait
 wanted_traits:
   - duelist
   - brawler
