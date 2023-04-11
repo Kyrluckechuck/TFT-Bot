@@ -125,10 +125,10 @@ def resource_path(relative_path: str) -> str:
         base_path = sys._MEIPASS  # pylint: disable=no-member,protected-access
     except Exception:
         base_path = os.path.abspath(".")
+        
+    os.chdir(base_path)
 
-    if relative_path.startswith(base_path):
-        return relative_path
-    return os.path.join(base_path, relative_path)
+    return relative_path
 
 
 def expand_environment_variables(var: str) -> str:
