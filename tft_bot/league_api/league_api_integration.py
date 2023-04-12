@@ -54,6 +54,33 @@ def _get_lcu_commandline_arguments(lcu_process: Process):
     return commandline_arguments
 
 
+def _http_error_wrapper(method, raise_and_catch: bool = True, **kwargs) -> requests.Response | None:
+    """
+    Wraps an HTTP method to catch various errors.
+
+    Args:
+        method: The HTTP method to call.
+        raise_and_catch: Whether we should call raise_for_status and catch the exception, if there is one
+        **kwargs: Any keyword arguments to pass to the method.
+
+    Returns:
+        The response or None if any exceptions were caught.
+
+    """
+    try:
+        response: requests.Response = method(**kwargs)
+    except (requests.exceptions.ConnectionError, requests.exceptions.Timeout):
+        return None
+
+    if raise_and_catch:
+        try:
+            response.raise_for_status()
+        except HTTPError:
+            return None
+
+    return response
+
+
 class LCUIntegration:
     """
     Integrates the bot with League Client Update (LCU) API.
@@ -62,7 +89,14 @@ class LCUIntegration:
     """
 
     def __init__(self):
-        self._session = None
+        self._session = requests.Session()
+        self._session.headers.update(
+            {
+                "Content-Type": "application/json",
+                "Accept": "application/json",
+            }
+        )
+        self._session.verify = system_helpers.resource_path("tft_bot/resources/riotgames_root_certificate.pem")
         self._url = None
         self.install_directory = None
 
@@ -95,21 +129,7 @@ class LCUIntegration:
         process_arguments = _get_lcu_commandline_arguments(lcu_process)
         self.install_directory = process_arguments["install-directory"]
         self._url = f"https://127.0.0.1:{process_arguments['app-port']}"
-        _auth_key = process_arguments["remoting-auth-token"]
-
-        if self._session is not None:
-            logger.debug("LCU session already existed, closing it just to be safe.")
-            self._session.close()
-
-        self._session = requests.Session()
-        self._session.auth = ("riot", _auth_key)
-        self._session.headers.update(
-            {
-                "Content-Type": "application/json",
-                "Accept": "application/json",
-            }
-        )
-        self._session.verify = system_helpers.resource_path("tft_bot/resources/riotgames_root_certificate.pem")
+        self._session.auth = ("riot", process_arguments["remoting-auth-token"])
 
         logger.info("League client found, trying to connect to it (~60s timeout)")
         timeout = 0
@@ -164,13 +184,9 @@ class LCUIntegration:
             True if we are in a lobby of the type we want, False if not.
 
         """
-        get_lobby_response = self._session.get(
-            f"{self._url}/lol-lobby/v2/lobby",
-        )
+        get_lobby_response = _http_error_wrapper(self._session.get, url=f"{self._url}/lol-lobby/v2/lobby")
 
-        try:
-            get_lobby_response.raise_for_status()
-        except HTTPError:
+        if not get_lobby_response:
             return False
 
         return get_lobby_response.json()["gameConfig"]["queueId"] == TFT_NORMAL_GAME_QUEUE_ID
@@ -184,20 +200,18 @@ class LCUIntegration:
 
         """
         logger.info("Creating a TFT lobby")
-        create_lobby_response = self._session.post(
-            f"{self._url}/lol-lobby/v2/lobby", json={"queueId": TFT_NORMAL_GAME_QUEUE_ID}
+        create_lobby_response = _http_error_wrapper(
+            self._session.post, url=f"{self._url}/lol-lobby/v2/lobby", json={"queueId": TFT_NORMAL_GAME_QUEUE_ID}
         )
 
-        return create_lobby_response.status_code == 200
+        return create_lobby_response is not None and create_lobby_response.status_code == 200
 
     def delete_lobby(self) -> None:
         """
         Forcefully closes the current lobby, useful for "Player is not ready" bugs etc.
         """
         logger.info("Closing the lobby because it seems we got stuck")
-        self._session.delete(
-            f"{self._url}/lol-lobby/v2/lobby",
-        )
+        _http_error_wrapper(self._session.delete, url=f"{self._url}/lol-lobby/v2/lobby")
 
     def start_queue(self) -> bool:
         """
@@ -208,10 +222,10 @@ class LCUIntegration:
 
         """
         logger.info("Starting the match finding queue")
-        start_queue_response = self._session.post(
-            f"{self._url}/lol-lobby/v2/lobby/matchmaking/search",
+        start_queue_response = _http_error_wrapper(
+            self._session.post, url=f"{self._url}/lol-lobby/v2/lobby/matchmaking/search"
         )
-        return start_queue_response.status_code == 204
+        return start_queue_response is not None and start_queue_response.status_code == 204
 
     def in_queue(self) -> bool:
         """
@@ -222,14 +236,14 @@ class LCUIntegration:
 
         """
         logger.debug("Checking if we are already in a queue")
-        get_queue_response = self._session.get(
-            f"{self._url}/lol-lobby/v2/lobby/matchmaking/search-state",
+        get_queue_response = _http_error_wrapper(
+            self._session.get, url=f"{self._url}/lol-lobby/v2/lobby/matchmaking/search-state"
         )
 
-        if get_queue_response.status_code != 200:
-            return False
-
-        return get_queue_response.json()["searchState"] in {"Searching", "Found"}
+        return get_queue_response.status_code is not None and get_queue_response.json()["searchState"] in {
+            "Searching",
+            "Found",
+        }
 
     def found_queue(self) -> bool:
         """
@@ -240,14 +254,11 @@ class LCUIntegration:
 
         """
         logger.debug("Checking if we have found a match")
-        get_queue_response = self._session.get(
-            f"{self._url}/lol-lobby/v2/lobby/matchmaking/search-state",
+        get_queue_response = _http_error_wrapper(
+            self._session.get, url=f"{self._url}/lol-lobby/v2/lobby/matchmaking/search-state"
         )
 
-        if get_queue_response.status_code != 200:
-            return False
-
-        return get_queue_response.json()["searchState"] == "Found"
+        return get_queue_response is not None and get_queue_response.json()["searchState"] == "Found"
 
     def queue_accepted(self) -> bool:
         """
@@ -258,19 +269,16 @@ class LCUIntegration:
 
         """
         logger.debug("Checking if we already accepted the queue")
-        ready_check_state = self._session.get(f"{self._url}/lol-matchmaking/v1/ready-check")
+        ready_check_state = _http_error_wrapper(self._session.get, url=f"{self._url}/lol-matchmaking/v1/ready-check")
 
-        if ready_check_state.status_code != 200:
-            return False
-
-        return ready_check_state.json()["playerResponse"] == "Accepted"
+        return ready_check_state is not None and ready_check_state.json()["playerResponse"] == "Accepted"
 
     def accept_queue(self) -> None:
         """
         Accept the match.
         """
         logger.info("Match ready, accepting the queue")
-        self._session.post(f"{self._url}/lol-matchmaking/v1/ready-check/accept")
+        _http_error_wrapper(self._session.post, url=f"{self._url}/lol-matchmaking/v1/ready-check/accept")
 
     def in_game(self) -> bool:
         """
@@ -281,18 +289,14 @@ class LCUIntegration:
 
         """
         logger.debug("Checking if we are in a game")
-        try:
-            session_response = self._session.get(
-                f"{self._url}/lol-gameflow/v1/session",
-            )
-        except requests.exceptions.ConnectionError:
-            self.connect_to_lcu()
-            return self.in_game()
+        session_response = _http_error_wrapper(self._session.get, url=f"{self._url}/lol-gameflow/v1/session")
 
-        if session_response.status_code != 200:
-            return False
-
-        return session_response.json()["phase"] in {"ChampSelect", "GameStart", "InProgress", "Reconnect"}
+        return session_response is not None and session_response.json()["phase"] in {
+            "ChampSelect",
+            "GameStart",
+            "InProgress",
+            "Reconnect",
+        }
 
     def should_reconnect(self) -> bool:
         """
@@ -303,23 +307,16 @@ class LCUIntegration:
 
         """
         logger.debug("Checking if we should reconnect")
-        session_response = self._session.get(
-            f"{self._url}/lol-gameflow/v1/session",
-        )
+        session_response = _http_error_wrapper(self._session.get, url=f"{self._url}/lol-gameflow/v1/session")
 
-        if session_response.status_code != 200:
-            return False
-
-        return session_response.json()["phase"] == "Reconnect"
+        return session_response is not None and session_response.json()["phase"] == "Reconnect"
 
     def reconnect(self) -> None:
         """
         Reconnect to a running game.
         """
         logger.debug("Reconnecting to game")
-        self._session.post(
-            f"{self._url}/lol-gameflow/v1/reconnect",
-        )
+        _http_error_wrapper(self._session.post, url=f"{self._url}/lol-gameflow/v1/reconnect")
 
     def _get_player_uid(self) -> str | None:
         """
@@ -329,16 +326,9 @@ class LCUIntegration:
             The PUUID as a string or None if there was an issue getting it.
 
         """
-        session_response = self._session.get(
-            f"{self._url}/lol-login/v1/session",
-        )
+        session_response = _http_error_wrapper(self._session.get, url=f"{self._url}/lol-login/v1/session")
 
-        try:
-            session_response.raise_for_status()
-        except HTTPError:
-            return None
-
-        return session_response.json()["puuid"]
+        return None if not session_response else session_response.json()["puuid"]
 
     def get_win_rate(self, number_of_games: int) -> str:
         """
@@ -355,8 +345,10 @@ class LCUIntegration:
         # Clamp to min 1, max 20 games
         number_of_games = max(1, min(number_of_games, 20))
 
-        matches_response = self._session.get(
-            f"{self._url}/lol-match-history/v1/products/tft/{player_uid}/matches?count={number_of_games}"
+        matches_response = _http_error_wrapper(
+            self._session.get,
+            raise_and_catch=False,
+            url=f"{self._url}/lol-match-history/v1/products/tft/{player_uid}/matches?count={number_of_games}",
         )
 
         try:
@@ -435,8 +427,8 @@ class GameClientIntegration:
         """
         logger.debug("Checking if the game has loaded")
 
-        event_data_response = self._session.get(f"{self._url}/liveclientdata/eventdata")
-        return event_data_response.status_code == 200 and len(event_data_response.json()["Events"]) > 0
+        event_data_response = _http_error_wrapper(self._session.get, url=f"{self._url}/liveclientdata/eventdata")
+        return event_data_response is not None and len(event_data_response.json()["Events"]) > 0
 
     def is_dead(self) -> bool:
         """
@@ -448,12 +440,9 @@ class GameClientIntegration:
         """
         logger.debug("Checking if we have more than 0 HP")
 
-        active_player_response = self._session.get(f"{self._url}/liveclientdata/activeplayer")
-        try:
-            active_player_response.raise_for_status()
-        except HTTPError:
+        active_player_response = _http_error_wrapper(self._session.get, url=f"{self._url}/liveclientdata/activeplayer")
+        if not active_player_response:
             logger.debug("There was an error in the response, assuming that we are dead")
             return True
 
-        active_player_data = active_player_response.json()
-        return active_player_data["championStats"]["currentHealth"] <= 0.0
+        return active_player_response.json()["championStats"]["currentHealth"] <= 0.0
