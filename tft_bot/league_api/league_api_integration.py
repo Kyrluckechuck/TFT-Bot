@@ -318,6 +318,19 @@ class LCUIntegration:
         logger.debug("Reconnecting to game")
         _http_error_wrapper(self._session.post, url=f"{self._url}/lol-gameflow/v1/reconnect")
 
+    def session_expired(self) -> bool:
+        """
+        Check if the session is expired.
+
+        Returns:
+            True if it is expired, False if not.
+
+        """
+        logger.debug("Checking if our login session is expired")
+        session_response = _http_error_wrapper(self._session.get, url=f"{self._url}/lol-login/v1/session")
+
+        return session_response is not None and session_response.json()["error"] is not None
+
     def _get_player_uid(self) -> str | None:
         """
         Get the PUUID (globally unique ID) of the player.
