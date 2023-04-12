@@ -893,4 +893,8 @@ def main():
 
 
 if __name__ == "__main__":
-    sys.exit(main())
+    try:
+        sys.exit(main())
+    except KeyboardInterrupt:
+        logger.info("Received wish to exit by CTRL+C, exiting immediately.")
+        sys.exit(0)
