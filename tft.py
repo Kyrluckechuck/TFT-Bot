@@ -255,9 +255,10 @@ def queue() -> None:  # pylint: disable=too-many-branches
 
 def loading_match() -> None:
     """Attempt to wait for the match to load, bringing the League game to the forefront/focus.
-    After some time, if the game has not been detected as starting, it moves on anyways.
+    After some time, if the game has not been detected as starting, it moves on anyway.
     """
-    if not GAME_CLIENT_INTEGRATION.wait_for_game_window():
+    logger.info("Waiting for the game window (~30s timeout)")
+    if not GAME_CLIENT_INTEGRATION.wait_for_game_window(lcu_integration=LCU_INTEGRATION):
         if LCU_INTEGRATION.in_game():
             logger.warning("We are in a game, but the game window is not opening. Restarting client...")
             restart_league_client()

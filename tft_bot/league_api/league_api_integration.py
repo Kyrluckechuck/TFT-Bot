@@ -312,6 +312,15 @@ class LCUIntegration:
 
         return session_response.json()["phase"] == "Reconnect"
 
+    def reconnect(self) -> None:
+        """
+        Reconnect to a running game.
+        """
+        logger.debug("Reconnecting to game")
+        self._session.post(
+            f"{self._url}/lol-gameflow/v1/reconnect",
+        )
+
     def _get_player_uid(self) -> str | None:
         """
         Get the PUUID (globally unique ID) of the player.
@@ -384,17 +393,33 @@ class GameClientIntegration:
         )
         self._session.verify = system_helpers.resource_path("tft_bot/resources/riotgames_root_certificate.pem")
 
-    def wait_for_game_window(self) -> bool:
+    def wait_for_game_window(self, lcu_integration: LCUIntegration, connection_error_counter: int = 0) -> bool:
         """
         Waits for the API to be responsive, which also means the game window is available.
+
+        Args:
+            lcu_integration: The object to interact with the LCU.
+            connection_error_counter: The amount of times we received a connection error, should only be set by itself.
 
         Returns:
             True if we could connect to the API within a specified time, False if not
 
         """
-        logger.info("Waiting for the game window (30s timeout)")
         try:
             self._session.get(f"{self._url}", timeout=(30, None))
+        except requests.exceptions.ConnectionError:
+            if connection_error_counter == 30:
+                return False
+
+            time.sleep(1)
+
+            if lcu_integration.should_reconnect():
+                lcu_integration.reconnect()
+                time.sleep(5)
+
+            return self.wait_for_game_window(
+                lcu_integration=lcu_integration, connection_error_counter=connection_error_counter + 1
+            )
         except requests.exceptions.Timeout:
             return False
 
