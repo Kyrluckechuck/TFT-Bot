@@ -169,22 +169,6 @@ def toggle_play_next_game() -> None:
         logger.warning("Bot will queue a new game when in lobby!")
 
 
-def wait_for_league_running() -> bool:
-    """Attempt to pause the bot logic evaluation until the league game client is running, or 30 seconds has passed.
-
-    Returns:
-        bool: True if the game is running, False otherwise.
-    """
-    counter = 0
-    while not league_game_already_running():
-        counter = counter + 1
-        time.sleep(0.5)
-        if counter > 60:
-            logger.info("Timed out, moving on!")
-            break
-    return league_game_already_running()
-
-
 def evaluate_next_game_logic() -> None:
     """Don't queue next game, but continue current if already playing.
 
@@ -263,15 +247,17 @@ def loading_match() -> None:
     """Attempt to wait for the match to load, bringing the League game to the forefront/focus.
     After some time, if the game has not been detected as starting, it moves on anyway.
     """
-    logger.info("Waiting for the game window (~30s timeout)")
-    if not GAME_CLIENT_INTEGRATION.wait_for_game_window(lcu_integration=LCU_INTEGRATION):
+    game_window_timeout = config.get_timeout(config.Timeout.GAME_WINDOW, 30)
+    logger.info(f"Waiting for the game window (~{game_window_timeout}s timeout)")
+    if not GAME_CLIENT_INTEGRATION.wait_for_game_window(lcu_integration=LCU_INTEGRATION, timeout=game_window_timeout):
         if LCU_INTEGRATION.in_game():
             logger.warning("We are in a game, but the game window is not opening. Restarting client...")
             restart_league_client()
         return
 
-    logger.info("Match loading, waiting for game to start (~120s timeout)")
-    for _ in range(120):
+    game_start_timeout = config.get_timeout(config.Timeout.GAME_START, 120)
+    logger.info(f"Match loading, waiting for game to start (~{game_start_timeout}s timeout)")
+    for _ in range(game_start_timeout):
         if GAME_CLIENT_INTEGRATION.game_loaded():
             break
         time.sleep(1)
@@ -423,8 +409,9 @@ def check_if_game_complete(wait_for_exit_buttons: bool = False) -> bool:
         bool: True if any scenario in which the game is not active, False otherwise.
     """
     if wait_for_exit_buttons:
-        logger.info("Waiting an additional ~25s for any exit buttons")
-        for _ in range(24):
+        exit_button_timeout = config.get_timeout(config.Timeout.EXIT_BUTTON, 25)
+        logger.info(f"Waiting an additional ~{exit_button_timeout}s for any exit buttons")
+        for _ in range(exit_button_timeout - 1):
             if check_screen_for_exit_button():
                 return True
             time.sleep(1)
@@ -447,8 +434,9 @@ def check_if_game_complete(wait_for_exit_buttons: bool = False) -> bool:
             parse_task_kill_result(kill_process(CONSTANTS["processes"]["game"], force=False))
             # The second request "confirms" the wish.
             parse_task_kill_result(kill_process(CONSTANTS["processes"]["game"], force=False))
-            logger.info("Waiting ~60s for graceful exit")
-            for _ in range(60):
+            graceful_exit_timeout = config.get_timeout(config.Timeout.GRACEFUL_EXIT, 60)
+            logger.info(f"Waiting ~{graceful_exit_timeout}s for graceful exit")
+            for _ in range(graceful_exit_timeout):
                 if not LCU_INTEGRATION.in_game():
                     break
                 time.sleep(1)
@@ -657,7 +645,9 @@ def match_complete() -> None:
 
 def surrender() -> None:
     """Attempt to surrender."""
-    random_seconds = random.randint(60, 90)
+    random_seconds = random.randint(
+        config.get_timeout(config.Timeout.SURRENDER_MIN, 60), config.get_timeout(config.Timeout.SURRENDER_MAX, 90)
+    )
     logger.info(f"Waiting {random_seconds} seconds before surrendering...")
     time.sleep(random_seconds)
     logger.info("Starting surrender")
@@ -756,10 +746,11 @@ def get_newer_version() -> tuple[str, str] | None:
         A tuple of local version and repository version, or None if there is no newer version.
 
     """
-    logger.info("Checking if there is a newer version (10s timeout)")
+    update_notifier_timeout = config.get_timeout(config.Timeout.UPDATE_NOTIFIER, 10)
+    logger.info(f"Checking if there is a newer version ({update_notifier_timeout}s timeout)")
     try:
         repository_version_response = requests.get(
-            "https://api.github.com/repos/Kyrluckechuck/TFT-Bot/releases/latest", timeout=10
+            "https://api.github.com/repos/Kyrluckechuck/TFT-Bot/releases/latest", timeout=update_notifier_timeout
         )
     except requests.exceptions.Timeout:
         logger.debug("Could not connect to GitHub API, continuing as if there is no newer version")

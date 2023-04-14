@@ -2,6 +2,8 @@
 Module to handle the configuration for the bot.
 """
 import argparse
+from enum import auto
+from enum import StrEnum
 import os.path
 import shutil
 from typing import Any
@@ -12,6 +14,23 @@ from ruamel.yaml import YAML
 from .helpers import system_helpers
 
 _SELF: dict[str, Any] = {}
+
+
+class Timeout(StrEnum):
+    """
+    ENUM class to hold the various names of timeouts we allow to be configured.
+    """
+
+    UPDATE_NOTIFIER = auto()
+    LEAGUE_CLIENT = auto()
+    CLIENT_CONNECT = auto()
+    CLIENT_AVAILABILITY = auto()
+    GAME_WINDOW = auto()
+    GAME_START = auto()
+    EXIT_BUTTON = auto()
+    GRACEFUL_EXIT = auto()
+    SURRENDER_MIN = auto()
+    SURRENDER_MAX = auto()
 
 
 def load_config(storage_path: str) -> None:
@@ -134,3 +153,18 @@ def purchase_traits_in_prioritized_order() -> bool:
 
     """
     return _SELF.get("purchase_traits_in_prioritized_order", True)
+
+
+def get_timeout(timeout: Timeout, default: int) -> int:
+    """
+    Get a timeout value by enum class member.
+
+    Args:
+        timeout: The timeout to get from the config.
+        default: The default to fall back to, if the value is missing in the config.
+
+    Returns:
+        The timeout in seconds.
+
+    """
+    return _SELF.get(timeout, default)

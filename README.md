@@ -41,6 +41,7 @@ You can set the following settings:
 * Forfeiting early
 * Overriding the assumed League Of Legends installation path
 * Traits the bot should look for and how they should be bought
+* Timeouts the bot waits for throughout its various loop logic parts
 
 The settings are explained below but also in more detail in the file itself.
 
@@ -62,7 +63,9 @@ Override any League client detection logic. This should be set to whichever dire
 #### **Wanted Traits**
 Which traits the bot should look for.
 #### **Purchase traits in prioritized order**
-If a trait in the configured trait list should only be bought if the trait that comes before it was bought. 
+If a trait in the configured trait list should only be bought if the trait that comes before it was bought.
+#### **Timeouts**
+Anytime the bot waits for something to happen. The default values should work for most people, but can be adjusted for slower internet speed or hardware.
 
 # Installation (for source):
 

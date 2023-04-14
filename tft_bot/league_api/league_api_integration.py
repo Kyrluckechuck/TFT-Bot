@@ -9,6 +9,8 @@ from psutil import process_iter
 import requests
 from requests import HTTPError
 
+from tft_bot import config
+
 # Potentially make this configurable in the future
 # to let the user select their preferred tft mode.
 from tft_bot.helpers import system_helpers
@@ -112,13 +114,14 @@ class LCUIntegration:
             True if we succeeded in connecting, False if not.
 
         """
-        logger.info("Waiting for the League client (~5m timeout)")
+        league_client_timeout = config.get_timeout(config.Timeout.LEAGUE_CLIENT, 300)
+        logger.info(f"Waiting for the League client (~{league_client_timeout}s timeout)")
         lcu_process = get_lcu_process()
 
         timeout = 0
         while not lcu_process:
-            if timeout >= 300:
-                logger.warning("Couldn't find the League client within 5 minutes, exiting")
+            if timeout >= league_client_timeout:
+                logger.warning(f"Couldn't find the League client within {league_client_timeout}s, exiting")
                 return False
             logger.debug("Couldn't find LCUx process yet. Re-searching process list...")
             time.sleep(1)
@@ -131,10 +134,11 @@ class LCUIntegration:
         self._url = f"https://127.0.0.1:{process_arguments['app-port']}"
         self._session.auth = ("riot", process_arguments["remoting-auth-token"])
 
-        logger.info("League client found, trying to connect to it (~60s timeout)")
+        connect_timeout = config.get_timeout(config.Timeout.CLIENT_CONNECT, 60)
+        logger.info(f"League client found, trying to connect to it (~{connect_timeout}s timeout)")
         timeout = 0
         while True:
-            if timeout >= 60:
+            if timeout >= connect_timeout:
                 logger.warning("Couldn't connect to the League client, exiting")
                 return False
 
@@ -151,15 +155,14 @@ class LCUIntegration:
         logger.info("Successfully connected to the League client")
 
         if wait_for_availability:
-            logger.info("Waiting for client availability (~120s timeout)")
-            timeout = 0
-            while timeout < 120:
+            availability_timeout = config.get_timeout(config.Timeout.CLIENT_AVAILABILITY, 120)
+            logger.info(f"Waiting for client availability (~{availability_timeout}s timeout)")
+            for _ in range(availability_timeout):
                 availability_response = self._session.get(url=f"{self._url}/lol-gameflow/v1/availability")
                 if availability_response.status_code == 200 and availability_response.json()["isAvailable"]:
                     logger.info("Client available, queue logic should start")
                     return True
                 time.sleep(1)
-                timeout += 1
             logger.error("Client did not become available. Exiting.")
             return False
 
@@ -398,12 +401,15 @@ class GameClientIntegration:
         )
         self._session.verify = system_helpers.resource_path("tft_bot/resources/riotgames_root_certificate.pem")
 
-    def wait_for_game_window(self, lcu_integration: LCUIntegration, connection_error_counter: int = 0) -> bool:
+    def wait_for_game_window(
+        self, lcu_integration: LCUIntegration, timeout: int, connection_error_counter: int = 0
+    ) -> bool:
         """
         Waits for the API to be responsive, which also means the game window is available.
 
         Args:
             lcu_integration: The object to interact with the LCU.
+            timeout: The approximate time to wait for a successful connection before giving up.
             connection_error_counter: The amount of times we received a connection error, should only be set by itself.
 
         Returns:
@@ -411,9 +417,9 @@ class GameClientIntegration:
 
         """
         try:
-            self._session.get(f"{self._url}", timeout=(30, None))
+            self._session.get(f"{self._url}", timeout=(timeout, None))
         except requests.exceptions.ConnectionError:
-            if connection_error_counter == 30:
+            if connection_error_counter == timeout:
                 return False
 
             time.sleep(1)
@@ -423,7 +429,7 @@ class GameClientIntegration:
                 time.sleep(5)
 
             return self.wait_for_game_window(
-                lcu_integration=lcu_integration, connection_error_counter=connection_error_counter + 1
+                lcu_integration=lcu_integration, timeout=timeout, connection_error_counter=connection_error_counter + 1
             )
         except requests.exceptions.Timeout:
             return False

@@ -24,6 +24,31 @@ wanted_traits:
 # to buy all traits.
 purchase_traits_in_prioritized_order: true
 
+# Configure the various timeouts the bot uses throughout it's looping logic.
+# Adjust these to account for differences in internet/hardware speed.
+# All of these are measured in seconds.
+timeouts:
+  # Time we wait to check for any updates.
+  update_notifier: 10
+  # Time we wait to find the league client process to exist.
+  league_client: 300
+  # Time we wait for us to successfully connect to the league client.
+  client_connect: 60
+  # Time we wait for the client to tell us that it's done loadin.
+  client_availability: 120
+  # Time we wait between a match being marked as started and the game showing up.
+  game_window: 30
+  # Time we wait for the load screen to finish.
+  game_start: 120
+  # Time we wait for the exit button after being dead.
+  exit_button: 25
+  # Time we wait for the fall-back method to work if no exit button is found.
+  graceful_exit: 60
+  # Time to wait AT LEAST before surrendering, after we detected that we can.
+  surrender_min: 60
+  # Time to wait AT MOST before surrendering.
+  surrender_max: 90
+
 # Override where League is installed.
 # The only reason you would set this is if all of these conditions apply:
 # 1. You're initially starting the bot while the League Client is closed
@@ -32,4 +57,4 @@ purchase_traits_in_prioritized_order: true
 override_install_location: ''
 
 # Version of the YAML. Changing this manually can potentially break the bot, so don't!
-version: 2
+version: 3
