@@ -457,6 +457,10 @@ def check_if_game_complete(wait_for_exit_buttons: bool = False) -> bool:
                 restart_league_client()
             return True
 
+        if LCU_INTEGRATION.session_expired():
+            logger.warning("Our session expired while we were in a game. We have to restart")
+            restart_league_client()
+
         return False
 
     return not check_if_client_error()
