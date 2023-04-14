@@ -366,7 +366,7 @@ class LCUIntegration:
 
         try:
             matches_response.raise_for_status()
-        except HTTPError:
+        except (AttributeError, HTTPError):
             return "ERROR"
 
         games = matches_response.json()["games"]
