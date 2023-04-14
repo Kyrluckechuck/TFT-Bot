@@ -35,6 +35,7 @@ from tft_bot.league_api import league_api_integration
 auto.FAILSAFE = False
 GAME_COUNT = 0
 PROGRAM_START: datetime
+LAST_TIMER_PRINTED_AT: datetime = datetime.now()
 PAUSE_LOGIC = False
 PLAY_NEXT_GAME = True
 LCU_INTEGRATION = league_api_integration.LCUIntegration()
@@ -688,7 +689,12 @@ def surrender() -> None:
 
 def print_timer() -> None:
     """Print a log timer to update the time passed and number of games completed (rough estimation)."""
-    delta_seconds = int((datetime.now() - PROGRAM_START).total_seconds())
+    global LAST_TIMER_PRINTED_AT
+    now = datetime.now()
+    if (now - LAST_TIMER_PRINTED_AT).total_seconds() < 300:
+        return
+
+    delta_seconds = int((now - PROGRAM_START).total_seconds())
     global GAME_COUNT
     GAME_COUNT += 1
 
@@ -698,6 +704,8 @@ def print_timer() -> None:
     logger.info(f"Games played: {str(GAME_COUNT)}")
     logger.info(f"Win rate (at most last 20 games): {LCU_INTEGRATION.get_win_rate(GAME_COUNT)}%")
     logger.info("-----------------------------------------")
+
+    LAST_TIMER_PRINTED_AT = datetime.now()
 
 
 def tft_bot_loop() -> None:
@@ -898,5 +906,6 @@ if __name__ == "__main__":
     try:
         sys.exit(main())
     except KeyboardInterrupt:
-        logger.info("Received wish to exit by CTRL+C, exiting immediately.")
+        logger.info("Received wish to exit by CTRL+C, exiting")
+        print_timer()
         sys.exit(0)
