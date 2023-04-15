@@ -1,10 +1,85 @@
 """A collection of screen helpers for detecting when images are on screen."""
 import time
 
+import cv2
 from loguru import logger
+import mss
+import numpy
 from python_imagesearch import imagesearch
+import win32gui
 
 from .system_helpers import resource_path
+
+_SCREEN_SIZE_WARNING_DISPLAYED = False
+
+
+def get_league_game_bounding_box() -> tuple[int, int, int, int] | None:
+    """
+    Gets the bounding box of the league game window.
+
+    Returns:
+        A tuple of coordinates (top left x and y and bottom right x and y) or None if no window exists.
+
+    """
+    league_game_window_handle = win32gui.FindWindowEx(0, 0, 0, "League of Legends (TM) Client")
+    if not league_game_window_handle:
+        logger.debug("We tried to check the league game window for an image, but there is no window")
+        return None
+
+    league_game_bounding_box = win32gui.GetWindowRect(league_game_window_handle)
+
+    global _SCREEN_SIZE_WARNING_DISPLAYED
+    if not _SCREEN_SIZE_WARNING_DISPLAYED:
+        top_left_x, top_left_y, bottom_right_x, bottom_right_y = league_game_bounding_box
+        if bottom_right_x - top_left_x != 1920 or bottom_right_y - top_left_y != 1080:
+            logger.error(
+                f"Your game's size is {bottom_right_x - top_left_x} x {bottom_right_y - top_left_y} "
+                f"instead of 1920 x 1080! This WILL cause issues!"
+            )
+        _SCREEN_SIZE_WARNING_DISPLAYED = True
+
+    return league_game_bounding_box
+
+
+def on_screen_in_game(path: str, precision: float = 0.8, offsets: tuple[int, int, int, int] | None = None) -> bool:
+    """
+    Check if a given image is detected on screen, but only check the league game window.
+
+    Args:
+        path: The relative or absolute path to the image to be found.
+        offsets: A tuple of coordinates to off-set the region by. Useful if you only want to check a specific region.
+          All offsets are from the top-left of the game window.
+        precision: The precision to be used when matching the image. Defaults to 0.8.
+
+    Returns:
+        True if the image is detected on screen, False otherwise
+    """
+    league_game_bounding_box = get_league_game_bounding_box()
+    if not league_game_bounding_box:
+        return False
+
+    if offsets:
+        new_bounding_box = ()
+        for i in range(4):
+            new_bounding_box += (league_game_bounding_box[i % 2] + offsets[i],)
+        league_game_bounding_box = new_bounding_box
+
+    with mss.mss() as screenshot_taker:
+        screenshot = screenshot_taker.grab(league_game_bounding_box)
+
+    pixels = numpy.array(screenshot)
+    gray_scaled_pixels = cv2.cvtColor(pixels, cv2.COLOR_BGR2GRAY)
+    image_to_find = cv2.imread(path, 0)
+    if image_to_find is None:
+        logger.warning(f"Image file was not found: {path}")
+        return False
+
+    res = cv2.matchTemplate(gray_scaled_pixels, image_to_find, cv2.TM_CCOEFF_NORMED)
+    min_max_loc = cv2.minMaxLoc(res)
+    if min_max_loc[1] < precision:
+        return False
+
+    return True
 
 
 def onscreen(path: str, precision: float = 0.8) -> bool:
