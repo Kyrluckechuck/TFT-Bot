@@ -206,8 +206,8 @@ def get_on_screen(
         return None
 
     return ImageSearchResult(
-        position_x=max_location[0],
-        position_y=max_location[1],
+        position_x=max_location[0] + window_bounding_box.min_x,
+        position_y=max_location[1] + window_bounding_box.min_y,
         height=image_to_find.shape[0],
         width=image_to_find.shape[1],
     )
