@@ -828,8 +828,6 @@ def main():
     # Logs at level DEBUG, so it's always verbose.
     # retention=10 to only keep the 10 most recent files.
     logger.add(storage_path + "\\tft-bot-debug-{time}.log", level="DEBUG", retention=10)
-    logger.info(storage_path)
-
     system_helpers.disable_quickedit()
     # Start auth + main script
     logger.info(
