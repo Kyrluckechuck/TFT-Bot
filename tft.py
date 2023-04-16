@@ -29,7 +29,7 @@ from tft_bot.helpers.click_helpers import click_to_middle
 from tft_bot.helpers.click_helpers import click_to_middle_multiple
 from tft_bot.helpers.screen_helpers import get_on_screen_in_client
 from tft_bot.helpers.screen_helpers import get_on_screen_in_game
-from tft_bot.helpers.screen_helpers import onscreen_multiple_any
+from tft_bot.helpers.screen_helpers import get_on_screen_multiple_any
 from tft_bot.league_api import league_api_integration
 
 auto.FAILSAFE = False
@@ -42,22 +42,18 @@ LCU_INTEGRATION = league_api_integration.LCUIntegration()
 GAME_CLIENT_INTEGRATION = league_api_integration.GameClientIntegration()
 
 
+@logger.catch
 def bring_league_client_to_forefront() -> None:
     """Brings the league client to the forefront."""
-    try:
-        system_helpers.bring_window_to_forefront("League of Legends", CONSTANTS["executables"]["league"]["client_ux"])
-    except Exception:
-        logger.warning("Failed to bring League client to forefront, this should be non-fatal so let's continue")
+    system_helpers.bring_window_to_forefront("League of Legends", CONSTANTS["executables"]["league"]["client_ux"])
 
 
+@logger.catch
 def bring_league_game_to_forefront() -> None:
     """Brings the league game to the forefront."""
-    try:
-        system_helpers.bring_window_to_forefront(
-            "League of Legends (TM) Client", CONSTANTS["executables"]["league"]["game"]
-        )
-    except Exception:
-        logger.warning("Failed to bring League game to forefront, this should be non-fatal so let's continue")
+    system_helpers.bring_window_to_forefront(
+        "League of Legends (TM) Client", CONSTANTS["executables"]["league"]["game"]
+    )
 
 
 def league_game_already_running() -> bool:
@@ -393,7 +389,7 @@ def check_screen_for_exit_button() -> bool:
         True if any known exit buttons were found, False if not.
 
     """
-    if onscreen_multiple_any(exit_now_images):
+    if get_on_screen_multiple_any(window_title=CONSTANTS["windows"]["game"], paths=exit_now_images):
         logger.info("End of game detected (exit now)")
         exit_now_bool = click_to_middle_multiple(exit_now_images, conditional_func=exit_now_conditional, delay=1.5)
         logger.debug(f"Exit now clicking success: {exit_now_bool}")
@@ -629,7 +625,7 @@ def end_match() -> None:
             continue
         break
 
-    if not onscreen_multiple_any(find_match_images):
+    if not get_on_screen_multiple_any(window_title=CONSTANTS["windows"]["client"], paths=find_match_images):
         bring_league_client_to_forefront()
         if check_if_client_error() or not league_client_running():
             return
