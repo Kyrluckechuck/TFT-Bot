@@ -46,15 +46,15 @@ GAME_CLIENT_INTEGRATION = league_api_integration.GameClientIntegration()
 @logger.catch
 def bring_league_client_to_forefront() -> None:
     """Brings the league client to the forefront."""
-    system_helpers.bring_window_to_forefront("League of Legends", CONSTANTS["executables"]["league"]["client_ux"])
+    system_helpers.bring_window_to_forefront(
+        CONSTANTS["windows"]["client"], CONSTANTS["executables"]["league"]["client_ux"]
+    )
 
 
 @logger.catch
 def bring_league_game_to_forefront() -> None:
     """Brings the league game to the forefront."""
-    system_helpers.bring_window_to_forefront(
-        "League of Legends (TM) Client", CONSTANTS["executables"]["league"]["game"]
-    )
+    system_helpers.bring_window_to_forefront(CONSTANTS["windows"]["game"], CONSTANTS["executables"]["league"]["game"])
 
 
 def league_game_already_running() -> bool:
