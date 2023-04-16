@@ -32,6 +32,24 @@ class BoundingBox:
         """
         return self.min_x, self.min_y, self.max_x, self.max_y
 
+    def get_width(self) -> int:
+        """
+        Get the width of the bounding box.
+
+        Returns:
+            The width as an integer.
+        """
+        return self.max_x - self.min_x
+
+    def get_height(self) -> int:
+        """
+        Get the height of the bounding box.
+
+        Returns:
+            The height as an integer.
+        """
+        return self.max_y - self.min_y
+
 
 @dataclass
 class Coordinates:
@@ -77,10 +95,9 @@ def check_league_game_size() -> None:
     if not league_game_bounding_box:
         return
 
-    top_left_x, top_left_y, bottom_right_x, bottom_right_y = league_game_bounding_box
-    if bottom_right_x - top_left_x != 1920 or bottom_right_y - top_left_y != 1080:
+    if league_game_bounding_box.get_width() != 1920 or league_game_bounding_box.get_height() != 1080:
         logger.error(
-            f"Your game's size is {bottom_right_x - top_left_x} x {bottom_right_y - top_left_y} "
+            f"Your game's size is {league_game_bounding_box.get_width()} x {league_game_bounding_box.get_height()} "
             f"instead of 1920 x 1080! This WILL cause issues!"
         )
 
