@@ -25,7 +25,7 @@ from tft_bot.constants import message_exit_buttons
 from tft_bot.helpers import system_helpers
 from tft_bot.helpers.click_helpers import click_left
 from tft_bot.helpers.click_helpers import click_right
-from tft_bot.helpers.click_helpers import click_to_middle
+from tft_bot.helpers.click_helpers import click_to_image
 from tft_bot.helpers.screen_helpers import check_league_game_size
 from tft_bot.helpers.screen_helpers import get_on_screen_in_client
 from tft_bot.helpers.screen_helpers import get_on_screen_in_game
@@ -303,9 +303,7 @@ def buy(iterations: int) -> None:
         if not check_if_gold_at_least(1):
             return
         for trait in config.get_wanted_traits():
-            trait_image = get_on_screen_in_game(CONSTANTS["game"]["trait"][trait])
-            if trait_image:
-                click_to_middle(image_details=trait_image)
+            if click_to_image(image_search_result=get_on_screen_in_game(CONSTANTS["game"]["trait"][trait])):
                 time.sleep(0.5)
             elif config.purchase_traits_in_prioritized_order():
                 return
@@ -313,14 +311,15 @@ def buy(iterations: int) -> None:
 
 def click_ok_message() -> None:
     """Click the message OK button"""
-    click_to_middle(get_on_screen_in_client(CONSTANTS["client"]["messages"]["buttons"]["message_ok"]))
+    click_to_image(
+        image_search_result=get_on_screen_in_client(CONSTANTS["client"]["messages"]["buttons"]["message_ok"])
+    )
 
 
 def click_exit_message() -> None:
     """Click the message Exit button"""
     for button in message_exit_buttons:
-        if button_image := get_on_screen_in_client(button):
-            click_to_middle(button_image)
+        click_to_image(image_search_result=get_on_screen_in_client(button))
 
 
 def wait_for_internet() -> None:
@@ -396,10 +395,8 @@ def check_screen_for_exit_button() -> bool:
 
     """
     for image in exit_now_images:
-        exit_now_button = get_on_screen_in_game(image)
-        if exit_now_button:
+        if click_to_image(image_search_result=get_on_screen_in_game(image)):
             logger.info("End of game detected, exiting")
-            click_to_middle(exit_now_button)
             break
     else:
         return False
@@ -604,16 +601,12 @@ def main_game_loop() -> None:  # pylint: disable=too-many-branches
 
         # If round > 2, buy champs, level and re-roll
         buy(3)
-        if check_if_gold_at_least(4) and (
-            xp_buy_image := get_on_screen_in_game(CONSTANTS["game"]["gamelogic"]["xp_buy"])
-        ):
-            click_to_middle(xp_buy_image)
+        if check_if_gold_at_least(4):
+            click_to_image(image_search_result=get_on_screen_in_game(CONSTANTS["game"]["gamelogic"]["xp_buy"]))
             time.sleep(0.5)
 
-        if check_if_gold_at_least(5) and (
-            reroll_image := get_on_screen_in_game(CONSTANTS["game"]["gamelogic"]["reroll"])
-        ):
-            click_to_middle(reroll_image)
+        if check_if_gold_at_least(5):
+            click_to_image(image_search_result=get_on_screen_in_game(CONSTANTS["game"]["gamelogic"]["reroll"]))
             time.sleep(0.5)
             continue
 
@@ -638,7 +631,7 @@ def end_match() -> None:
             continue
         break
 
-    if not get_on_screen_multiple_any(window_title=CONSTANTS["windows"]["client"], paths=find_match_images):
+    if not get_on_screen_multiple_any(window_title=CONSTANTS["window_titles"]["client"], paths=find_match_images):
         bring_league_client_to_forefront()
         if check_if_client_error() or not league_client_running():
             return
@@ -683,16 +676,12 @@ def surrender() -> None:
     #  in the settings doesn't work. This is a temporary work-around.
     #  We need to use PyDirectInput since the league client does not
     #  always recognize the input of the method pyautogui uses.
-    while True:
-        surrender_button = get_on_screen_in_game(CONSTANTS["game"]["surrender"]["surrender_2"])
-        if surrender_button:
-            break
+    while not click_to_image(image_search_result=get_on_screen_in_game(CONSTANTS["game"]["surrender"]["surrender_2"])):
         time.sleep(2)
         bring_league_game_to_forefront()
         pydirectinput.write(["enter", "/", "f", "f", "enter"], interval=0.1)
         time.sleep(1)
 
-    click_to_middle(surrender_button)
     time.sleep(10)
     end_match()
     logger.info("Surrender complete")

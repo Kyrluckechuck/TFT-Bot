@@ -1,4 +1,6 @@
 """A collection of screen helpers for detecting when images are on screen."""
+from dataclasses import dataclass
+
 import cv2
 from loguru import logger
 import mss
@@ -7,6 +9,18 @@ import win32gui
 
 from tft_bot.constants import CONSTANTS
 from tft_bot.helpers.system_helpers import resource_path
+
+
+@dataclass
+class ImageSearchResult:
+    """
+    A dataclass holding information about an image search result.
+    """
+
+    position_x: int
+    position_y: int
+    width: int
+    height: int
 
 
 def get_window_bounding_box(window_title: str) -> tuple[int, int, int, int] | None:
@@ -43,7 +57,7 @@ def check_league_game_size() -> None:
 
 def get_on_screen_in_client(
     path: str, precision: float = 0.8, offsets: tuple[int, int, int, int] | None = None
-) -> tuple[int, int, int, int] | None:
+) -> ImageSearchResult | None:
     """
     Check if a given image is detected on screen, but only check the league client window.
 
@@ -63,7 +77,7 @@ def get_on_screen_in_client(
 
 def get_on_screen_in_game(
     path: str, precision: float = 0.8, offsets: tuple[int, int, int, int] | None = None
-) -> tuple[int, int, int, int] | None:
+) -> ImageSearchResult | None:
     """
     Check if a given image is detected on screen, but only check the league game window.
 
@@ -83,7 +97,7 @@ def get_on_screen_in_game(
 
 def get_on_screen(
     window_title: str, path: str, precision: float = 0.8, offsets: tuple[int, int, int, int] | None = None
-) -> tuple[int, int, int, int] | None:
+) -> ImageSearchResult | None:
     """
     Check if a given image is detected on screen in a specific window's area.
 
@@ -123,7 +137,12 @@ def get_on_screen(
     if max_precision < precision:
         return None
 
-    return max_location + (image_to_find.shape[0], image_to_find.shape[1])
+    return ImageSearchResult(
+        position_x=max_location[0],
+        position_y=max_location[1],
+        height=image_to_find.shape[0],
+        width=image_to_find.shape[1],
+    )
 
 
 @logger.catch
