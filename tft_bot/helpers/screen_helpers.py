@@ -43,7 +43,7 @@ def check_league_game_size() -> None:
 
 def get_on_screen_in_client(
     path: str, precision: float = 0.8, offsets: tuple[int, int, int, int] | None = None
-) -> tuple[int, int] | None:
+) -> tuple[int, int, int, int] | None:
     """
     Check if a given image is detected on screen, but only check the league client window.
 
@@ -54,7 +54,7 @@ def get_on_screen_in_client(
           All offsets are from the top-left of the game window.
 
     Returns:
-        The position of the image or None if it wasn't found
+        The position of the image and it's width and height or None if it wasn't found
     """
     return get_on_screen(
         window_title=CONSTANTS["window_titles"]["client"], path=path, precision=precision, offsets=offsets
@@ -63,7 +63,7 @@ def get_on_screen_in_client(
 
 def get_on_screen_in_game(
     path: str, precision: float = 0.8, offsets: tuple[int, int, int, int] | None = None
-) -> tuple[int, int] | None:
+) -> tuple[int, int, int, int] | None:
     """
     Check if a given image is detected on screen, but only check the league game window.
 
@@ -74,7 +74,7 @@ def get_on_screen_in_game(
           All offsets are from the top-left of the game window.
 
     Returns:
-        The position of the image or None if it wasn't found
+        The position of the image and it's width and height or None if it wasn't found
     """
     return get_on_screen(
         window_title=CONSTANTS["window_titles"]["game"], path=path, precision=precision, offsets=offsets
@@ -83,7 +83,7 @@ def get_on_screen_in_game(
 
 def get_on_screen(
     window_title: str, path: str, precision: float = 0.8, offsets: tuple[int, int, int, int] | None = None
-) -> tuple[int, int] | None:
+) -> tuple[int, int, int, int] | None:
     """
     Check if a given image is detected on screen in a specific window's area.
 
@@ -95,7 +95,7 @@ def get_on_screen(
           All offsets are from the top-left of the game window.
 
     Returns:
-        The position of the image or None if it wasn't found
+        The position of the image and it's width and height or None if it wasn't found
     """
     window_bounding_box = get_window_bounding_box(window_title=window_title)
     if not window_bounding_box:
@@ -123,7 +123,7 @@ def get_on_screen(
     if max_precision < precision:
         return None
 
-    return max_location
+    return max_location + (image_to_find.shape[0], image_to_find.shape[1])
 
 
 @logger.catch

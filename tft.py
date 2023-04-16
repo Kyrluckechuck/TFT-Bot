@@ -26,7 +26,6 @@ from tft_bot.helpers import system_helpers
 from tft_bot.helpers.click_helpers import click_left
 from tft_bot.helpers.click_helpers import click_right
 from tft_bot.helpers.click_helpers import click_to_middle
-from tft_bot.helpers.click_helpers import click_to_middle_multiple
 from tft_bot.helpers.screen_helpers import check_league_game_size
 from tft_bot.helpers.screen_helpers import get_on_screen_in_client
 from tft_bot.helpers.screen_helpers import get_on_screen_in_game
@@ -47,14 +46,16 @@ GAME_CLIENT_INTEGRATION = league_api_integration.GameClientIntegration()
 def bring_league_client_to_forefront() -> None:
     """Brings the league client to the forefront."""
     system_helpers.bring_window_to_forefront(
-        CONSTANTS["windows"]["client"], CONSTANTS["executables"]["league"]["client_ux"]
+        CONSTANTS["window_titles"]["client"], CONSTANTS["executables"]["league"]["client_ux"]
     )
 
 
 @logger.catch
 def bring_league_game_to_forefront() -> None:
     """Brings the league game to the forefront."""
-    system_helpers.bring_window_to_forefront(CONSTANTS["windows"]["game"], CONSTANTS["executables"]["league"]["game"])
+    system_helpers.bring_window_to_forefront(
+        CONSTANTS["window_titles"]["game"], CONSTANTS["executables"]["league"]["game"]
+    )
 
 
 def league_game_already_running() -> bool:
@@ -302,8 +303,9 @@ def buy(iterations: int) -> None:
         if not check_if_gold_at_least(1):
             return
         for trait in config.get_wanted_traits():
-            if get_on_screen_in_game(CONSTANTS["game"]["trait"][trait]):
-                click_to_middle(CONSTANTS["game"]["trait"][trait])
+            trait_image = get_on_screen_in_game(CONSTANTS["game"]["trait"][trait])
+            if trait_image:
+                click_to_middle(image_details=trait_image)
                 time.sleep(0.5)
             elif config.purchase_traits_in_prioritized_order():
                 return
@@ -311,12 +313,14 @@ def buy(iterations: int) -> None:
 
 def click_ok_message() -> None:
     """Click the message OK button"""
-    click_to_middle(CONSTANTS["client"]["messages"]["buttons"]["message_ok"])
+    click_to_middle(get_on_screen_in_client(CONSTANTS["client"]["messages"]["buttons"]["message_ok"]))
 
 
 def click_exit_message() -> None:
     """Click the message Exit button"""
-    click_to_middle_multiple(message_exit_buttons)
+    for button in message_exit_buttons:
+        if button_image := get_on_screen_in_client(button):
+            click_to_middle(button_image)
 
 
 def wait_for_internet() -> None:
@@ -391,14 +395,17 @@ def check_screen_for_exit_button() -> bool:
         True if any known exit buttons were found, False if not.
 
     """
-    if get_on_screen_multiple_any(window_title=CONSTANTS["windows"]["game"], paths=exit_now_images):
-        logger.info("End of game detected (exit now)")
-        exit_now_bool = click_to_middle_multiple(exit_now_images, conditional_func=exit_now_conditional, delay=1.5)
-        logger.debug(f"Exit now clicking success: {exit_now_bool}")
-        time.sleep(5)
-        return True
+    for image in exit_now_images:
+        exit_now_button = get_on_screen_in_game(image)
+        if exit_now_button:
+            logger.info("End of game detected, exiting")
+            click_to_middle(exit_now_button)
+            break
+    else:
+        return False
 
-    return False
+    time.sleep(5)
+    return True
 
 
 def check_if_game_complete(wait_for_exit_buttons: bool = False) -> bool:
@@ -597,13 +604,17 @@ def main_game_loop() -> None:  # pylint: disable=too-many-branches
 
         # If round > 2, buy champs, level and re-roll
         buy(3)
-        if check_if_gold_at_least(4) and get_on_screen_in_game(CONSTANTS["game"]["gamelogic"]["xp_buy"]):
-            click_to_middle(CONSTANTS["game"]["gamelogic"]["xp_buy"])
-            time.sleep(0.2)
+        if check_if_gold_at_least(4) and (
+            xp_buy_image := get_on_screen_in_game(CONSTANTS["game"]["gamelogic"]["xp_buy"])
+        ):
+            click_to_middle(xp_buy_image)
+            time.sleep(0.5)
 
-        if check_if_gold_at_least(5) and get_on_screen_in_game(CONSTANTS["game"]["gamelogic"]["reroll"]):
-            click_to_middle(CONSTANTS["game"]["gamelogic"]["reroll"])
-            time.sleep(0.2)
+        if check_if_gold_at_least(5) and (
+            reroll_image := get_on_screen_in_game(CONSTANTS["game"]["gamelogic"]["reroll"])
+        ):
+            click_to_middle(reroll_image)
+            time.sleep(0.5)
             continue
 
         time.sleep(0.5)
@@ -672,13 +683,16 @@ def surrender() -> None:
     #  in the settings doesn't work. This is a temporary work-around.
     #  We need to use PyDirectInput since the league client does not
     #  always recognize the input of the method pyautogui uses.
-    while not get_on_screen_in_game(CONSTANTS["game"]["surrender"]["surrender_2"]):
+    while True:
+        surrender_button = get_on_screen_in_game(CONSTANTS["game"]["surrender"]["surrender_2"])
+        if surrender_button:
+            break
         time.sleep(2)
         bring_league_game_to_forefront()
         pydirectinput.write(["enter", "/", "f", "f", "enter"], interval=0.1)
         time.sleep(1)
 
-    click_to_middle(CONSTANTS["game"]["surrender"]["surrender_2"])
+    click_to_middle(surrender_button)
     time.sleep(10)
     end_match()
     logger.info("Surrender complete")
