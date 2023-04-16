@@ -20,38 +20,9 @@ def mouse_button(delay=0.1, button="left") -> None:
     auto.mouseUp(button=button)
 
 
-def click_key(key: str, delay: float = 0.1) -> None:
-    """Simulate a click on the specified key.
-
-    Args:
-        key (str): The key to click.
-        delay (float, optional): The delay between key down and key up events. Defaults to .1.
-    """
-    auto.keyDown(key)
-    time.sleep(delay)
-    auto.keyUp(key)
-
-
-def click_left(delay=0.1) -> None:
-    """Simulate a click on the left mouse button.
-
-    Args:
-        delay (float, optional): The delay between key down and key up events. Defaults to .1.
-    """
-    mouse_button(delay=delay, button="left")
-
-
-def click_right(delay=0.1) -> None:
-    """Simulate a click on the right mouse button.
-
-    Args:
-        delay (float, optional): The delay between key down and key up events. Defaults to .1.
-    """
-    mouse_button(delay=delay, button="right")
-
-
 def click_to(
-    position: tuple[int, int],
+    position_x: int,
+    position_y: int,
     move_duration: float = random.uniform(0.1, 1.0),
     delay: float = 0.2,
     action: str = "left",
@@ -60,13 +31,14 @@ def click_to(
     Click to a specific position on the screen
 
     Args:
-        position: The coordinates to click to
+        position_x: The x coordinate to click to
+        position_y: The y coordinate to click to
         move_duration (float, optional): Time taken for the mouse to move.
             Defaults to random.uniform(0.1, 1.0).
         delay (float, optional): The delay between mouse down & up. Defaults to 0.2.
         action (str, optional): The mouse button to perform. Defaults to "left".
     """
-    auto.moveTo(position[0], position[1], move_duration)
+    auto.moveTo(position_x, position_y, move_duration)
     mouse_button(delay=delay, button=action)
 
 
@@ -102,7 +74,8 @@ def click_to_image(
         offset_y = image_search_result.height / 2
 
     click_to(
-        position=(image_search_result.position_x + offset_x, image_search_result.position_y + offset_y),
+        position_x=image_search_result.position_x + offset_x,
+        position_y=image_search_result.position_y + offset_y,
         move_duration=move_duration,
         delay=delay,
         action=action,

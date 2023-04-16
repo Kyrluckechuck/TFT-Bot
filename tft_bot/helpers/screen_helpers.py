@@ -12,23 +12,53 @@ from tft_bot.helpers.system_helpers import resource_path
 
 
 @dataclass
-class ImageSearchResult:
+class BoundingBox:
     """
-    A dataclass holding information about an image search result.
+    A dataclass holding information about a bounding box, a rectangle of two coordinate sets.
+    """
+
+    min_x: int
+    min_y: int
+    max_x: int
+    max_y: int
+
+    def to_tuple(self) -> tuple[int, int, int, int]:
+        """
+        Converts the bounding box to a tuple.
+
+        Returns:
+            A tuple, ordered min_x, min_y, max_x, max_y.
+
+        """
+        return self.min_x, self.min_y, self.max_x, self.max_y
+
+
+@dataclass
+class Coordinates:
+    """
+    A dataclass holding information about offset pixels to click to.
     """
 
     position_x: int
     position_y: int
+
+
+@dataclass
+class ImageSearchResult(Coordinates):
+    """
+    A dataclass holding information about an image search result.
+    """
+
     width: int
     height: int
 
 
-def get_window_bounding_box(window_title: str) -> tuple[int, int, int, int] | None:
+def get_window_bounding_box(window_title: str) -> BoundingBox | None:
     """
     Gets the bounding box of a specific window.
 
     Returns:
-        A tuple of coordinates (top left x and y and bottom right x and y) or None if no window exists.
+        A bounding box (min x, min y, max x, max y) or None if no window exists.
 
     """
     league_game_window_handle = win32gui.FindWindowEx(0, 0, 0, window_title)
@@ -36,7 +66,7 @@ def get_window_bounding_box(window_title: str) -> tuple[int, int, int, int] | No
         logger.debug(f"We tried to check {window_title} for an image, but there is no window")
         return None
 
-    return win32gui.GetWindowRect(league_game_window_handle)
+    return BoundingBox(*win32gui.GetWindowRect(league_game_window_handle))
 
 
 def check_league_game_size() -> None:
@@ -55,8 +85,29 @@ def check_league_game_size() -> None:
         )
 
 
+def calculate_window_click_offset(window_title: str, position_x: int, position_y: int) -> Coordinates | None:
+    """
+    Calculate absolute screen coordinates based off relative pixel position in a specific window.
+
+    Args:
+        window_title: The title of the window to click in.
+        position_x: The relative x coordinate to click to.
+        position_y: The relative y coordinate to click to.
+
+    Returns:
+        Absolute coordinates to click to.
+    """
+    window_bounding_box = get_window_bounding_box(window_title=window_title)
+    if not window_bounding_box:
+        return None
+
+    return Coordinates(
+        position_x=window_bounding_box.min_x + position_x, position_y=window_bounding_box.min_y + position_y
+    )
+
+
 def get_on_screen_in_client(
-    path: str, precision: float = 0.8, offsets: tuple[int, int, int, int] | None = None
+    path: str, precision: float = 0.8, offsets: BoundingBox | None = None
 ) -> ImageSearchResult | None:
     """
     Check if a given image is detected on screen, but only check the league client window.
@@ -64,8 +115,8 @@ def get_on_screen_in_client(
     Args:
         path: The relative or absolute path to the image to be found.
         precision: The precision to be used when matching the image. Defaults to 0.8.
-        offsets: A tuple of coordinates to off-set the region by. Useful if you only want to check a specific region.
-          All offsets are from the top-left of the game window.
+        offsets: A bounding box to off-set the region by. Useful if you only want to check a specific region.
+          Defaults to None.
 
     Returns:
         The position of the image and it's width and height or None if it wasn't found
@@ -76,7 +127,7 @@ def get_on_screen_in_client(
 
 
 def get_on_screen_in_game(
-    path: str, precision: float = 0.8, offsets: tuple[int, int, int, int] | None = None
+    path: str, precision: float = 0.8, offsets: BoundingBox | None = None
 ) -> ImageSearchResult | None:
     """
     Check if a given image is detected on screen, but only check the league game window.
@@ -84,8 +135,8 @@ def get_on_screen_in_game(
     Args:
         path: The relative or absolute path to the image to be found.
         precision: The precision to be used when matching the image. Defaults to 0.8.
-        offsets: A tuple of coordinates to off-set the region by. Useful if you only want to check a specific region.
-          All offsets are from the top-left of the game window.
+        offsets: A bounding box to off-set the region by. Useful if you only want to check a specific region.
+          Defaults to None.
 
     Returns:
         The position of the image and it's width and height or None if it wasn't found
@@ -96,7 +147,7 @@ def get_on_screen_in_game(
 
 
 def get_on_screen(
-    window_title: str, path: str, precision: float = 0.8, offsets: tuple[int, int, int, int] | None = None
+    window_title: str, path: str, precision: float = 0.8, offsets: BoundingBox | None = None
 ) -> ImageSearchResult | None:
     """
     Check if a given image is detected on screen in a specific window's area.
@@ -105,8 +156,8 @@ def get_on_screen(
         window_title: The title of the window we should look at.
         path: The relative or absolute path to the image to be found.
         precision: The precision to be used when matching the image. Defaults to 0.8.
-        offsets: A tuple of coordinates to off-set the region by. Useful if you only want to check a specific region.
-          All offsets are from the top-left of the game window.
+        offsets: A bounding box to off-set the region by. Useful if you only want to check a specific region.
+          Defaults to None.
 
     Returns:
         The position of the image and it's width and height or None if it wasn't found
@@ -121,13 +172,13 @@ def get_on_screen(
         return None
 
     if offsets:
-        new_bounding_box = ()
-        for i in range(4):
-            new_bounding_box += (window_bounding_box[i % 2] + offsets[i],)
-        window_bounding_box = new_bounding_box
+        window_bounding_box.min_x += offsets.min_x
+        window_bounding_box.min_y += offsets.min_y
+        window_bounding_box.max_x += offsets.max_x
+        window_bounding_box.max_y += offsets.max_y
 
     with mss.mss() as screenshot_taker:
-        screenshot = screenshot_taker.grab(tuple(window_bounding_box))
+        screenshot = screenshot_taker.grab(window_bounding_box.to_tuple())
 
     pixels = numpy.array(screenshot)
     gray_scaled_pixels = cv2.cvtColor(pixels, cv2.COLOR_BGR2GRAY)

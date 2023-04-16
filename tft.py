@@ -23,9 +23,10 @@ from tft_bot.constants import find_match_images
 from tft_bot.constants import league_processes
 from tft_bot.constants import message_exit_buttons
 from tft_bot.helpers import system_helpers
-from tft_bot.helpers.click_helpers import click_left
-from tft_bot.helpers.click_helpers import click_right
+from tft_bot.helpers.click_helpers import click_to
 from tft_bot.helpers.click_helpers import click_to_image
+from tft_bot.helpers.screen_helpers import BoundingBox
+from tft_bot.helpers.screen_helpers import calculate_window_click_offset
 from tft_bot.helpers.screen_helpers import check_league_game_size
 from tft_bot.helpers.screen_helpers import get_on_screen_in_client
 from tft_bot.helpers.screen_helpers import get_on_screen_in_game
@@ -279,17 +280,23 @@ def start_match() -> None:
 
 def shared_draft_pathing() -> None:
     """Navigate counter-clockwise in a diamond to help ensure a champ is picked up."""
-    auto.moveTo(946, 315)
-    click_right()
+    top = calculate_window_click_offset(window_title=CONSTANTS["window_titles"]["game"], position_x=946, position_y=315)
+    left = calculate_window_click_offset(
+        window_title=CONSTANTS["window_titles"]["game"], position_x=700, position_y=450
+    )
+    bottom = calculate_window_click_offset(
+        window_title=CONSTANTS["window_titles"]["game"], position_x=950, position_y=675
+    )
+    right = calculate_window_click_offset(
+        window_title=CONSTANTS["window_titles"]["game"], position_x=1200, position_y=460
+    )
+    click_to(position_x=top.position_x, position_y=top.position_y, action="right")
     time.sleep(2)
-    auto.moveTo(700, 450)
-    click_right()
+    click_to(position_x=left.position_x, position_y=left.position_y, action="right")
     time.sleep(2)
-    auto.moveTo(950, 675)
-    click_right()
+    click_to(position_x=bottom.position_x, position_y=bottom.position_y, action="right")
     time.sleep(2)
-    auto.moveTo(1200, 460)
-    click_right()
+    click_to(position_x=right.position_x, position_y=right.position_y, action="right")
 
 
 def buy(iterations: int) -> None:
@@ -494,7 +501,7 @@ def check_gold(num: int) -> bool:
 
     """
     try:
-        if get_on_screen_in_game(CONSTANTS["game"]["gold"][f"{num}"], 0.9, (780, 850, 970, 920)):
+        if get_on_screen_in_game(CONSTANTS["game"]["gold"][f"{num}"], 0.9, BoundingBox(780, 850, 970, 920)):
             logger.debug(f"Found {num} gold")
             return True
     except Exception as exc:
@@ -585,8 +592,10 @@ def main_game_loop() -> None:  # pylint: disable=too-many-branches
 
         if get_on_screen_in_game(CONSTANTS["game"]["gamelogic"]["choose_an_augment"], 0.95):
             logger.info("Detected augment offer, selecting one")
-            auto.moveTo(960, 540)
-            click_left()
+            augment_offset = calculate_window_click_offset(
+                window_title=CONSTANTS["window_titles"]["game"], position_x=960, position_y=540
+            )
+            click_to(position_x=augment_offset.position_x, position_y=augment_offset.position_y)
             time.sleep(0.5)
             continue
 
