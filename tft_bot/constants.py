@@ -14,6 +14,10 @@ CONSTANTS = {
             "game": r"\Game\League of Legends.exe",
         },
     },
+    "window_titles": {
+        "game": "League of Legends (TM) Client",
+        "client": "League of Legends",
+    },
     "processes": {
         "client": "LeagueClient.exe",
         "client_ux": "LeagueClientUx.exe",

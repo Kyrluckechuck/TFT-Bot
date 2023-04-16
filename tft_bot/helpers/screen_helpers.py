@@ -1,6 +1,4 @@
 """A collection of screen helpers for detecting when images are on screen."""
-import time
-
 import cv2
 from loguru import logger
 import mss
@@ -8,95 +6,125 @@ import numpy
 from python_imagesearch import imagesearch
 import win32gui
 
-from .system_helpers import resource_path
+from tft_bot.constants import CONSTANTS
+from tft_bot.helpers.system_helpers import resource_path
 
-_SCREEN_SIZE_WARNING_DISPLAYED = False
 
-
-def get_league_game_bounding_box() -> tuple[int, int, int, int] | None:
+def get_window_bounding_box(window_title: str) -> tuple[int, int, int, int] | None:
     """
-    Gets the bounding box of the league game window.
+    Gets the bounding box of a specific window.
 
     Returns:
         A tuple of coordinates (top left x and y and bottom right x and y) or None if no window exists.
 
     """
-    league_game_window_handle = win32gui.FindWindowEx(0, 0, 0, "League of Legends (TM) Client")
+    league_game_window_handle = win32gui.FindWindowEx(0, 0, 0, window_title)
     if not league_game_window_handle:
-        logger.debug("We tried to check the league game window for an image, but there is no window")
+        logger.debug(f"We tried to check {window_title} for an image, but there is no window")
         return None
 
-    league_game_bounding_box = win32gui.GetWindowRect(league_game_window_handle)
-
-    global _SCREEN_SIZE_WARNING_DISPLAYED
-    if not _SCREEN_SIZE_WARNING_DISPLAYED:
-        top_left_x, top_left_y, bottom_right_x, bottom_right_y = league_game_bounding_box
-        if bottom_right_x - top_left_x != 1920 or bottom_right_y - top_left_y != 1080:
-            logger.error(
-                f"Your game's size is {bottom_right_x - top_left_x} x {bottom_right_y - top_left_y} "
-                f"instead of 1920 x 1080! This WILL cause issues!"
-            )
-        _SCREEN_SIZE_WARNING_DISPLAYED = True
-
-    return league_game_bounding_box
+    return win32gui.GetWindowRect(league_game_window_handle)
 
 
-def on_screen_in_game(path: str, precision: float = 0.8, offsets: tuple[int, int, int, int] | None = None) -> bool:
+def check_league_game_size() -> None:
+    """
+    Check the league game size and print an error if it is not what we need it to be.
+    """
+    league_game_bounding_box = get_window_bounding_box(window_title="League of Legends (TM) Client")
+    if not league_game_bounding_box:
+        return
+
+    top_left_x, top_left_y, bottom_right_x, bottom_right_y = league_game_bounding_box
+    if bottom_right_x - top_left_x != 1920 or bottom_right_y - top_left_y != 1080:
+        logger.error(
+            f"Your game's size is {bottom_right_x - top_left_x} x {bottom_right_y - top_left_y} "
+            f"instead of 1920 x 1080! This WILL cause issues!"
+        )
+
+
+def get_on_screen_in_client(
+    path: str, precision: float = 0.8, offsets: tuple[int, int, int, int] | None = None
+) -> tuple[int, int] | None:
+    """
+    Check if a given image is detected on screen, but only check the league client window.
+
+    Args:
+        path: The relative or absolute path to the image to be found.
+        precision: The precision to be used when matching the image. Defaults to 0.8.
+        offsets: A tuple of coordinates to off-set the region by. Useful if you only want to check a specific region.
+          All offsets are from the top-left of the game window.
+
+    Returns:
+        The position of the image or None if it wasn't found
+    """
+    return get_on_screen(
+        window_title=CONSTANTS["window_titles"]["client"], path=path, precision=precision, offsets=offsets
+    )
+
+
+def get_on_screen_in_game(
+    path: str, precision: float = 0.8, offsets: tuple[int, int, int, int] | None = None
+) -> tuple[int, int] | None:
     """
     Check if a given image is detected on screen, but only check the league game window.
 
     Args:
         path: The relative or absolute path to the image to be found.
+        precision: The precision to be used when matching the image. Defaults to 0.8.
         offsets: A tuple of coordinates to off-set the region by. Useful if you only want to check a specific region.
           All offsets are from the top-left of the game window.
+
+    Returns:
+        The position of the image or None if it wasn't found
+    """
+    return get_on_screen(
+        window_title=CONSTANTS["window_titles"]["game"], path=path, precision=precision, offsets=offsets
+    )
+
+
+def get_on_screen(
+    window_title: str, path: str, precision: float = 0.8, offsets: tuple[int, int, int, int] | None = None
+) -> tuple[int, int] | None:
+    """
+    Check if a given image is detected on screen in a specific window's area.
+
+    Args:
+        window_title: The title of the window we should look at.
+        path: The relative or absolute path to the image to be found.
         precision: The precision to be used when matching the image. Defaults to 0.8.
+        offsets: A tuple of coordinates to off-set the region by. Useful if you only want to check a specific region.
+          All offsets are from the top-left of the game window.
 
     Returns:
         True if the image is detected on screen, False otherwise
     """
-    league_game_bounding_box = get_league_game_bounding_box()
-    if not league_game_bounding_box:
-        return False
+    window_bounding_box = get_window_bounding_box(window_title=window_title)
+    if not window_bounding_box:
+        return None
+
+    image_to_find = cv2.imread(path, 0)
+    if image_to_find is None:
+        logger.warning(f"The image {path} does not exist on the system or we do not have permission to read it")
+        return None
 
     if offsets:
         new_bounding_box = ()
         for i in range(4):
-            new_bounding_box += (league_game_bounding_box[i % 2] + offsets[i],)
-        league_game_bounding_box = new_bounding_box
+            new_bounding_box += (window_bounding_box[i % 2] + offsets[i],)
+        window_bounding_box = new_bounding_box
 
     with mss.mss() as screenshot_taker:
-        screenshot = screenshot_taker.grab(league_game_bounding_box)
+        screenshot = screenshot_taker.grab(tuple(window_bounding_box))
 
     pixels = numpy.array(screenshot)
     gray_scaled_pixels = cv2.cvtColor(pixels, cv2.COLOR_BGR2GRAY)
-    image_to_find = cv2.imread(path, 0)
-    if image_to_find is None:
-        logger.warning(f"Image file was not found: {path}")
-        return False
+    search_result = cv2.matchTemplate(gray_scaled_pixels, image_to_find, cv2.TM_CCOEFF_NORMED)
 
-    res = cv2.matchTemplate(gray_scaled_pixels, image_to_find, cv2.TM_CCOEFF_NORMED)
-    min_max_loc = cv2.minMaxLoc(res)
-    if min_max_loc[1] < precision:
-        return False
+    _, max_precision, _, max_location = cv2.minMaxLoc(search_result)
+    if max_precision < precision:
+        return None
 
-    return True
-
-
-def onscreen(path: str, precision: float = 0.8) -> bool:
-    """Check if a given image is detected on screen.
-
-    Args:
-        path (str): The relative or absolute path to the image to be found.
-        precision (float, optional): The precision to be used when matching the image. Defaults to 0.8.
-
-    Returns:
-        bool: True if the image is detected on screen, False otherwise.
-    """
-    path = resource_path(path)
-    try:
-        return imagesearch.imagesearch(path, precision)[0] != -1
-    except Exception:
-        return False
+    return max_location
 
 
 def onscreen_multiple_any(paths: list[str], precision: float = 0.8) -> bool:
@@ -146,79 +174,6 @@ def onscreen_region(  # pylint: disable=invalid-name,too-many-arguments,disable=
         return False
 
 
-def onscreen_region_num_loop(  # pylint: disable=too-many-arguments,disable=invalid-name
-    path: str,
-    timesample: float,
-    max_samples: int,
-    x1: int,
-    y1: int,
-    x2: int,
-    y2: int,
-    precision: float = 0.8,
-) -> bool | list[int] | tuple[int, int]:
-    """Search for a given image within a region on screen, attempting multiple times.
-    The region is specified by the coordinates and a rectangular region is devised.
-
-    Args:
-        path (str): The relative or absolute path to the image to be found.
-        timesample (float): The duration between attempts to search the screen.
-        max_samples (int): The max number of attempts that the screen will be sampled before giving up.
-        x1,y1 (int): The coordinates of the top left of the region to be searched.
-        x2,y2 (int): The coordinates of the bottom right of the region to be searched.
-        precision (float, optional): The precision to be used when matching the image. Defaults to 0.8.
-
-    Returns:
-        (bool | list[int] | tuple[int, int]): True if the image is found within the specified region, False otherwise.
-    """
-    try:
-        path = resource_path(path)
-        return imagesearch_region_num_loop(path, timesample, max_samples, x1, y1, x2, y2, precision)[0] != -1
-    except Exception:
-        return False
-
-
-# Via https://github.com/drov0/python-imagesearch/blob/master/python_imagesearch/imagesearch.py
-def imagesearch_region_num_loop(  # pylint: disable=too-many-arguments,disable=invalid-name
-    image: str,
-    timesample: float,
-    max_samples: int,
-    x1: int,
-    y1: int,
-    x2: int,
-    y2: int,
-    precision: float = 0.8,
-) -> None | list[int] | tuple[int, int]:
-    """Search for a given image within a region on screen, attempting multiple times.
-    The region is specified by the coordinates and a rectangular region is devised.
-
-    Args:
-        path (str): The relative or absolute path to the image to be found.
-        timesample (float): The duration between attempts to search the screen.
-        max_samples (int): The max number of attempts that the screen will be sampled before giving up.
-        x1,y1 (int): The coordinates of the top left of the region to be searched.
-        x2,y2 (int): The coordinates of the bottom right of the region to be searched.
-        precision (float, optional): The precision to be used when matching the image. Defaults to 0.8.
-
-    Returns:
-        (bool | list[int] | tuple[int, int]): The coordinates of the image if found within the specified region,
-            None otherwise.
-    """
-    try:
-        image = resource_path(image)
-        pos = imagesearch.imagesearcharea(image, x1, y1, x2, y2, precision)
-        count = 0
-
-        while pos[0] == -1:
-            time.sleep(timesample)
-            pos = imagesearch.imagesearcharea(image, x1, y1, x2, y2, precision)
-            count = count + 1
-            if count > max_samples:
-                break
-        return pos
-    except Exception:
-        return None
-
-
 def find_image(path: str, precision: float = 0.8) -> None | list[int] | tuple[int, int]:
     """Search for a given image, returning the coordinates if found.
 
@@ -233,64 +188,6 @@ def find_image(path: str, precision: float = 0.8) -> None | list[int] | tuple[in
     try:
         path = resource_path(path)
         pos = imagesearch.imagesearch(path, precision)
-        return pos if pos[0] != -1 else None
-    except Exception:
-        return None
-
-
-def find_image_multiple_any(paths: list[str], precision: float = 0.8) -> None | list[int] | tuple[int, int]:
-    """Search for any of the given images, returning the coordinates of the first one if any are found.
-
-    Args:
-        paths (list[str]): The list of relative or absolute paths to images to be searched for.
-        precision (float, optional): The precision to be used when matching the image. Defaults to 0.8.
-
-    Returns:
-        (None | list[int] | tuple[int, int]): The coordinates of the image if found within the specified region,
-            None otherwise.
-    """
-    try:
-        for path in paths:
-            path = resource_path(path)
-            pos = imagesearch.imagesearch(path, precision)
-            # logger.debug(f"is_onscreen: {pos[0] != -1}") #Advanced debugging not even normally needed
-            if pos[0] != -1:
-                return pos
-            return None
-    except Exception as err:
-        logger.debug(f"multiple_onscreen_any error: {err}")
-
-    return None
-
-
-def find_image_in_region_num_loop(  # pylint: disable=too-many-arguments,disable=invalid-name
-    path: str,
-    timesample: float,
-    max_samples: int,
-    x1: int,
-    y1: int,
-    x2: int,
-    y2: int,
-    precision: float = 0.8,
-) -> None | list[int] | tuple[int, int]:
-    """Get the coorindates for a given image within a region on screen, attempting multiple times.
-    The region is specified by the coordinates and a rectangular region is devised.
-
-    Args:
-        path (str): The relative or absolute path to the image to be found.
-        timesample (float): The duration between attempts to search the screen.
-        max_samples (int): The max number of attempts that the screen will be sampled before giving up.
-        x1,y1 (int): The coordinates of the top left of the region to be searched.
-        x2,y2 (int): The coordinates of the bottom right of the region to be searched.
-        precision (float, optional): The precision to be used when matching the image. Defaults to 0.8.
-
-    Returns:
-        (bool | list[int] | tuple[int, int]): The coordinates of the image if found within the specified region,
-            None otherwise.
-    """
-    try:
-        path = resource_path(path)
-        pos = imagesearch_region_num_loop(path, timesample, max_samples, x1, y1, x2, y2, precision)
         return pos if pos[0] != -1 else None
     except Exception:
         return None

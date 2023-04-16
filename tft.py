@@ -27,8 +27,8 @@ from tft_bot.helpers.click_helpers import click_left
 from tft_bot.helpers.click_helpers import click_right
 from tft_bot.helpers.click_helpers import click_to_middle
 from tft_bot.helpers.click_helpers import click_to_middle_multiple
-from tft_bot.helpers.screen_helpers import on_screen_in_game
-from tft_bot.helpers.screen_helpers import onscreen
+from tft_bot.helpers.screen_helpers import get_on_screen_in_client
+from tft_bot.helpers.screen_helpers import get_on_screen_in_game
 from tft_bot.helpers.screen_helpers import onscreen_multiple_any
 from tft_bot.league_api import league_api_integration
 
@@ -272,7 +272,7 @@ def loading_match() -> None:
 
 def start_match() -> None:
     """Do initial first round pathing to pick the first champ."""
-    while on_screen_in_game(CONSTANTS["game"]["round"]["1-1"]):
+    while get_on_screen_in_game(CONSTANTS["game"]["round"]["1-1"]):
         shared_draft_pathing()
     logger.info("Initial draft complete, continuing with game")
     main_game_loop()
@@ -304,7 +304,7 @@ def buy(iterations: int) -> None:
         if not check_if_gold_at_least(1):
             return
         for trait in config.get_wanted_traits():
-            if on_screen_in_game(CONSTANTS["game"]["trait"][trait]):
+            if get_on_screen_in_game(CONSTANTS["game"]["trait"][trait]):
                 click_to_middle(CONSTANTS["game"]["trait"][trait])
                 time.sleep(0.5)
             elif config.purchase_traits_in_prioritized_order():
@@ -335,28 +335,28 @@ def check_if_client_error() -> bool:  # pylint: disable=too-many-return-statemen
     Returns:
         bool: True if a client error message was detected.
     """
-    if onscreen(CONSTANTS["client"]["messages"]["down_for_maintenance"]):
+    if get_on_screen_in_client(CONSTANTS["client"]["messages"]["down_for_maintenance"]):
         logger.info("League down for maintenance, delaying restart for 5 minutes!")
         return acknowledge_error_and_restart_league(delay=300)
-    if onscreen(CONSTANTS["client"]["messages"]["failed_to_reconnect"]):
+    if get_on_screen_in_client(CONSTANTS["client"]["messages"]["failed_to_reconnect"]):
         logger.info("Failed to reconnect!")
         return acknowledge_error_and_restart_league(internet_pause=True)
-    if onscreen(CONSTANTS["client"]["messages"]["login_servers_down"]):
+    if get_on_screen_in_client(CONSTANTS["client"]["messages"]["login_servers_down"]):
         logger.info("Login servers down!")
         return acknowledge_error_and_restart_league(internet_pause=True)
-    if onscreen(CONSTANTS["client"]["messages"]["session_expired"]):
+    if get_on_screen_in_client(CONSTANTS["client"]["messages"]["session_expired"]):
         logger.info("Session expired!")
         return acknowledge_error_and_restart_league()
-    if onscreen(CONSTANTS["client"]["messages"]["unexpected_error_with_session"]):
+    if get_on_screen_in_client(CONSTANTS["client"]["messages"]["unexpected_error_with_session"]):
         logger.info("Unexpected error with session!")
         return acknowledge_error_and_restart_league()
-    if onscreen(CONSTANTS["client"]["messages"]["unexpected_login_error"]):
+    if get_on_screen_in_client(CONSTANTS["client"]["messages"]["unexpected_login_error"]):
         logger.info("Unexpected login error!")
         return acknowledge_error_and_restart_league()
-    if onscreen(CONSTANTS["client"]["messages"]["players_are_not_ready"]):
+    if get_on_screen_in_client(CONSTANTS["client"]["messages"]["players_are_not_ready"]):
         logger.info("Player not ready detected, waiting to see if it stays")
         time.sleep(5)
-        if onscreen(CONSTANTS["client"]["messages"]["players_are_not_ready"]):
+        if get_on_screen_in_client(CONSTANTS["client"]["messages"]["players_are_not_ready"]):
             logger.error("Player not ready did not dismiss, restarting client!")
             restart_league_client()
             return True
@@ -461,9 +461,9 @@ def attempt_reconnect_to_existing_game() -> bool:
     Returns:
         bool: True if a reconnect is attempted, False otherwise.
     """
-    if onscreen(CONSTANTS["client"]["reconnect"]):
+    if LCU_INTEGRATION.should_reconnect():
+        LCU_INTEGRATION.reconnect()
         logger.info("Reconnecting!")
-        click_to_middle(CONSTANTS["client"]["reconnect"])
         return True
     return False
 
@@ -492,7 +492,7 @@ def check_gold(num: int) -> bool:
 
     """
     try:
-        if on_screen_in_game(CONSTANTS["game"]["gold"][f"{num}"], 0.9, (780, 850, 970, 920)):
+        if get_on_screen_in_game(CONSTANTS["game"]["gold"][f"{num}"], 0.9, (780, 850, 970, 920)):
             logger.debug(f"Found {num} gold")
             return True
     except Exception as exc:
@@ -532,26 +532,26 @@ def determine_minimum_round() -> int:
         The major round as an integer.
 
     """
-    if on_screen_in_game(CONSTANTS["game"]["round"]["krugs_inactive"], 0.9) or on_screen_in_game(
+    if get_on_screen_in_game(CONSTANTS["game"]["round"]["krugs_inactive"], 0.9) or get_on_screen_in_game(
         CONSTANTS["game"]["round"]["krugs_active"], 0.9
     ):
         return 2
 
-    if on_screen_in_game(CONSTANTS["game"]["round"]["wolves_inactive"], 0.9) or on_screen_in_game(
+    if get_on_screen_in_game(CONSTANTS["game"]["round"]["wolves_inactive"], 0.9) or get_on_screen_in_game(
         CONSTANTS["game"]["round"]["wolves_active"], 0.9
     ):
         return 3
 
-    if on_screen_in_game(CONSTANTS["game"]["round"]["threat_inactive"], 0.9) or on_screen_in_game(
+    if get_on_screen_in_game(CONSTANTS["game"]["round"]["threat_inactive"], 0.9) or get_on_screen_in_game(
         CONSTANTS["game"]["round"]["threat_active"], 0.9
     ):
         return 4
 
-    if on_screen_in_game(CONSTANTS["game"]["round"]["1-"]):
+    if get_on_screen_in_game(CONSTANTS["game"]["round"]["1-"]):
         return 1
 
     for i in range(1, 7):
-        if on_screen_in_game(CONSTANTS["game"]["round"][f"{i}-"]):
+        if get_on_screen_in_game(CONSTANTS["game"]["round"][f"{i}-"]):
             return i
 
     logger.debug("Could not determine minimum round, returning 0.")
@@ -576,12 +576,12 @@ def main_game_loop() -> None:  # pylint: disable=too-many-branches
 
         minimum_round = determine_minimum_round()
         # Free champ round
-        if minimum_round > 1 and on_screen_in_game(CONSTANTS["game"]["round"]["draft_active"], 0.95):
+        if minimum_round > 1 and get_on_screen_in_game(CONSTANTS["game"]["round"]["draft_active"], 0.95):
             logger.info("Active draft detected, pathing to carousel")
             shared_draft_pathing()
             continue
 
-        if on_screen_in_game(CONSTANTS["game"]["gamelogic"]["choose_an_augment"], 0.95):
+        if get_on_screen_in_game(CONSTANTS["game"]["gamelogic"]["choose_an_augment"], 0.95):
             logger.info("Detected augment offer, selecting one")
             auto.moveTo(960, 540)
             click_left()
@@ -599,11 +599,11 @@ def main_game_loop() -> None:  # pylint: disable=too-many-branches
 
         # If round > 2, buy champs, level and re-roll
         buy(3)
-        if check_if_gold_at_least(4) and on_screen_in_game(CONSTANTS["game"]["gamelogic"]["xp_buy"]):
+        if check_if_gold_at_least(4) and get_on_screen_in_game(CONSTANTS["game"]["gamelogic"]["xp_buy"]):
             click_to_middle(CONSTANTS["game"]["gamelogic"]["xp_buy"])
             time.sleep(0.2)
 
-        if check_if_gold_at_least(5) and on_screen_in_game(CONSTANTS["game"]["gamelogic"]["reroll"]):
+        if check_if_gold_at_least(5) and get_on_screen_in_game(CONSTANTS["game"]["gamelogic"]["reroll"]):
             click_to_middle(CONSTANTS["game"]["gamelogic"]["reroll"])
             time.sleep(0.2)
             continue
@@ -674,7 +674,7 @@ def surrender() -> None:
     #  in the settings doesn't work. This is a temporary work-around.
     #  We need to use PyDirectInput since the league client does not
     #  always recognize the input of the method pyautogui uses.
-    while not on_screen_in_game(CONSTANTS["game"]["surrender"]["surrender_2"]):
+    while not get_on_screen_in_game(CONSTANTS["game"]["surrender"]["surrender_2"]):
         time.sleep(2)
         bring_league_game_to_forefront()
         pydirectinput.write(["enter", "/", "f", "f", "enter"], interval=0.1)

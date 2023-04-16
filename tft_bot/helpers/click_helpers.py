@@ -5,12 +5,10 @@ from typing import Callable
 
 from loguru import logger
 import pyautogui as auto
-from python_imagesearch import imagesearch
 
 from . import generic_helpers
 from .better_image_click import click_image_rand
 from .screen_helpers import find_image
-from .screen_helpers import onscreen
 from .system_helpers import resource_path
 
 
@@ -55,71 +53,6 @@ def click_right(delay=0.1) -> None:
         delay (float, optional): The delay between key down and key up events. Defaults to .1.
     """
     mouse_button(delay=delay, button="right")
-
-
-def click_to(path: str, precision: float = 0.8, delay: float = 0.1) -> None:
-    """Click to the specified image on the screen.
-
-    Args:
-        path (str): The relative or absolute path to the image to be clicked.
-        precision (float, optional): _description_. Defaults to 0.8.
-        delay (float, optional): _description_. Defaults to .1.
-    """
-    path = resource_path(path)
-    if onscreen(path, precision):
-        try:
-            auto.moveTo(imagesearch.imagesearch(path))
-            click_left(delay)
-        except Exception as err:
-            logger.debug(f"Failed to click to {err}")
-    else:
-        logger.debug(f"Could not find '{path}', skipping")
-
-
-def click_to_multiple(images: list[str], conditional_func: Callable | None = None, delay: float = None) -> bool:
-    """Click to the specified images, evaluating the condtional_func (if provided)
-    after the specified delay (if provided) for if it was successfully clicked.
-
-    Args:
-        images (list[str]): The list of relative or absolute paths to images to attempt clicking.
-        conditional_func (Callable | None, optional): The function to evaluate if the click was successful.
-            Defaults to None.
-        delay (float, optional): The delay before evaluating the conditional function. Defaults to None.
-
-    Returns:
-        bool: True if the conditional function evaluation passes, False otherwise.
-    """
-    for image in images:
-        image = resource_path(image)
-        try:
-            click_to(image)
-        except Exception:
-            logger.debug(f"Failed to click {image}")
-        if generic_helpers.is_var_number(delay):
-            time.sleep(delay)
-        if generic_helpers.is_var_function(conditional_func) and conditional_func():
-            return True
-    return False
-
-
-def search_to(path: str) -> None | list[int] | tuple[int, int]:
-    """Search for the given image on the screen, and move the mouse to it.
-
-    Args:
-        path (str): The relative or absolute path to the image to be clicked.
-
-    Returns:
-        (None | list[int] | tuple[int, int]): The coordinates of the found image, if found.
-    """
-    try:
-        path = resource_path(path)
-        pos = imagesearch.imagesearch(path)
-        if onscreen(path):
-            auto.moveTo(pos)
-            return pos
-    except Exception:
-        return None
-    return None
 
 
 def click_to_middle(  # pylint: disable=too-many-arguments
