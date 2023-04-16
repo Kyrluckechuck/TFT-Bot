@@ -27,6 +27,7 @@ from tft_bot.helpers.click_helpers import click_left
 from tft_bot.helpers.click_helpers import click_right
 from tft_bot.helpers.click_helpers import click_to_middle
 from tft_bot.helpers.click_helpers import click_to_middle_multiple
+from tft_bot.helpers.screen_helpers import check_league_game_size
 from tft_bot.helpers.screen_helpers import get_on_screen_in_client
 from tft_bot.helpers.screen_helpers import get_on_screen_in_game
 from tft_bot.helpers.screen_helpers import get_on_screen_multiple_any
@@ -263,6 +264,7 @@ def loading_match() -> None:
 
     logger.info("Match loaded, starting initial draft pathfinding")
     bring_league_game_to_forefront()
+    check_league_game_size()
     start_match()
 
 
