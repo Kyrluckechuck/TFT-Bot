@@ -3,7 +3,7 @@ PyAutoGUI==0.9.53
 mss==8.0.2
 numpy==1.24.2
 opencv-python==4.7.0.72
-psutil==5.9.4
+psutil==5.9.5
 argparse==1.4.0
 pywin32==306; platform_system == "Windows"
 pyinstaller==5.9.0
