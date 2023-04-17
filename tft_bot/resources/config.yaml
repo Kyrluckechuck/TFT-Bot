@@ -1,6 +1,8 @@
-# Whether to log more output.
-# The CLI flag -v/--verbose will override this.
-verbose: false
+# The level to log information at. The higher the level, the less you will see.
+# We do not recommend setting it higher than WARNING, but support it.
+# Valid levels: DEBUG, INFO, WARNING, ERROR, CRITICAL
+# The CLI flag -v/--verbose will override this to DEBUG.
+log_level: "INFO"
 # Whether to surrender as soon as possible.
 # To farm regular League pass EXP (that has tokens) it is recommended to leave this on false,
 # since the repeating mission gives out EXP based on playtime and winning (being top 4).
@@ -57,4 +59,4 @@ timeouts:
 override_install_location: ''
 
 # Version of the YAML. Changing this manually can potentially break the bot, so don't!
-version: 3
+version: 4

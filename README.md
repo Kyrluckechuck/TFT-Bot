@@ -37,7 +37,7 @@ If you want to use frequent settings / "set it and forget it", you can do so by 
 If you don't see the file or folder, start the bot once, and it should be created.  
 You can set the following settings:
 
-* Verbosity
+* Level of information displayed to you
 * Forfeiting early
 * Overriding the assumed League Of Legends installation path
 * Traits the bot should look for and how they should be bought
@@ -54,8 +54,10 @@ The priority for configuration is as follows:
 ***Note for developers**: The data folder is `./output` when running the python script directly.*
 
 ### *Advanced Setting Info*
-#### **Verbose**
-Enable verbose logging to the console window.
+#### **Log level**
+The log level is the all-caps word after the time-stamp, and determines the severity of the message following after it.
+`DEBUG` is mainly for developers, `INFO` is useful information for the user, `WARNING` are non-critical issues, `ERROR` are things that went wrong but shouldn't close the bot and `CRITICAL` is something we can not recover from.
+For most users, we do not recommend setting this to anything above `WARNING`.
 #### **Forfeit Early**
 Forfeit at first opportunity instead of playing it out until eliminated.
 #### **Override Install Location**

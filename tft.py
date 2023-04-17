@@ -780,6 +780,27 @@ def get_newer_version() -> tuple[str, str] | None:
     return None
 
 
+def re_add_non_debug_logger(log_level: str) -> None:
+    """
+    Remove all loggers and add our formatted logger at a desired level.
+    Since loguru is not loggers in a strict sense but more about log handlers that do not care about the level,
+    there is no straight setLevel method. So to change the level, we have to re-add it.
+
+    Args:
+        log_level: The level to log at.
+    """
+    logger.remove()
+    logger.add(
+        sys.stderr,
+        format=(
+            "<green>{time:YYYY-MM-DD HH:mm:ss.SSS}</green> | "
+            "<level>{level: <8}</level> - "
+            "<level>{message}</level>"
+        ),
+        level=log_level,
+    )
+
+
 @logger.catch
 def main():
     """Entrypoint function to initialize most of the code.
@@ -794,23 +815,11 @@ def main():
 
     config.load_config(storage_path=storage_path)
 
-    # Normal logging
-    if config.verbose():
+    log_level = config.get_log_level().upper()
+    if log_level == "DEBUG":
         logger.level("DEBUG")
     else:
-        # We need to remove the default logger if we want to
-        # change the default format.
-        # The supplied format is the default one, minus the module.
-        logger.remove()
-        logger.add(
-            sys.stderr,
-            format=(
-                "<green>{time:YYYY-MM-DD HH:mm:ss.SSS}</green> | "
-                "<level>{level: <8}</level> - "
-                "<level>{message}</level>"
-            ),
-            level="INFO",
-        )
+        re_add_non_debug_logger("INFO")
 
     # File logging, writes to a file in the same folder as the executable.
     # Logs at level DEBUG, so it's always verbose.
@@ -842,7 +851,7 @@ def main():
     )
 
     logger.info("===== TFT Bot Started =====")
-    logger.info(f"Bot will {'' if config.verbose() else 'NOT '}be verbose (display debug messages).")
+    logger.info(f"Bot will only display messages at severity level {log_level}.")
     logger.info(f"Bot will {'' if config.forfeit_early() else 'NOT '}surrender early.")
 
     repository_url = "https://github.com/Kyrluckechuck/tft-bot"
@@ -880,6 +889,11 @@ def main():
     ):
         logger.warning("Initialization completed but aborting by user choice")
         sys.exit(1)
+
+    # After having displayed all of our start-up information, we respect the user's choice of log level
+    # and re-create the logging handler, if necessary.
+    if log_level not in {"DEBUG", "INFO"}:
+        re_add_non_debug_logger(log_level)
 
     setup_hotkeys()
 

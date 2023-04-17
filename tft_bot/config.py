@@ -97,18 +97,18 @@ def _parse_cli_flags() -> None:
         _SELF["forfeit_early"] = True
 
     if parsed_args.verbose:
-        _SELF["verbose"] = True
+        _SELF["log_level"] = "DEBUG"
 
 
-def verbose() -> bool:
+def get_log_level() -> str:
     """
-    Get the state of the verbose setting in the config.
+    Get the level we're supposed to log at from the config.
 
     Returns:
-        True if we should be verbose, False if not.
+        The configured level as a str.
 
     """
-    return _SELF.get("verbose", False)
+    return _SELF.get("log_level", "INFO")
 
 
 def forfeit_early() -> bool:
