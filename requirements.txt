@@ -6,7 +6,7 @@ opencv-python==4.7.0.72
 psutil==5.9.4
 argparse==1.4.0
 pywin32==306; platform_system == "Windows"
-pyinstaller==5.9.0
+pyinstaller==5.10.1
 pylint==2.17.2
 keyboard==0.13.5
 isort[requirements_deprecated_finder,pipfile_deprecated_finder]==5.12.0
