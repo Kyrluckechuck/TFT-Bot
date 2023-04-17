@@ -1,7 +1,5 @@
 """Common constants used throughout the codebase, and common groupings of them in array format."""
 
-import os
-
 CONSTANTS = {
     "storage": {"appdata": "%APPDATA%/TFT Bot"},
     "executables": {
@@ -24,67 +22,12 @@ CONSTANTS = {
         "game": "League of Legends.exe",
         "rito_client": "RiotClientServices.exe",
     },
-    "tft_logo": {
-        "base": "captures/tft_logo.png",
-        "overshadowed": "captures/tft_logo_overshadowed.png",
-    },
     "client": {
-        "screenshot_location": f"{os.getcwd()}/screenshots",
-        "tabs": {
-            "tft": {
-                "unselected": {
-                    "1": "captures/buttons/tab_tft_unselected_1.png",
-                    "2": "captures/buttons/tab_tft_unselected_2.png",
-                    "3": "captures/buttons/tab_tft_unselected_3.png",
-                    "4": "captures/buttons/tab_tft_unselected_highlighted.png",
-                },
-                "subtab_home": "captures/buttons/tft_subtab_home.png",
-            }
-        },
-        "pre_match": {
-            "quick_play": "captures/buttons/quick_play.png",
-            "find_match": {
-                "base": "captures/buttons/find_match.png",
-                "highlighted": "captures/buttons/find_match_highlighted.png",
-            },
-            "lobby": {
-                "normal": "captures/tft_lobby_normal.png",
-            },
-        },
-        "in_queue": {
-            "base": "captures/buttons/in_queue.png",
-            "overshadowed": "captures/buttons/in_queue_overshadowed.png",
-            "accept": {
-                "zoomed": "captures/buttons/accept_zoomed.png",
-                "expanded": "captures/buttons/accept_expanded.png",
-            },
-        },
-        "continue": "captures/buttons/continue.png",
-        "reconnect": "captures/buttons/reconnect.png",
-        "key_fragment": {
-            "one": "captures/buttons/key_fragment.png",
-            "two": "captures/buttons/key_fragment2.png",
-        },
-        "post_game": {
-            "skip_waiting_for_stats": {
-                "original": "captures/buttons/skip_waiting_for_stats.png",
-                "base": "captures/buttons/skip_waiting_for_stats_base.png",
-                "highlighted": "captures/buttons/skip_waiting_for_stats_highlighted.png",
-            },
-            "play_again": "captures/buttons/play_again.png",
-            "missions_ok": "captures/buttons/missions_ok.png",
-        },
-        "launcher_play": "captures/buttons/launcher_play.png",
         "messages": {
             "failed_to_reconnect": "captures/messages/failed_to_reconnect.png",
-            "give_feedback": {
-                "full": "captures/messages/give_feedback.png",
-                "smaller": "captures/messages/give_feedback_smaller.png",
-            },
             "down_for_maintenance": "captures/messages/down_for_maintenance.png",
             "instant_feedback_report": "captures/messages/instant_feedback_report.png",
             "login_servers_down": "captures/messages/login_servers_down.png",
-            "players_are_not_ready": "captures/messages/players_are_not_ready.png",
             "session_expired": "captures/messages/session_expired.png",
             "unexpected_error_with_session": "captures/messages/unexpected_error_with_session.png",
             "unexpected_login_error": "captures/messages/unexpected_login_error.png",
@@ -114,7 +57,6 @@ CONSTANTS = {
             "choose_one": "captures/buttons/choose_one.png",
             "reroll": "captures/buttons/reroll.png",
             "take_all": "captures/buttons/take_all.png",
-            "timer_1": "captures/timer_1.png",
             "xp_buy": "captures/buttons/xp_buy.png",
         },
         "gold": {
@@ -187,43 +129,10 @@ CONSTANTS = {
     },
 }
 
-accept_match_images = [
-    CONSTANTS["client"]["in_queue"]["accept"]["expanded"],
-    CONSTANTS["client"]["in_queue"]["accept"]["zoomed"],
-]
-
-find_match_images = [
-    CONSTANTS["client"]["pre_match"]["find_match"]["base"],
-    CONSTANTS["client"]["pre_match"]["find_match"]["highlighted"],
-]
-
 exit_now_images = [
     CONSTANTS["game"]["exit_now"]["base"],
     CONSTANTS["game"]["exit_now"]["highlighted"],
     CONSTANTS["game"]["exit_now"]["original"],
-]
-
-skip_waiting_for_stats_images = [
-    CONSTANTS["client"]["post_game"]["skip_waiting_for_stats"]["base"],
-    CONSTANTS["client"]["post_game"]["skip_waiting_for_stats"]["highlighted"],
-    CONSTANTS["client"]["post_game"]["skip_waiting_for_stats"]["original"],
-]
-
-key_fragment_images = [
-    CONSTANTS["client"]["key_fragment"]["one"],
-    CONSTANTS["client"]["key_fragment"]["two"],
-]
-
-unselected_tft_tabs = [
-    CONSTANTS["client"]["tabs"]["tft"]["unselected"]["1"],
-    CONSTANTS["client"]["tabs"]["tft"]["unselected"]["2"],
-    CONSTANTS["client"]["tabs"]["tft"]["unselected"]["3"],
-    CONSTANTS["client"]["tabs"]["tft"]["unselected"]["4"],
-]
-
-give_feedback = [
-    CONSTANTS["client"]["messages"]["give_feedback"]["full"],
-    CONSTANTS["client"]["messages"]["give_feedback"]["smaller"],
 ]
 
 message_exit_buttons = [

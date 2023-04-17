@@ -19,7 +19,6 @@ from requests import HTTPError
 from tft_bot import config
 from tft_bot.constants import CONSTANTS
 from tft_bot.constants import exit_now_images
-from tft_bot.constants import find_match_images
 from tft_bot.constants import league_processes
 from tft_bot.constants import message_exit_buttons
 from tft_bot.helpers import system_helpers
@@ -30,7 +29,6 @@ from tft_bot.helpers.screen_helpers import calculate_window_click_offset
 from tft_bot.helpers.screen_helpers import check_league_game_size
 from tft_bot.helpers.screen_helpers import get_on_screen_in_client
 from tft_bot.helpers.screen_helpers import get_on_screen_in_game
-from tft_bot.helpers.screen_helpers import get_on_screen_multiple_any
 from tft_bot.league_api import league_api_integration
 
 auto.FAILSAFE = False
@@ -361,14 +359,6 @@ def check_if_client_error() -> bool:  # pylint: disable=too-many-return-statemen
     if get_on_screen_in_client(CONSTANTS["client"]["messages"]["unexpected_login_error"]):
         logger.info("Unexpected login error!")
         return acknowledge_error_and_restart_league()
-    if get_on_screen_in_client(CONSTANTS["client"]["messages"]["players_are_not_ready"]):
-        logger.info("Player not ready detected, waiting to see if it stays")
-        time.sleep(5)
-        if get_on_screen_in_client(CONSTANTS["client"]["messages"]["players_are_not_ready"]):
-            logger.error("Player not ready did not dismiss, restarting client!")
-            restart_league_client()
-            return True
-        logger.info("Player not ready dismissed, continuing on")
     return False
 
 
@@ -640,10 +630,8 @@ def end_match() -> None:
             continue
         break
 
-    if not get_on_screen_multiple_any(window_title=CONSTANTS["window_titles"]["client"], paths=find_match_images):
-        bring_league_client_to_forefront()
-        if check_if_client_error() or not league_client_running():
-            return
+    bring_league_client_to_forefront()
+    check_if_client_error()
 
 
 def match_complete() -> None:
