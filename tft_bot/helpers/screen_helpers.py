@@ -5,6 +5,7 @@ import cv2
 from loguru import logger
 import mss
 import numpy
+from pytesseract import pytesseract
 import win32gui
 
 from tft_bot.constants import CONSTANTS
@@ -230,3 +231,33 @@ def get_on_screen_multiple_any(window_title: str, paths: list[str], precision: f
             return True
 
     return False
+
+
+_TESSERACT_CONFIG = '--oem 3 --psm 7 -c tessedit_char_whitelist=0123456789 -c page_separator=""'
+
+
+def get_gold() -> int:
+    """
+    Get the gold by taking a screenshot of the region where it is and running OCR over it.
+    This should only be called by ocr_* implementations in the economy package, since they set where Tesseract-OCR is.
+
+    Returns:
+        The amount of gold the player currently has.
+
+    """
+    league_bounding_box = get_window_bounding_box(CONSTANTS["window_titles"]["game"])
+    if not league_bounding_box:
+        return 0
+
+    gold_bounding_box = (
+        league_bounding_box.min_x + 867,
+        league_bounding_box.min_y + 881,
+        league_bounding_box.min_x + 924,
+        league_bounding_box.min_y + 909,
+    )
+    with mss.mss() as screenshot_taker:
+        screenshot = screenshot_taker.grab(gold_bounding_box)
+
+    pixels = numpy.array(screenshot)
+    gray_scaled_pixels = cv2.cvtColor(pixels, cv2.COLOR_BGR2GRAY)
+    return int(pytesseract.image_to_string(~gray_scaled_pixels, config=_TESSERACT_CONFIG) or 0)
