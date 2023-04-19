@@ -4,26 +4,22 @@
 This is an auto TFT bot, with some decent logic built in.
 
 Some features of this bot:
+- Compiles to release executables, so you do not need Python / pip installed in order to use it.
+  - This includes being able to completely customize how the bot works through a [config file](#configuration), so you do not need to install python / pip for this either.
 - Keyboard shortcuts use the [keyboard](https://pypi.org/project/keyboard/) package, which allows it to listen globally (so you don't need to have the console selected in the foreground for this to take effect)
   - Ability to pause/resume the bot using `alt+p`
   - Ability to not re-queue the bot for a new game using `alt+n`
 - Does not surrender games early, by default, allowing it to play out most games, which at the ELO your bot will end up at means there's a decent chance you end up in top 4
   - If you're using this for event pass grinding, it will increase your odds of being top 4 which increases the points earned per minute played (faster pass progression)
 - Draft stage pathing (does not just walk to one point, will walk counter-clockwise to try to ensure it picks up a champ)
-- Basic gold logic to only click based on the gold available
-  - If >= 4, buy xp
-  - If >= 1, attempt 3 champ purchases
-    - After that, if >= 2, re-roll
-- Compiles to release executables so you do not need Python / pip installed in order to use it
-- Can load settings from a config file (if you want to customize how it starts up)
-- Automatically detects your League install location from the Windows registry, allowing non-default installs to still benefit from this script
+- Two gold-based decision-making systems, a default one (requires **no** dependency) and a higher-effort one (requires additional dependency).
+- Automatically detects your League install location from the Windows registry.
+  - This means the bot is able to freely start and restart your league client, should any issues arise, no matter where you installed it.
 
 How stable is this you might ask?
 I recorded this screenshot after a couple days if it running straight, and the battlepass XP matches 😜
 
 ![image](https://user-images.githubusercontent.com/7606153/208268290-8956bfb0-62d4-4d2f-9dd9-0c17c4c1a20e.png)
-
-
 
 # Usage / Settings
 
@@ -31,50 +27,6 @@ I recorded this screenshot after a couple days if it running straight, and the b
 * Adding the (`-v` or `--verbose`) argument will enable more verbose debug logging
   * This toggles whether the verbose logging should log to console / window. Verbose logging will always log to the log file.
 * You can use the config file below to "save" these settings
-
-## Configuration
-If you want to use frequent settings / "set it and forget it", you can do so by editing the `config.yaml` file in the data folder (`%APPDATA%\TFT Bot`).
-If you don't see the file or folder, start the bot once, and it should be created.  
-You can set the following settings:
-
-* Level of information displayed to you
-* Forfeiting early
-* Overriding the assumed League Of Legends installation path
-* Traits the bot should look for and how they should be bought
-* Timeouts the bot waits for throughout its various loop logic parts
-
-The settings are explained below but also in more detail in the file itself.
-
-The priority for configuration is as follows:
-
-1. CLI Arguments - Anything passed directly in the command-line takes the highest priority
-2. Configuration - Anything set in the configuration file
-3. Fallback default - Default values the developers deemed sensible
-
-***Note for developers**: The data folder is `./output` when running the python script directly.*
-
-### *Advanced Setting Info*
-#### **Log level**
-The log level is the all-caps word after the time-stamp, and determines the severity of the message following after it.
-`DEBUG` is mainly for developers, `INFO` is useful information for the user, `WARNING` are non-critical issues, `ERROR` are things that went wrong but shouldn't close the bot and `CRITICAL` is something we can not recover from.
-For most users, we do not recommend setting this to anything above `WARNING`.
-#### **Forfeit Early**
-Forfeit at first opportunity instead of playing it out until eliminated.
-#### **Override Install Location**
-Override any League client detection logic. This should be set to whichever directory contains your `LeagueClient.exe`, `LeagueClientUx.exe`, and `Game\League of Legends.exe` executables, which is especially useful for Garena players as I can not automate this detection (from what I've heard).
-#### **Wanted Traits**
-Which traits the bot should look for.
-#### **Purchase traits in prioritized order**
-If a trait in the configured trait list should only be bought if the trait that comes before it was bought.
-#### **Timeouts**
-Anytime the bot waits for something to happen. The default values should work for most people, but can be adjusted for slower internet speed or hardware.
-
-# Installation (for source):
-
-* Install Python 3.11 from [here](https://www.python.org/downloads/), or the Windows Store
-* Navigate to your install directory using `cd` and run `pip install -r requirements.txt` in Command Prompt
-* Navigate to your install directory using `cd` and run `py tft.py` in Command Prompt
-* Follow the instructions in your terminal window! Get into a TFT lobby, have the created window visible on your screen, and press 'OK' to start the bot!
 
 ## Optional: Install Tesseract-OCR & Enable economic decision-making
 
@@ -87,11 +39,39 @@ After you have downloaded and installed Tesseract-OCR, set `mode` unter `economy
 The bot will at its next start-up attempt to detect where Tesseract is installed.
 If that does not work, please manually override it in the `config.yaml`.
 
+## Configuration
+If you want to use frequent settings / "set it and forget it", you can do so by editing the `config.yaml` file in the data folder (`%APPDATA%\TFT Bot`).
+If you don't see the file or folder, start the bot once, and it should be created.  
+You can set the following settings:
+
+* Level of information displayed to you
+* Forfeiting early
+* Overriding the assumed League Of Legends installation path
+* Traits the bot should look for and how they should be bought
+* Timeouts the bot waits for throughout its various loop logic parts
+
+The settings are explained in more detail in the [file itself](tft_bot/resources/config.yaml).
+
+The priority for configuration is as follows:
+
+1. CLI Arguments - Anything passed directly in the command-line takes the highest priority
+2. Configuration - Anything set in the configuration file
+3. Fallback default - Default values the developers deemed sensible
+
+# Installation (for source):
+
+* Install Python 3.11 from [here](https://www.python.org/downloads/), or the Windows Store
+* Navigate to your install directory using `cd` and run `pip install -r requirements.txt` in Command Prompt
+* Navigate to your install directory using `cd` and run `py tft.py` in Command Prompt
+* Follow the instructions in your terminal window! Get into a TFT lobby, have the created window visible on your screen, and press 'OK' to start the bot!
+
+***Note**: The data folder is `./output` when running the python script directly.*
+
 # Troubleshooting:
 
 Common Issues:
 * The bot is configured to work with in-game resolution 1920x1080, and League client resolution 1280x720. (Also Windows scaling 100%) You can switch this up though, just re-capture the images in the captures folder, but support will become more difficult!
-* Make sure to run League and the bot on your main monitor, as it doesn't support additional monitors!
+* Make sure you have any overlays over the normal League game window disabled.
 
 If running from source:
 * If these steps don't work, try running the file with `python "tft.py"` instead (For Windows Store/MacOS/Linux users especially) Likewise, try `pip3` instead of `pip` for installing requirements.
