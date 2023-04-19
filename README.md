@@ -35,8 +35,10 @@ To change this, we support economic decision-making backed by reading the accura
 However, this **requires** Tesseract-OCR to be installed, which you can download a pre-built Windows installer for [here](https://github.com/UB-Mannheim/tesseract/wiki).
 For this bots purpose, you can deselect everything in the components to install to only install the bare minimum.
 
-After you have downloaded and installed Tesseract-OCR, set `mode` unter `economy` to `ocr_standard` in the `config.yaml`.
-The bot will at its next start-up attempt to detect where Tesseract is installed.
+After you have downloaded and installed Tesseract-OCR, set `mode` under `economy` to `ocr_standard` in the `config.yaml`.
+
+The bot will (at its next start-up) attempt to detect where Tesseract is installed.
+
 If that does not work, please manually override it in the `config.yaml`.
 
 ## Configuration
