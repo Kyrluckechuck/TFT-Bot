@@ -213,14 +213,19 @@ def determine_tesseract_ocr_install_location() -> str:
         If successful, the determined install location. If unsuccessful, the default install location.
     """
     tesseract_ocr_path = r"C:\Program Files\Tesseract-OCR"
+    override_path = config.get_tesseract_override_install_location()
 
-    registry_entry = read_registry(
-        hkey_type=winreg.HKEY_LOCAL_MACHINE, path=r"SOFTWARE\Tesseract-OCR", value="InstallDir"
-    )
-    if registry_entry:
-        tesseract_ocr_path = registry_entry
+    if override_path is not None:
+        logger.warning(f"Override path supplied, using '{override_path}' as Tesseract-OCR install directory.")
+        tesseract_ocr_path = override_path
+    else:
+        registry_entry = read_registry(
+            hkey_type=winreg.HKEY_LOCAL_MACHINE, path=r"SOFTWARE\Tesseract-OCR", value="InstallDir"
+        )
+        if registry_entry:
+            tesseract_ocr_path = registry_entry
 
-    tesseract_ocr_path = str(pathlib.PureWindowsPath(tesseract_ocr_path))
+        tesseract_ocr_path = str(pathlib.PureWindowsPath(tesseract_ocr_path))
 
     logger.debug(f"Tesseract-OCR location determined to be: {tesseract_ocr_path}")
 

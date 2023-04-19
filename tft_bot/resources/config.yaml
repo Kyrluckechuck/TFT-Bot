@@ -32,6 +32,8 @@ economy:
   # "default" constantly spends all gold, cycling equally between purchasing, leveling, and rolling.
   # "ocr_standard" tries to keep your gold at around 50, otherwise behaves like default.
   mode: "default"
+  # Override the automatic detection of tesseract. Should not be needed, but is supported.
+  override_tesseract_location: ""
 
 # Configure the various timeouts the bot uses throughout it's looping logic.
 # Adjust these to account for differences in internet/hardware speed.

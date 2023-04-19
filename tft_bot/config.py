@@ -173,6 +173,17 @@ def get_timeout(timeout: Timeout, default: int) -> int:
     return _SELF.get(timeout, default)
 
 
+def get_tesseract_override_install_location() -> str | None:
+    """
+    Get the value of the override_tesseract_location setting in the config.
+
+    Returns:
+        An optional string containing the user-defined install location.
+
+    """
+    return _SELF["economy"].get("override_tesseract_location") or None
+
+
 def get_economy_mode(system_helpers) -> EconomyMode:
     """
     Get the economy mode the bot should run on.
