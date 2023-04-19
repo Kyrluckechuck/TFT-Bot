@@ -26,6 +26,12 @@ wanted_traits:
 # to buy all traits.
 purchase_traits_in_prioritized_order: true
 
+# Settings for the bots decisions made for purchasing units, leveling and rolling.
+economy:
+  # The mode itself to be used.
+  # "default" constantly spends all gold.
+  mode: "default"
+
 # Configure the various timeouts the bot uses throughout it's looping logic.
 # Adjust these to account for differences in internet/hardware speed.
 # All of these are measured in seconds.
@@ -59,4 +65,4 @@ timeouts:
 override_install_location: ''
 
 # Version of the YAML. Changing this manually can potentially break the bot, so don't!
-version: 4
+version: 5

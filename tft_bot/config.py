@@ -11,6 +11,8 @@ from typing import Any
 from loguru import logger
 from ruamel.yaml import YAML
 
+from .economy.base import EconomyMode
+from .economy.default import DefaultEconomyMode
 from .helpers import system_helpers
 
 _SELF: dict[str, Any] = {}
@@ -168,3 +170,18 @@ def get_timeout(timeout: Timeout, default: int) -> int:
 
     """
     return _SELF.get(timeout, default)
+
+
+def get_economy_mode() -> EconomyMode:
+    """
+    Get the economy mode the bot should run on.
+
+    Returns:
+        A new instance of the economy mode.
+
+    """
+    match _SELF["economy"].get("mode", "default"):
+        case "default":
+            return DefaultEconomyMode(
+                wanted_traits=get_wanted_traits(), prioritized_order=purchase_traits_in_prioritized_order()
+            )

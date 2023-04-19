@@ -76,6 +76,17 @@ Anytime the bot waits for something to happen. The default values should work fo
 * Navigate to your install directory using `cd` and run `py tft.py` in Command Prompt
 * Follow the instructions in your terminal window! Get into a TFT lobby, have the created window visible on your screen, and press 'OK' to start the bot!
 
+## Optional: Install Tesseract-OCR & Enable economic decision-making
+
+By default, or if we could not find tesseract on your system, the bot will use a straight-forward logic of constantly leveling, rolling and buying units.
+To change this, we support economic decision-making backed by reading the accurate value of your gold from your screen.
+However, this **requires** Tesseract-OCR to be installed, which you can download a pre-built Windows installer for [here](https://github.com/UB-Mannheim/tesseract/wiki).
+For this bots purpose, you can deselect everything in the components to install to only install the bare minimum.
+
+After you have downloaded and installed Tesseract-OCR, set `enabled` unter `economic-decisions` to `true` in the `config.yaml`.
+The bot will at its next start-up attempt to detect where Tesseract is installed.
+If that does not work, please manually override it in the `config.yaml`.
+
 # Troubleshooting:
 
 Common Issues:

@@ -21,10 +21,10 @@ from tft_bot.constants import CONSTANTS
 from tft_bot.constants import exit_now_images
 from tft_bot.constants import league_processes
 from tft_bot.constants import message_exit_buttons
+from tft_bot.economy.base import EconomyMode
 from tft_bot.helpers import system_helpers
 from tft_bot.helpers.click_helpers import click_to
 from tft_bot.helpers.click_helpers import click_to_image
-from tft_bot.helpers.screen_helpers import BoundingBox
 from tft_bot.helpers.screen_helpers import calculate_window_click_offset
 from tft_bot.helpers.screen_helpers import check_league_game_size
 from tft_bot.helpers.screen_helpers import get_on_screen_in_client
@@ -273,7 +273,7 @@ def start_match() -> None:
     while get_on_screen_in_game(CONSTANTS["game"]["round"]["1-1"]):
         shared_draft_pathing()
     logger.info("Initial draft complete, continuing with game")
-    main_game_loop()
+    main_game_loop(economy_mode=config.get_economy_mode())
 
 
 def shared_draft_pathing() -> None:
@@ -295,23 +295,6 @@ def shared_draft_pathing() -> None:
     click_to(position_x=bottom.position_x, position_y=bottom.position_y, action="right")
     time.sleep(2)
     click_to(position_x=right.position_x, position_y=right.position_y, action="right")
-
-
-def buy(iterations: int) -> None:
-    """Attempt to purchase champs with the designated `wanted_traits`.
-    This will iterate the attempts, but only if the gold is detected to at least be 1.
-
-    Args:
-        iterations (int): The number of attempts to purchase a champ.
-    """
-    for _ in range(iterations):
-        if not check_if_gold_at_least(1):
-            return
-        for trait in config.get_wanted_traits():
-            if click_to_image(image_search_result=get_on_screen_in_game(CONSTANTS["game"]["trait"][trait])):
-                time.sleep(0.5)
-            elif config.purchase_traits_in_prioritized_order():
-                return
 
 
 def click_ok_message() -> None:
@@ -479,49 +462,6 @@ def check_if_post_game() -> bool:
     return attempt_reconnect_to_existing_game()
 
 
-def check_gold(num: int) -> bool:
-    """
-    Checks if there is N gold in the region of the gold display.
-
-    Args:
-        num: The amount of gold we're checking for, there should be a file for it in captures/gold .
-
-    Returns:
-        True if we found the amount of gold. False if not.
-
-    """
-    try:
-        if get_on_screen_in_game(CONSTANTS["game"]["gold"][f"{num}"], 0.9, BoundingBox(780, 850, 970, 920)):
-            logger.debug(f"Found {num} gold")
-            return True
-    except Exception as exc:
-        logger.opt(exception=exc).debug(f"Exception finding {num} gold, we possibly don't have the value as a file")
-        # We don't have this gold as a file
-        return True
-    return False
-
-
-def check_if_gold_at_least(num: int) -> bool:
-    """Check if the gold on screen is at least the provided amount
-
-    Args:
-        num (int): The value to check if the gold is at least.
-
-    Returns:
-        bool: True if the value is >= `num`, False otherwise.
-    """
-    logger.debug(f"Looking for at least {num} gold")
-    if check_gold(num):
-        return True
-
-    for i in range(num + 1):
-        if check_gold(i):
-            return i >= num
-
-    logger.debug("No gold value found, assuming we have more")
-    return True
-
-
 def determine_minimum_round() -> int:
     """
     Determines minimum round we are at.
@@ -557,8 +497,12 @@ def determine_minimum_round() -> int:
     return 0
 
 
-def main_game_loop() -> None:  # pylint: disable=too-many-branches
-    """The main in-game loop.
+def main_game_loop(economy_mode: EconomyMode) -> None:
+    """
+    The main in-game loop.
+
+    Args:
+        economy_mode: The economy mode the bot should use
 
     Skips 5-second increments if a pause logic request is made,
     repeating until toggled or an event triggers an early exit.
@@ -589,25 +533,12 @@ def main_game_loop() -> None:  # pylint: disable=too-many-branches
             time.sleep(0.5)
             continue
 
-        if minimum_round <= 2:
-            buy(3)
-            continue
+        economy_mode.loop_decision(minimum_round=minimum_round)
 
-        if config.forfeit_early() and minimum_round >= 3:
+        if minimum_round >= 3 and config.forfeit_early():
             logger.info("Attempting to surrender early")
             surrender()
             break
-
-        # If round > 2, buy champs, level and re-roll
-        buy(3)
-        if check_if_gold_at_least(4):
-            click_to_image(image_search_result=get_on_screen_in_game(CONSTANTS["game"]["gamelogic"]["xp_buy"]))
-            time.sleep(0.5)
-
-        if check_if_gold_at_least(5):
-            click_to_image(image_search_result=get_on_screen_in_game(CONSTANTS["game"]["gamelogic"]["reroll"]))
-            time.sleep(0.5)
-            continue
 
         time.sleep(0.5)
 
