@@ -28,8 +28,9 @@ purchase_traits_in_prioritized_order: true
 
 # Settings for the bots decisions made for purchasing units, leveling and rolling.
 economy:
-  # The mode itself to be used.
-  # "default" constantly spends all gold.
+  # The mode itself to be used. ocr_* modes require Tesseract-OCR to be installed.
+  # "default" constantly spends all gold, cycling equally between purchasing, leveling, and rolling.
+  # "ocr_standard" tries to keep your gold at around 50, otherwise behaves like default.
   mode: "default"
 
 # Configure the various timeouts the bot uses throughout it's looping logic.

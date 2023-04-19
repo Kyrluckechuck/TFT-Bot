@@ -13,7 +13,7 @@ from ruamel.yaml import YAML
 
 from .economy.base import EconomyMode
 from .economy.default import DefaultEconomyMode
-from .helpers import system_helpers
+from .economy.ocr_standard import OCRStandardEconomyMode
 
 _SELF: dict[str, Any] = {}
 
@@ -35,12 +35,13 @@ class Timeout(StrEnum):
     SURRENDER_MAX = auto()
 
 
-def load_config(storage_path: str) -> None:
+def load_config(system_helpers, storage_path: str) -> None:
     """
     Writes the configuration from resource (provided in repository) to storage path, loads the configuration from
     storage path to memory and updates the configuration if necessary.
 
     Args:
+        system_helpers: Dependency injected system_helpers module.
         storage_path: The base storage path where all of our files should go.
 
     """
@@ -172,16 +173,31 @@ def get_timeout(timeout: Timeout, default: int) -> int:
     return _SELF.get(timeout, default)
 
 
-def get_economy_mode() -> EconomyMode:
+def get_economy_mode(system_helpers) -> EconomyMode:
     """
     Get the economy mode the bot should run on.
+
+    Args:
+        system_helpers: Dependency injected system_helpers module.
 
     Returns:
         A new instance of the economy mode.
 
     """
+    wanted_traits = get_wanted_traits()
+    prioritized_order = purchase_traits_in_prioritized_order()
+
     match _SELF["economy"].get("mode", "default"):
         case "default":
-            return DefaultEconomyMode(
-                wanted_traits=get_wanted_traits(), prioritized_order=purchase_traits_in_prioritized_order()
+            return DefaultEconomyMode(wanted_traits=wanted_traits, prioritized_order=prioritized_order)
+        case "ocr_standard":
+            tesseract_location = system_helpers.determine_tesseract_ocr_install_location() + "\\tesseract.exe"
+            if not os.path.isfile(tesseract_location):
+                logger.warning(
+                    f'Tesseract location "{tesseract_location}" does not exist. Falling back to default economy mode'
+                )
+                return DefaultEconomyMode(wanted_traits=wanted_traits, prioritized_order=prioritized_order)
+
+            return OCRStandardEconomyMode(
+                wanted_traits=wanted_traits, prioritized_order=prioritized_order, tesseract_location=tesseract_location
             )

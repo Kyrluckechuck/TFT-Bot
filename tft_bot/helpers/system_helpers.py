@@ -148,6 +148,34 @@ def expand_environment_variables(var: str) -> str:
     return os.path.expandvars(var)
 
 
+def read_registry(hkey_type: int, path: str, value: str) -> str | None:
+    """
+    Read the registry at a specific hkey type and path.
+
+    Args:
+        hkey_type: The HKEY to read at, see winreg.HKEY_*
+        path: The path to read at.
+        value: The specific value to read from the path
+
+    Returns:
+        The value as a str if found, otherwise None.
+    """
+    try:
+        access_registry = winreg.ConnectRegistry(None, hkey_type)
+        access_key = winreg.OpenKey(
+            access_registry,
+            path,
+            0,
+            winreg.KEY_READ,
+        )
+        [path, _] = winreg.QueryValueEx(access_key, value)
+    except Exception as exc:
+        logger.opt(exception=exc).error(f"Could not read registry at {path}\\{value}.")
+        return None
+
+    return path
+
+
 def determine_league_install_location() -> str:
     """Determine the location League was installed.
 
@@ -162,21 +190,38 @@ def determine_league_install_location() -> str:
         logger.warning(f"Override path supplied, using '{override_path}' as League install directory.")
         league_path = override_path
     else:
-        try:
-            access_registry = winreg.ConnectRegistry(None, winreg.HKEY_CURRENT_USER)
-            access_key = winreg.OpenKey(
-                access_registry,
-                r"SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall\Riot Game league_of_legends.live",
-                0,
-                winreg.KEY_READ,
-            )
-            [league_path, _] = winreg.QueryValueEx(access_key, "InstallLocation")
-        except Exception as err:
-            logger.error(f"Could not dynamically determine League install location : {str(err)}")
-            logger.error(sys.exc_info())
+        registry_entry = read_registry(
+            hkey_type=winreg.HKEY_CURRENT_USER,
+            path=r"SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall\Riot Game league_of_legends.live",
+            value="InstallLocation",
+        )
+        if registry_entry:
+            league_path = registry_entry
 
     league_path = str(pathlib.PureWindowsPath(league_path))
 
     logger.debug(f"League path determined to be: {league_path}")
 
     return league_path
+
+
+def determine_tesseract_ocr_install_location() -> str:
+    """
+    Determine the location Tesseract-OCR was installed at.
+
+    Returns:
+        If successful, the determined install location. If unsuccessful, the default install location.
+    """
+    tesseract_ocr_path = r"C:\Program Files\Tesseract-OCR"
+
+    registry_entry = read_registry(
+        hkey_type=winreg.HKEY_LOCAL_MACHINE, path=r"SOFTWARE\Tesseract-OCR", value="InstallDir"
+    )
+    if registry_entry:
+        tesseract_ocr_path = registry_entry
+
+    tesseract_ocr_path = str(pathlib.PureWindowsPath(tesseract_ocr_path))
+
+    logger.debug(f"Tesseract-OCR location determined to be: {tesseract_ocr_path}")
+
+    return tesseract_ocr_path

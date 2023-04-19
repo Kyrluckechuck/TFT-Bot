@@ -273,7 +273,7 @@ def start_match() -> None:
     while get_on_screen_in_game(CONSTANTS["game"]["round"]["1-1"]):
         shared_draft_pathing()
     logger.info("Initial draft complete, continuing with game")
-    main_game_loop(economy_mode=config.get_economy_mode())
+    main_game_loop(economy_mode=config.get_economy_mode(system_helpers=system_helpers))
 
 
 def shared_draft_pathing() -> None:
@@ -744,7 +744,7 @@ def main():
             storage_path = system_helpers.expand_environment_variables(CONSTANTS["storage"]["appdata"])
             break
 
-    config.load_config(storage_path=storage_path)
+    config.load_config(system_helpers=system_helpers, storage_path=storage_path)
 
     log_level = config.get_log_level().upper()
     if log_level == "DEBUG":
