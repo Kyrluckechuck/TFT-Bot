@@ -236,7 +236,7 @@ def get_on_screen_multiple_any(window_title: str, paths: list[str], precision: f
 _TESSERACT_CONFIG = '--oem 3 --psm 7 -c tessedit_char_whitelist=0123456789 -c page_separator=""'
 
 
-def get_gold() -> int:
+def get_gold_with_ocr() -> int:
     """
     Get the gold by taking a screenshot of the region where it is and running OCR over it.
     This should only be called by ocr_* implementations in the economy package, since they set where Tesseract-OCR is.
@@ -261,3 +261,46 @@ def get_gold() -> int:
     pixels = numpy.array(screenshot)
     gray_scaled_pixels = cv2.cvtColor(pixels, cv2.COLOR_BGR2GRAY)
     return int(pytesseract.image_to_string(~gray_scaled_pixels, config=_TESSERACT_CONFIG) or 0)
+
+
+def get_gold_with_opencv(num: int) -> bool:
+    """
+    Checks if there is N gold in the region of the gold display.
+
+    Args:
+        num: The amount of gold we're checking for, there should be a file for it in captures/gold .
+
+    Returns:
+        True if we found the amount of gold. False if not.
+    """
+    try:
+        if get_on_screen_in_game(CONSTANTS["game"]["gold"][f"{num}"], 0.9, BoundingBox(780, 850, 970, 920)):
+            logger.debug(f"Found {num} gold")
+            return True
+    except Exception as exc:
+        logger.opt(exception=exc).debug(f"Exception finding {num} gold, we possibly don't have the value as a file")
+        # We don't have this gold as a file
+        return True
+    return False
+
+
+def gold_at_least(num: int) -> bool:
+    """
+    Check if the gold on screen is at least the provided amount with opencv
+
+    Args:
+        num (int): The value to check if the gold is at least.
+
+    Returns:
+        bool: True if the value is >= `num`, False otherwise.
+    """
+    logger.debug(f"Looking for at least {num} gold")
+    if get_gold_with_opencv(num):
+        return True
+
+    for i in range(num + 1):
+        if get_gold_with_opencv(i):
+            return i >= num
+
+    logger.debug("No gold value found, assuming we have more")
+    return True

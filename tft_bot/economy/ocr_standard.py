@@ -20,7 +20,7 @@ class OCRStandardEconomyMode(EconomyMode):
     def loop_decision(self, minimum_round: int):
         self.purchase_units(amount=3)
 
-        gold = screen_helpers.get_gold()
+        gold = screen_helpers.get_gold_with_ocr()
         logger.debug(f"OCR recognized {gold} gold")
         if gold >= 54:
             self.purchase_xp()
