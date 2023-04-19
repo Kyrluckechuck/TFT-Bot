@@ -228,11 +228,11 @@ def queue() -> None:  # pylint: disable=too-many-branches
             if start_queue_repeating:
                 LCU_INTEGRATION.delete_lobby()
                 start_queue_repeating = False
-                time.sleep(1)
+                time.sleep(3)
                 continue
 
             LCU_INTEGRATION.start_queue()
-            time.sleep(1)
+            time.sleep(3)
             start_queue_repeating = True
             continue
 
