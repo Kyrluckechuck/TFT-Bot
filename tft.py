@@ -121,6 +121,11 @@ def restart_league_client() -> None:
         result = kill_process(process_to_kill)
         parse_task_kill_result(result)
     time.sleep(1)
+
+    if not system_helpers.internet():
+        wait_for_internet()
+        time.sleep(1)
+
     subprocess.run(CONSTANTS["executables"]["league"]["client"], check=True)
     time.sleep(3)
     if not LCU_INTEGRATION.connect_to_lcu(wait_for_availability=True):
@@ -312,7 +317,7 @@ def click_exit_message() -> None:
 
 def wait_for_internet() -> None:
     """Delay indefinitely until an internet is detected."""
-    while not system_helpers.have_internet():
+    while not system_helpers.internet():
         logger.warning("Internet is not up, will retry in 60 seconds")
         time.sleep(60)
 
@@ -329,10 +334,10 @@ def check_if_client_error() -> bool:  # pylint: disable=too-many-return-statemen
         return acknowledge_error_and_restart_league(delay=300)
     if get_on_screen_in_client(CONSTANTS["client"]["messages"]["failed_to_reconnect"]):
         logger.info("Failed to reconnect!")
-        return acknowledge_error_and_restart_league(internet_pause=True)
+        return acknowledge_error_and_restart_league()
     if get_on_screen_in_client(CONSTANTS["client"]["messages"]["login_servers_down"]):
         logger.info("Login servers down!")
-        return acknowledge_error_and_restart_league(internet_pause=True)
+        return acknowledge_error_and_restart_league()
     if get_on_screen_in_client(CONSTANTS["client"]["messages"]["session_expired"]):
         logger.info("Session expired!")
         return acknowledge_error_and_restart_league()
@@ -345,13 +350,11 @@ def check_if_client_error() -> bool:  # pylint: disable=too-many-return-statemen
     return False
 
 
-def acknowledge_error_and_restart_league(delay: int = 5, internet_pause: bool = False) -> bool:
+def acknowledge_error_and_restart_league(delay: int = 5) -> bool:
     """Acknowledge error message with ok or error button and restart league client"""
     click_exit_message()
     click_ok_message()
     time.sleep(delay)
-    if internet_pause:
-        wait_for_internet()
     restart_league_client()
     return True
 

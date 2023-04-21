@@ -1,7 +1,7 @@
 """A collection of system-level helpers"""
-import http.client as httplib
 import os
 import pathlib
+import socket
 import sys
 import winreg
 
@@ -74,25 +74,23 @@ def find_in_processes(executable_path: str) -> bool:
     return False
 
 
-def have_internet(ip_to_ping="1.1.1.1") -> bool:
-    """Checks if there is an active internet connection to the given IP address, checking if a HEAD request succeeds.
+def internet(host="8.8.8.8", port=53) -> bool:
+    """
+    Checks if there is an active internet connection to the given IP address.
 
     Args:
-        ip_to_ping (str, optional): The IP address to check. Defaults to "1.1.1.1".
+        host: The host to connect to. Defaults to "8.8.8.8".
+        port: The port to connect on. Defaults to 53 (TCP/UDP port for DNS service)
 
     Returns:
-        bool: True if a HEAD request succeeds to the specified IP address, False otherwise.
+        bool: True if the connection succeeds to the specified IP address, False otherwise.
     """
-    conn = httplib.HTTPSConnection(ip_to_ping, timeout=5)
     try:
-        conn.request("HEAD", "/")
-        logger.debug(f"Success pinging {ip_to_ping}")
+        socket.setdefaulttimeout(5)
+        socket.socket(socket.AF_INET, socket.SOCK_STREAM).connect((host, port))
         return True
-    except Exception:
-        logger.debug(f"Can not ping {ip_to_ping}")
+    except socket.error:
         return False
-    finally:
-        conn.close()
 
 
 # Via https://gist.github.com/sthonnard/31106e47eab8d6f3329ef530717e8079
