@@ -74,12 +74,12 @@ def find_in_processes(executable_path: str) -> bool:
     return False
 
 
-def internet(host="8.8.8.8", port=53) -> bool:
+def internet(host="1.1.1.1", port=53) -> bool:
     """
     Checks if there is an active internet connection to the given IP address.
 
     Args:
-        host: The host to connect to. Defaults to "8.8.8.8".
+        host: The host to connect to. Defaults to "1.1.1.1".
         port: The port to connect on. Defaults to 53 (TCP/UDP port for DNS service)
 
     Returns:
