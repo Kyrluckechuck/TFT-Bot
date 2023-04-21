@@ -129,7 +129,7 @@ def restart_league_client() -> None:
     subprocess.run(CONSTANTS["executables"]["league"]["client"], check=True)
     time.sleep(3)
     if not LCU_INTEGRATION.connect_to_lcu(wait_for_availability=True):
-        sys.exit(1)
+        restart_league_client()
 
 
 def restart_league_if_not_running() -> bool:
@@ -837,7 +837,7 @@ def main():
         update_league_constants(league_directory)
         restart_league_client()
     elif not LCU_INTEGRATION.connect_to_lcu():
-        sys.exit(1)
+        restart_league_client()
 
     league_directory = LCU_INTEGRATION.get_installation_directory()
     update_league_constants(league_directory)
