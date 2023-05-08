@@ -46,6 +46,7 @@ CONSTANTS = {
             "base": "captures/buttons/exit_now_base.png",
             "highlighted": "captures/buttons/exit_now_highlighted.png",
             "original": "captures/buttons/exit_now_original.png",
+            "continue": "captures/buttons/exit_now_original.png",
         },
         "settings": "captures/buttons/settings.png",
         "surrender": {
@@ -133,6 +134,7 @@ exit_now_images = [
     CONSTANTS["game"]["exit_now"]["base"],
     CONSTANTS["game"]["exit_now"]["highlighted"],
     CONSTANTS["game"]["exit_now"]["original"],
+    CONSTANTS["game"]["exit_now"]["continue"],
 ]
 
 message_exit_buttons = [
