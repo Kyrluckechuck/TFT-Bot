@@ -761,7 +761,7 @@ def check_for_new_version(repository_url: str):
         ):
             logger.info(f"{releases_url} should open in your browser now")
             webbrowser.open(f"{releases_url}", new=0, autoraise=True)
-            sys.exit(1)
+            sys.exit(0)
     else:
         logger.info("You're up to date!")
 
@@ -779,7 +779,7 @@ def wait_for_start_confirmation():
         != "Start"
     ):
         logger.warning("Initialization completed but aborting by user choice")
-        sys.exit(1)
+        sys.exit(0)
 
 
 @logger.catch
