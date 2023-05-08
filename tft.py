@@ -842,7 +842,7 @@ def main():
     if not os.access(absolute_storage_path, os.W_OK):
         logger.error(f"We do not have write access into {absolute_storage_path}. Try running the bot as administrator.")
     else:
-        logger.info(f"All of the configuration can be found in '{absolute_storage_path}'.")
+        logger.info(f"All of the logs and configuration can be found in '{absolute_storage_path}'.")
 
     repository_url = "https://github.com/Kyrluckechuck/tft-bot"
     logger.info(f"Welcome! Please feel free to ask questions or contribute at {repository_url}")
