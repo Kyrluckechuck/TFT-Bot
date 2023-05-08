@@ -3,6 +3,8 @@ Module holding the default economy mode.
 """
 import time
 
+from tft import GAME_CLIENT_INTEGRATION
+
 from ..helpers import screen_helpers
 from .base import EconomyMode
 
@@ -20,7 +22,7 @@ class DefaultEconomyMode(EconomyMode):
         if minimum_round < 3:
             return
 
-        if screen_helpers.gold_at_least(4):
+        if screen_helpers.gold_at_least(4) and GAME_CLIENT_INTEGRATION.get_level() < 8:
             self.purchase_xp()
             time.sleep(0.5)
 

@@ -465,3 +465,18 @@ class GameClientIntegration:
             return True
 
         return active_player_response.json()["championStats"]["currentHealth"] <= 0.0
+
+    def get_level(self) -> int:
+        """
+        Get the level the player currently is at.
+
+        Returns:
+            The level of the active player.
+        """
+
+        active_player_response = _http_error_wrapper(self._session.get, url=f"{self._url}/liveclientdata/activeplayer")
+        if not active_player_response:
+            logger.debug("There was an error in the response, assuming that we are level 0")
+            return 0
+
+        return active_player_response.json().get("level", 0)

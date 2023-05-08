@@ -4,6 +4,8 @@ Module holding the OCR standard economy mode.
 from loguru import logger
 from pytesseract import pytesseract
 
+from tft import GAME_CLIENT_INTEGRATION
+
 from ..helpers import screen_helpers
 from .base import EconomyMode
 
@@ -22,7 +24,7 @@ class OCRStandardEconomyMode(EconomyMode):
 
         gold = screen_helpers.get_gold_with_ocr()
         logger.debug(f"OCR recognized {gold} gold")
-        if gold >= 54:
+        if gold >= 54 and GAME_CLIENT_INTEGRATION.get_level() < 8:
             self.purchase_xp()
             gold -= 4
 
