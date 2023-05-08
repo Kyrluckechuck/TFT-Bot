@@ -46,7 +46,7 @@ CONSTANTS = {
             "base": "captures/buttons/exit_now_base.png",
             "highlighted": "captures/buttons/exit_now_highlighted.png",
             "original": "captures/buttons/exit_now_original.png",
-            "continue": "captures/buttons/exit_now_original.png",
+            "continue": "captures/buttons/continue.png",
         },
         "settings": "captures/buttons/settings.png",
         "surrender": {
