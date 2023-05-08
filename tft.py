@@ -2,6 +2,7 @@
 The main TFT Bot code
 """
 from datetime import datetime
+import os
 import random
 import subprocess
 import sys
@@ -735,6 +736,52 @@ def re_add_non_debug_logger(log_level: str) -> None:
     )
 
 
+def check_for_new_version(repository_url: str):
+    """
+    Checks the given repository for a newer version than the one stored.
+
+    Args:
+        repository_url: The repository URL to check the version at.
+    """
+    releases_url = f"{repository_url}/releases/latest"
+    versions = get_newer_version()
+    if versions:
+        logger.warning("There is a newer version available")
+        if (
+            auto.confirm(
+                title="TFT Auto Bot",
+                text=(
+                    "There is a newer version available!\n"
+                    f"Your version: {versions[0]}\n"
+                    f"Current version: {versions[1]}"
+                ),
+                buttons=["Download", "Ignore"],
+            )
+            == "Download"
+        ):
+            logger.info(f"{releases_url} should open in your browser now")
+            webbrowser.open(f"{releases_url}", new=0, autoraise=True)
+            sys.exit(1)
+    else:
+        logger.info("You're up to date!")
+
+
+def wait_for_start_confirmation():
+    """
+    Prompts the user to confirm that they want to start the bot.
+    """
+    if (
+        auto.confirm(
+            title="TFT Auto Bot",
+            text="Press Start when the bot should continue!\n",
+            buttons=["Start", "Cancel"],
+        )
+        != "Start"
+    ):
+        logger.warning("Initialization completed but aborting by user choice")
+        sys.exit(1)
+
+
 @logger.catch
 def main():
     """Entrypoint function to initialize most of the code.
@@ -788,41 +835,17 @@ def main():
     logger.info(f"Bot will only display messages at severity level {log_level}.")
     logger.info(f"Bot will {'' if config.forfeit_early() else 'NOT '}surrender early.")
 
+    absolute_storage_path = os.path.abspath(storage_path)
+    if not os.access(absolute_storage_path, os.W_OK):
+        logger.error(f"We do not have write access into {absolute_storage_path}. Try running the bot as administrator.")
+    else:
+        logger.info(f"All of the configuration can be found in '{absolute_storage_path}'.")
+
     repository_url = "https://github.com/Kyrluckechuck/tft-bot"
     logger.info(f"Welcome! Please feel free to ask questions or contribute at {repository_url}")
 
-    releases_url = f"{repository_url}/releases/latest"
-    versions = get_newer_version()
-    if versions:
-        logger.warning("There is a newer version available")
-        if (
-            auto.confirm(
-                title="TFT Auto Bot",
-                text=(
-                    "There is a newer version available!\n"
-                    f"Your version: {versions[0]}\n"
-                    f"Current version: {versions[1]}"
-                ),
-                buttons=["Download", "Ignore"],
-            )
-            == "Download"
-        ):
-            logger.info(f"{releases_url} should open in your browser now")
-            webbrowser.open(f"{releases_url}", new=0, autoraise=True)
-            sys.exit(1)
-    else:
-        logger.info("You're up to date!")
-
-    if (
-        auto.confirm(
-            title="TFT Auto Bot",
-            text="Press Start when the bot should continue!\n",
-            buttons=["Start", "Cancel"],
-        )
-        != "Start"
-    ):
-        logger.warning("Initialization completed but aborting by user choice")
-        sys.exit(1)
+    check_for_new_version(repository_url=repository_url)
+    wait_for_start_confirmation()
 
     # After having displayed all of our start-up information, we respect the user's choice of log level
     # and re-create the logging handler, if necessary.
