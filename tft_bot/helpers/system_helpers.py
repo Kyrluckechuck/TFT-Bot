@@ -2,7 +2,6 @@
 import os
 import pathlib
 import socket
-import sys
 import winreg
 
 from loguru import logger
@@ -108,30 +107,6 @@ def disable_quickedit() -> None:
         except Exception as err:
             logger.warning(f"Cannot disable QuickEdit mode! : {str(err)}")
             logger.warning("As a consequence, execution might be automatically paused, careful where you click!")
-
-
-def resource_path(relative_path: str) -> str:
-    """Convert the given relative path to the expanded temp directory path.
-
-    NOTES
-    Change the local application context to ensure assets are asked for relative to the main asset folder.
-    This is related to an issue with https://github.com/Kyrluckechuck/TFT-Bot/issues/129
-    This can likely be done in a cleaner maner but is being left as-is since it's a viable fix.
-
-    Args:
-        relative_path (str): The relative path to expand.
-
-    Returns:
-        str: The relative path prefixed with the runtime directory.
-    """
-    try:
-        base_path = sys._MEIPASS  # pylint: disable=no-member,protected-access
-    except Exception:
-        base_path = os.path.abspath(".")
-
-    os.chdir(base_path)
-
-    return relative_path
 
 
 def expand_environment_variables(var: str) -> str:

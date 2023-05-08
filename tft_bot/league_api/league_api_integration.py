@@ -13,8 +13,6 @@ from tft_bot import config
 
 # Potentially make this configurable in the future
 # to let the user select their preferred tft mode.
-from tft_bot.helpers import system_helpers
-
 TFT_NORMAL_GAME_QUEUE_ID = 1090
 
 
@@ -98,7 +96,7 @@ class LCUIntegration:
                 "Accept": "application/json",
             }
         )
-        self._session.verify = system_helpers.resource_path("tft_bot/resources/riotgames_root_certificate.pem")
+        self._session.verify = "tft_bot/resources/riotgames_root_certificate.pem"
         self._url = None
         self.install_directory = None
 
@@ -399,7 +397,7 @@ class GameClientIntegration:
                 "Accept": "application/json",
             }
         )
-        self._session.verify = system_helpers.resource_path("tft_bot/resources/riotgames_root_certificate.pem")
+        self._session.verify = "tft_bot/resources/riotgames_root_certificate.pem"
 
     def wait_for_game_window(
         self, lcu_integration: LCUIntegration, timeout: int, connection_error_counter: int = 0

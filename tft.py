@@ -705,7 +705,7 @@ def get_newer_version() -> tuple[str, str] | None:
 
     repository_version = repository_version_response.json()["tag_name"].replace("v", "").split(".")
 
-    with open(system_helpers.resource_path("VERSION"), mode="r", encoding="UTF-8") as version_file:
+    with open("VERSION", mode="r", encoding="UTF-8") as version_file:
         local_version = version_file.readline().replace("\r", "").replace("\n", "").split(".")
 
     for i in range(3):
@@ -788,13 +788,16 @@ def main():
 
     Parses command line arguments, sets up console settings, logging, and kicks of the main bot loop.
     """
+    # This enables us to always use relative paths and avoid unicode issues in paths.
+    os.chdir(getattr(sys, "_MEIPASS", os.path.abspath(".")))
+
     storage_path = "output"
     for process in psutil.process_iter():
         if process.name() in {"TFT Bot.exe", "TFT.Bot.exe"}:
             storage_path = system_helpers.expand_environment_variables(CONSTANTS["storage"]["appdata"])
             break
 
-    config.load_config(system_helpers=system_helpers, storage_path=storage_path)
+    config.load_config(storage_path=storage_path)
 
     log_level = config.get_log_level().upper()
     if log_level == "DEBUG":

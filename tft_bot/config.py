@@ -35,19 +35,18 @@ class Timeout(StrEnum):
     SURRENDER_MAX = auto()
 
 
-def load_config(system_helpers, storage_path: str) -> None:
+def load_config(storage_path: str) -> None:
     """
     Writes the configuration from resource (provided in repository) to storage path, loads the configuration from
     storage path to memory and updates the configuration if necessary.
 
     Args:
-        system_helpers: Dependency injected system_helpers module.
         storage_path: The base storage path where all of our files should go.
 
     """
     yaml = YAML()
 
-    config_resource_path = system_helpers.resource_path("tft_bot/resources/config.yaml")
+    config_resource_path = "tft_bot/resources/config.yaml"
     config_path = f"{storage_path}\\config.yaml"
 
     # Create output directory if it does not exist

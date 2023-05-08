@@ -9,7 +9,6 @@ from pytesseract import pytesseract
 import win32gui
 
 from tft_bot.constants import CONSTANTS
-from tft_bot.helpers.system_helpers import resource_path
 
 
 @dataclass
@@ -227,7 +226,7 @@ def get_on_screen_multiple_any(window_title: str, paths: list[str], precision: f
         True if any of the images are detected on screen, False otherwise.
     """
     for path in paths:
-        if get_on_screen(window_title=window_title, path=resource_path(path), precision=precision):
+        if get_on_screen(window_title=window_title, path=path, precision=precision):
             return True
 
     return False
