@@ -3,6 +3,11 @@
 
 This is an auto TFT bot, with some decent logic built in.
 
+> ⚠️ WARNING
+> Users have been reporting an uptick in bans while utilizing TFT botting software. Users of this repo appear to have all been related to using the executable releases, and as such we are removing the uploaded executables from future releases. It is strongly advised against building them yourselves or using older releases, at this time.
+> We can not currently verify if there are source-code users being banned as well, and until we hear otherwise, would recommend users stick to running the python/source method only.
+> Checkpoints / times that users should update their local git copy will be noted with 'releases' in the same consistentcy as before, just without the executables to be downloaded.
+
 Some features of this bot:
 - Compiles to release executables, so you do not need Python / pip installed in order to use it.
   - This includes being able to completely customize how the bot works through a [config file](#configuration), so you do not need to install python / pip for this either.
@@ -42,7 +47,7 @@ The bot will (at its next start-up) attempt to detect where Tesseract is install
 If that does not work, please manually override it in the `config.yaml`.
 
 ## Configuration
-If you want to use frequent settings / "set it and forget it", you can do so by editing the `config.yaml` file in the data folder (`%APPDATA%\TFT Bot`).
+If you want to use frequent settings / "set it and forget it", you can do so by editing the `config.yaml` file in the data folder (exe: `%APPDATA%\TFT Bot`, python/source: `.\output\`).
 If you don't see the file or folder, start the bot once, and it should be created.  
 You can set the following settings:
 
