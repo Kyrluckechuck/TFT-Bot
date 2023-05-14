@@ -15,49 +15,25 @@ jobs:
     steps:
       - uses: actions/checkout@v3
       - name: Echo something
-        run: echo CI builder workflow has been disabled
-      # - name: Set Up Python ${{ matrix.python-version }}
-      #   uses: actions/setup-python@v4
-      #   with:
-      #     python-version: ${{ matrix.python-version }}
-      #     cache: 'pip'
-      # - name: Install Dependencies
-      #   run: pip install -r requirements.txt
-      # - run: python installer.py
-      # - name: Upload build
-      #   uses: actions/upload-artifact@v3
-      #   with:
-      #     name: tft-bot-build
-      #     path: dist/TFT Bot.exe
+        run: echo CI builder workflow has been disabled. Release can still be manually triggered.
 
   # Only perform release when manually triggered and on main branch
-  # release:
-  #   if: ${{ github.event_name == 'workflow_dispatch' && github.ref == 'refs/heads/main' }}
-  #   needs: build
-  #   runs-on: [ubuntu-latest]
-  #   steps:
-  #     - uses: actions/checkout@v3
-  #     - name: Download build
-  #       uses: actions/download-artifact@v3
-  #       with:
-  #         name: tft-bot-build
-  #         path: dist/TFT Bot.exe
-  #     - name: Generate build number
-  #       id: buildnumber
-  #       uses: onyxmueller/build-tag-number@v1
-  #       with:
-  #         token: ${{secrets.github_token}}
-  #     - name: Read VERSION file
-  #       id: getversion
-  #       run: echo "version=$(cat VERSION)" >> $GITHUB_OUTPUT
-  #     - uses: xresloader/upload-to-github-release@main
-  #       env:
-  #         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-  #       with:
-  #         file: "dist/TFT Bot.exe"
-  #         branches: "main"
-  #         verbose: true
-  #         # prerelease: true
-  #         draft: true
-  #         tag_name: v${{ steps.getversion.outputs.version }}.${{ steps.buildnumber.outputs.build_number }}
-  #         default_release_name: Release v${{ steps.getversion.outputs.version }}.${{ steps.buildnumber.outputs.build_number }}
+  release:
+    if: ${{ github.event_name == 'workflow_dispatch' && github.ref == 'refs/heads/main' }}
+    needs: build
+    runs-on: [ubuntu-latest]
+    steps:
+      - uses: actions/checkout@v3
+      - name: Generate build number
+        id: buildnumber
+        uses: onyxmueller/build-tag-number@v1
+        with:
+          token: ${{secrets.github_token}}
+      - name: Read VERSION file
+        id: getversion
+        run: echo "version=$(cat VERSION)" >> $GITHUB_OUTPUT
+      - uses: rickstaa/action-create-tag@v1
+        id: "tag_create"
+        with:
+          tag: v${{ steps.getversion.outputs.version }}.${{ steps.buildnumber.outputs.build_number }}
+          tag_exists_error: true
