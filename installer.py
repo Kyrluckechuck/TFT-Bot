@@ -20,7 +20,6 @@ PyInstaller.__main__.run(
         "--console",
         "--win-private-assemblies",
         "--win-no-prefer-redirects",
-        "--uac-admin",
         "--clean",
         "--runtime-tmpdir",
         constants.CONSTANTS["storage"]["appdata"],
