@@ -566,6 +566,7 @@ def end_match() -> None:
         break
 
     bring_league_client_to_forefront()
+    time.sleep(10)
     check_if_client_error()
 
 
