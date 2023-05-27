@@ -28,6 +28,7 @@ from tft_bot.helpers.click_helpers import click_to
 from tft_bot.helpers.click_helpers import click_to_image
 from tft_bot.helpers.screen_helpers import calculate_window_click_offset
 from tft_bot.helpers.screen_helpers import check_league_game_size
+from tft_bot.helpers.screen_helpers import get_board_positions
 from tft_bot.helpers.screen_helpers import get_on_screen_in_client
 from tft_bot.helpers.screen_helpers import get_on_screen_in_game
 from tft_bot.league_api import league_api_integration
@@ -534,7 +535,9 @@ def main_game_loop(economy_mode: EconomyMode) -> None:
                 window_title=CONSTANTS["window_titles"]["game"], position_x=960, position_y=540
             )
             click_to(position_x=augment_offset.position_x, position_y=augment_offset.position_y)
-            time.sleep(0.5)
+            time.sleep(3)
+
+            logger.debug(f"Board positions: {get_board_positions()}")
             continue
 
         economy_mode.loop_decision(minimum_round=minimum_round)

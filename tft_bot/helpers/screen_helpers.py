@@ -303,3 +303,53 @@ def gold_at_least(num: int) -> bool:
 
     logger.debug("No gold value found, assuming we have more")
     return True
+
+
+# H, S, V
+LOWER_GREEN = numpy.array([40, 150, 10])
+UPPER_GREEN = numpy.array([75, 255, 255])
+
+FIELD_SLOT_Y_POSITIONS = numpy.array([672, 596, 515, 446])
+MINIMUM_Y_OFFSET = 75
+
+
+def get_board_positions() -> list[Coordinates]:
+    """
+    Get position of units on the board.
+
+    Returns: A list of coordinates holding the board position of the unit.
+    """
+    window_bounding_box = get_window_bounding_box(window_title=CONSTANTS["window_titles"]["game"])
+    if not window_bounding_box:
+        return []
+
+    with mss.mss() as screenshot_taker:
+        screenshot = screenshot_taker.grab(window_bounding_box.to_tuple())
+
+    pixels = numpy.array(screenshot)
+    hsv_pixels = cv2.cvtColor(pixels, cv2.COLOR_BGR2HSV)
+
+    mask = cv2.inRange(hsv_pixels, LOWER_GREEN, UPPER_GREEN)
+    mask = cv2.erode(mask, None, iterations=2)
+    mask = cv2.dilate(mask, None, iterations=2)
+    mask = cv2.GaussianBlur(mask, (5, 5), 0)
+
+    contours, _ = cv2.findContours(mask, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
+
+    positions = []
+    for contour in contours:
+        position_x, position_y, width, height = cv2.boundingRect(contour)
+
+        if position_y < 275 or position_y > 672:
+            continue
+
+        if width < 55 or width > 80 or height < 5 or height > 20:
+            continue
+
+        position_x = int(position_x + (width / 2))
+        position_y = int(position_y + (height / 2)) + MINIMUM_Y_OFFSET
+        actual_y = FIELD_SLOT_Y_POSITIONS[FIELD_SLOT_Y_POSITIONS > position_y].min()
+
+        positions.append(Coordinates(position_x=position_x, position_y=actual_y))
+
+    return positions
