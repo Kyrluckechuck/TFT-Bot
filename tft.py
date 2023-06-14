@@ -486,13 +486,13 @@ def determine_minimum_round() -> int:
     ):
         return 3
 
-    if get_on_screen_in_game(CONSTANTS["game"]["round"]["threat_inactive"], 0.9) or get_on_screen_in_game(
-        CONSTANTS["game"]["round"]["threat_active"], 0.9
+    if get_on_screen_in_game(CONSTANTS["game"]["round"]["birds_inactive"], 0.9) or get_on_screen_in_game(
+        CONSTANTS["game"]["round"]["birds_active"], 0.9
     ):
         return 4
 
-    if get_on_screen_in_game(CONSTANTS["game"]["round"]["1-"]):
-        return 1
+    if get_on_screen_in_game(CONSTANTS["game"]["round"]["elder_dragon_inactive"], 0.9):
+        return 5
 
     for i in range(1, 7):
         if get_on_screen_in_game(CONSTANTS["game"]["round"][f"{i}-"]):
