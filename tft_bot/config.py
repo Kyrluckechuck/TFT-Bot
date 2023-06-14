@@ -67,6 +67,10 @@ def load_config(storage_path: str) -> None:
 
         shutil.copyfile(config_path, f"{config_path}.bak")
 
+        if _config_resource.get("set") > _SELF.get("set", 8.5):
+            logger.warning("There is a new set, updating wanted_traits as well")
+            _SELF["wanted_traits"] = _config_resource["wanted_traits"]
+
         _config_resource.update((key, _SELF[key]) for key in _SELF.keys() & _config_resource.keys() if key != "version")
         with open(config_path, mode="w", encoding="UTF-8") as config_file:
             yaml.dump(_config_resource, config_file)

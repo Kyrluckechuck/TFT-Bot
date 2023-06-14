@@ -66,5 +66,8 @@ timeouts:
 # 3. The bot is unable to determine the League installation path by itself
 override_install_location: ''
 
-# Version of the YAML. Changing this manually can potentially break the bot, so don't!
-version: 5
+# Changing these below values manually can potentially break the bot, so don't!
+# Version of the YAML.
+version: 6
+# Version of the TFT set.
+set: 9
