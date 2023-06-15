@@ -13,7 +13,6 @@ import keyboard
 from loguru import logger
 import psutil
 import pyautogui as auto
-import pydirectinput
 import requests
 from requests import HTTPError
 
@@ -603,33 +602,33 @@ def surrender() -> None:
     logger.info(f"Waiting {random_seconds} seconds before surrendering...")
     time.sleep(random_seconds)
     logger.info("Starting surrender")
-    # click_to_middle(CONSTANTS["game"]["settings"])
-    #
-    # counter = 0
-    # while not onscreen(CONSTANTS["game"]["surrender"]["surrender_1"]):
-    #     # just in case it gets interrupted or misses
-    #     click_to_middle(CONSTANTS["game"]["settings"])
-    #     time.sleep(1)
-    #     counter = counter + 1
-    #     if counter > 20:
-    #         break
-    # while not onscreen(CONSTANTS["game"]["surrender"]["surrender_2"]):
-    #     click_to_middle(CONSTANTS["game"]["surrender"]["surrender_1"])
-    #     # added a check here for the rare case that the game ended before the surrender finished.
-    #     if check_if_post_game():
-    #         return
-    #     counter = counter + 1
-    #     if counter > 20:
-    #         break
-    # FIXME There's a bug in TFT right now where the surrender button  # pylint: disable=fixme
-    #  in the settings doesn't work. This is a temporary work-around.
-    #  We need to use PyDirectInput since the league client does not
-    #  always recognize the input of the method pyautogui uses.
-    while not click_to_image(image_search_result=get_on_screen_in_game(CONSTANTS["game"]["surrender"]["surrender_2"])):
-        time.sleep(2)
-        bring_league_game_to_forefront()
-        pydirectinput.write(["enter", "/", "f", "f", "enter"], interval=0.1)
+    click_to_image(image_search_result=get_on_screen_in_game(CONSTANTS["game"]["settings"]))
+
+    for _ in range(20):
+        if get_on_screen_in_game(CONSTANTS["game"]["surrender"]["surrender_1"]):
+            break
+
+        click_to_image(image_search_result=get_on_screen_in_game(CONSTANTS["game"]["settings"]))
         time.sleep(1)
+    else:
+        logger.warning("Could not find settings button to click on to surrender.")
+        return
+
+    for _ in range(20):
+        if get_on_screen_in_game(CONSTANTS["game"]["surrender"]["surrender_2"]):
+            break
+
+        click_to_image(image_search_result=get_on_screen_in_game(CONSTANTS["game"]["surrender"]["surrender_1"]))
+        time.sleep(1)
+    else:
+        logger.warning("Could not find surrender button to click on.")
+        return
+
+    # added a check here for the rare case that the game ended before the surrender finished.
+    if check_if_post_game():
+        return
+
+    click_to_image(image_search_result=get_on_screen_in_game(CONSTANTS["game"]["surrender"]["surrender_2"]))
 
     time.sleep(10)
     end_match()
