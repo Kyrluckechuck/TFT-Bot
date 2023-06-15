@@ -31,7 +31,7 @@ def move_to(
         position_x: The x coordinate to move to
         position_y: The y coordinate to move to
     """
-    auto.moveTo(position_x, position_y, random.uniform(0.2, 1.0))
+    auto.moveTo(position_x, position_y, random.uniform(0.4, 1.1))
 
 
 def click_to(
