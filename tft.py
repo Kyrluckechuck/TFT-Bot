@@ -260,7 +260,7 @@ def loading_match() -> None:
             restart_league_client()
         return
 
-    game_start_timeout = config.get_timeout(config.Timeout.GAME_START, 120)
+    game_start_timeout = config.get_timeout(config.Timeout.GAME_START, 300)
     logger.info(f"Match loading, waiting for game to start (~{game_start_timeout}s timeout)")
     for _ in range(game_start_timeout):
         if GAME_CLIENT_INTEGRATION.game_loaded():
