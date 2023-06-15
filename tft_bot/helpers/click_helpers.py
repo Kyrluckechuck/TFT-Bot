@@ -20,6 +20,23 @@ def mouse_button(delay=0.1, button="left") -> None:
     auto.mouseUp(button=button)
 
 
+def move_to(
+    position_x: int,
+    position_y: int,
+    move_duration: float = random.uniform(0.1, 1.0),
+) -> None:
+    """
+    Move the mouse to a specific position on the screen
+
+    Args:
+        position_x: The x coordinate to move to
+        position_y: The y coordinate to move to
+        move_duration (float, optional): Time taken for the mouse to move.
+            Defaults to random.uniform(0.1, 1.0).
+    """
+    auto.moveTo(position_x, position_y, move_duration)
+
+
 def click_to(
     position_x: int,
     position_y: int,

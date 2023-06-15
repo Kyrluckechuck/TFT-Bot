@@ -26,6 +26,7 @@ from tft_bot.economy.base import EconomyMode
 from tft_bot.helpers import system_helpers
 from tft_bot.helpers.click_helpers import click_to
 from tft_bot.helpers.click_helpers import click_to_image
+from tft_bot.helpers.click_helpers import move_to
 from tft_bot.helpers.screen_helpers import calculate_window_click_offset
 from tft_bot.helpers.screen_helpers import check_league_game_size
 from tft_bot.helpers.screen_helpers import get_board_positions
@@ -277,9 +278,19 @@ def loading_match() -> None:
 
 def start_match() -> None:
     """Do initial first round pathing to pick the first champ."""
-    while get_on_screen_in_game(CONSTANTS["game"]["round"]["1-1"]):
-        shared_draft_pathing()
-    logger.info("Initial draft complete, continuing with game")
+    time.sleep(5)
+    if get_on_screen_in_game(CONSTANTS["game"]["round"]["1-1"]):
+        vote_option_offset = calculate_window_click_offset(
+            window_title=CONSTANTS["window_titles"]["game"], position_x=34, position_y=435
+        )
+        move_to(position_x=vote_option_offset.position_x, position_y=vote_option_offset.position_y)
+        time.sleep(1)
+        move_to(position_x=vote_option_offset.position_x + 300, position_y=vote_option_offset.position_y)
+        time.sleep(1)
+        click_to(position_x=vote_option_offset.position_x + 300, position_y=vote_option_offset.position_y + 125)
+        time.sleep(25)
+
+    logger.info("Initial vote complete, continuing with game")
     main_game_loop(economy_mode=config.get_economy_mode(system_helpers=system_helpers))
 
 
