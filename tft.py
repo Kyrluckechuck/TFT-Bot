@@ -601,6 +601,15 @@ def surrender() -> None:
     )
     logger.info(f"Waiting {random_seconds} seconds before surrendering...")
     time.sleep(random_seconds)
+
+    if get_on_screen_in_game(CONSTANTS["game"]["gamelogic"]["choose_an_augment"], 0.95):
+        logger.info("Detected augment offer, selecting one before surrendering")
+        augment_offset = calculate_window_click_offset(
+            window_title=CONSTANTS["window_titles"]["game"], position_x=960, position_y=540
+        )
+        click_to(position_x=augment_offset.position_x, position_y=augment_offset.position_y)
+        time.sleep(3)
+
     logger.info("Starting surrender")
     click_to_image(image_search_result=get_on_screen_in_game(CONSTANTS["game"]["settings"]))
 
