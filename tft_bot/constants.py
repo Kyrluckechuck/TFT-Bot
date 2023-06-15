@@ -98,6 +98,7 @@ CONSTANTS = {
             "birds_inactive": "captures/round/birds_inactive.png",
             "birds_active": "captures/round/birds_active.png",
             "elder_dragon_inactive": "captures/round/elder_dragon_inactive.png",
+            "elder_dragon_active": "captures/round/elder_dragon_active.png",
         },
         "trait": {
             "bastion": "captures/trait/bastion.png",
