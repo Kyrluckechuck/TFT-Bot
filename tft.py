@@ -284,8 +284,6 @@ def start_match() -> None:
         )
         move_to(position_x=vote_option_offset.position_x, position_y=vote_option_offset.position_y)
         time.sleep(1)
-        move_to(position_x=vote_option_offset.position_x + 300, position_y=vote_option_offset.position_y)
-        time.sleep(1)
         click_to(position_x=vote_option_offset.position_x + 300, position_y=vote_option_offset.position_y + 125)
         time.sleep(25)
 
