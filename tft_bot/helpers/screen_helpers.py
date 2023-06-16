@@ -348,8 +348,10 @@ def get_board_positions() -> list[Coordinates]:
 
         position_x = int(position_x + (width / 2))
         position_y = int(position_y + (height / 2)) + MINIMUM_Y_OFFSET
-        actual_y = FIELD_SLOT_Y_POSITIONS[FIELD_SLOT_Y_POSITIONS > position_y].min()
+        potential_unit_y_positions = FIELD_SLOT_Y_POSITIONS[FIELD_SLOT_Y_POSITIONS > position_y]
+        if len(potential_unit_y_positions) == 0:
+            continue
 
-        positions.append(Coordinates(position_x=position_x, position_y=actual_y))
+        positions.append(Coordinates(position_x=position_x, position_y=potential_unit_y_positions.min()))
 
     return positions
