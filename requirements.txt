@@ -1,20 +1,20 @@
-opencv-python==4.7.0.72
+opencv-python==4.8.0.74
 PyAutoGUI==0.9.54
 mss==9.0.1
-numpy==1.25.0
-opencv-python==4.7.0.72
+numpy==1.25.1
+opencv-python==4.8.0.74
 pytesseract==0.3.10
 psutil==5.9.5
 argparse==1.4.0
 pywin32==306; platform_system == "Windows"
-pyinstaller==5.12.0
+pyinstaller==5.13.0
 pylint==2.17.4
 keyboard==0.13.5
 isort[requirements_deprecated_finder,pipfile_deprecated_finder]==5.12.0
-pytest==7.3.2
+pytest==7.4.0
 pytest-pylint==0.19.0
 flake8==6.0.0
-black==23.3.0
+black==23.7.0
 loguru==0.7.0
 pre-commit==3.3.3
 requests==2.31.0
