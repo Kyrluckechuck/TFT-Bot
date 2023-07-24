@@ -73,9 +73,9 @@ The priority for configuration is as follows:
 python3 -m pip install --user virtualenv
 python3 -m venv envw
 ```
-* Install the package dependencies by running `pip install -r requirements.txt` in Command Prompt
 * Activate the virtual environment any time you wish to run the bot by using `.\envw\Scripts\activate` in your terminal, which should then show `(envw)` to the left of the line (`(envw) C:\tft-bot` for example)
-* Once in the virtual environment, start it by running `python tft.py` in Command Prompt
+* In the virtual environment, install the package dependencies by running `pip install -r requirements.txt` in Command Prompt
+* In the virtual environment, start the bot by running `python tft.py` in Command Prompt
 * Follow the instructions in your terminal window! Get into a TFT lobby, have the created window visible on your screen, and press 'OK' to start the bot!
 
 ***Note**: The data folder is `./output` when running the python script directly.*
