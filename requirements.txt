@@ -1,7 +1,7 @@
 opencv-python==4.8.0.74
 PyAutoGUI==0.9.54
 mss==9.0.1
-numpy==1.25.1
+numpy==1.25.2
 opencv-python==4.8.0.74
 pytesseract==0.3.10
 psutil==5.9.5
