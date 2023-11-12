@@ -64,10 +64,13 @@ timeouts:
 # 1. You're initially starting the bot while the League Client is closed
 # 2. You want the bot to start the League Client for you
 # 3. The bot is unable to determine the League installation path by itself
-override_install_location: ''
+override_install_location_league_client: ''
+
+# Same as above, but for the Riot Client
+override_install_location_riot_client: ''
 
 # Changing these below values manually can potentially break the bot, so don't!
 # Version of the YAML.
-version: 6
+version: 7
 # Version of the TFT set.
-set: 9
+set: 9.5
