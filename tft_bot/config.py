@@ -128,7 +128,7 @@ def forfeit_early() -> bool:
     return _SELF.get("forfeit_early", False)
 
 
-def get_override_install_location() -> str | None:
+def get_override_install_location(app: str) -> str | None:
     """
     Get the value of the override_install_location setting in the config.
 
@@ -136,7 +136,7 @@ def get_override_install_location() -> str | None:
         An optional string containing the user-defined install location.
 
     """
-    return _SELF.get("override_install_location") or None
+    return _SELF.get(f"override_install_location_{app}") or None
 
 
 def get_wanted_traits() -> list[str]:

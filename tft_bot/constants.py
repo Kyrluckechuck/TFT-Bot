@@ -11,6 +11,10 @@ CONSTANTS = {
             "client_ux": r"\LeagueClientUx.exe",
             "game": r"\Game\League of Legends.exe",
         },
+        "riot_client": {
+            "client_services": r"\RiotClientServices.exe",
+            "league_launch_arguments": ["--launch-product=league_of_legends", "--launch-patchline=live"],
+        },
     },
     "window_titles": {
         "game": "League of Legends (TM) Client",
@@ -20,7 +24,8 @@ CONSTANTS = {
         "client": "LeagueClient.exe",
         "client_ux": "LeagueClientUx.exe",
         "game": "League of Legends.exe",
-        "rito_client": "RiotClientServices.exe",
+        "rito_client": "RiotClientUx.exe",
+        "rito_client_service": "RiotClientServices.exe",
     },
     "client": {
         "messages": {
@@ -148,4 +153,5 @@ league_processes = [
     CONSTANTS["processes"]["client_ux"],
     CONSTANTS["processes"]["game"],
     CONSTANTS["processes"]["rito_client"],
+    CONSTANTS["processes"]["rito_client_service"],
 ]

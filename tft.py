@@ -128,7 +128,10 @@ def restart_league_client() -> None:
         wait_for_internet()
         time.sleep(1)
 
-    subprocess.run(CONSTANTS["executables"]["league"]["client"], check=True)
+    executable_with_launch_args = [CONSTANTS["executables"]["riot_client"]["client_services"]] + CONSTANTS[
+        "executables"
+    ]["riot_client"]["league_launch_arguments"]
+    subprocess.run(args=executable_with_launch_args, check=True)
     time.sleep(3)
     if not LCU_INTEGRATION.connect_to_lcu(wait_for_availability=True):
         restart_league_client()
@@ -696,6 +699,18 @@ def update_league_constants(league_install_location: str) -> None:
     ] = rf"{league_install_location}{CONSTANTS['executables']['league']['game_base']}"
 
 
+def update_riot_client_constants(riot_client_install_location: str) -> None:
+    """Update Riot Client executable constants
+
+    Args:
+        riot_client_install_location (str): The determined location for the executables
+    """
+    logger.debug(rf"Updating riot client install location to {riot_client_install_location}")
+    CONSTANTS["executables"]["riot_client"][
+        "client_services"
+    ] = rf"{riot_client_install_location}{CONSTANTS['executables']['riot_client']['client_services']}"
+
+
 def setup_hotkeys() -> None:
     """Setup hotkey listeners"""
     keyboard.add_hotkey("alt+p", lambda: toggle_pause())  # pylint: disable=unnecessary-lambda
@@ -884,6 +899,8 @@ def main():
         logger.warning("League client is not open, attempting to start it")
         league_directory = system_helpers.determine_league_install_location()
         update_league_constants(league_directory)
+        riot_client_directory = system_helpers.determine_riot_client_install_location()
+        update_riot_client_constants(riot_client_directory)
         restart_league_client()
     elif not LCU_INTEGRATION.connect_to_lcu():
         restart_league_client()

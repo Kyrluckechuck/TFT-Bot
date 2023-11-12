@@ -241,10 +241,15 @@ class LCUIntegration:
             self._session.get, url=f"{self._url}/lol-lobby/v2/lobby/matchmaking/search-state"
         )
 
-        return get_queue_response.status_code is not None and get_queue_response.json()["searchState"] in {
-            "Searching",
-            "Found",
-        }
+        return (
+            get_queue_response is not None
+            and get_queue_response.status_code is not None
+            and get_queue_response.json()["searchState"]
+            in {
+                "Searching",
+                "Found",
+            }
+        )
 
     def found_queue(self) -> bool:
         """

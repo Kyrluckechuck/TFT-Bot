@@ -1,6 +1,7 @@
 """A collection of system-level helpers"""
 import os
 import pathlib
+import re
 import socket
 import winreg
 
@@ -157,7 +158,7 @@ def determine_league_install_location() -> str:
     """
     # Assign default just in case it failed to be found
     league_path = r"C:\Riot Games\League of Legends"
-    override_path = config.get_override_install_location()
+    override_path = config.get_override_install_location("league_client")
 
     if override_path is not None:
         logger.warning(f"Override path supplied, using '{override_path}' as League install directory.")
@@ -165,7 +166,7 @@ def determine_league_install_location() -> str:
     else:
         registry_entry = read_registry(
             hkey_type=winreg.HKEY_CURRENT_USER,
-            path=r"SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall\Riot Game league_of_legends.live",
+            path=r"Software\Microsoft\Windows\CurrentVersion\Uninstall\Riot Game league_of_legends.live",
             value="InstallLocation",
         )
         if registry_entry:
@@ -176,6 +177,42 @@ def determine_league_install_location() -> str:
     logger.debug(f"League path determined to be: {league_path}")
 
     return league_path
+
+
+def determine_riot_client_install_location() -> str:
+    """Determine the location League was installed.
+
+    Returns:
+        str: If successful, the determined install location. If unsuccessful, the default install location.
+    """
+    # Assign default just in case it failed to be found
+    riot_path = r"C:\Riot Games\Riot Client"
+    override_path = config.get_override_install_location("riot_client")
+
+    if override_path is not None:
+        logger.warning(f"Override path supplied, using '{override_path}' as League install directory.")
+        riot_path = override_path
+    else:
+        registry_entry = read_registry(
+            hkey_type=winreg.HKEY_CURRENT_USER,
+            path=r"Software\Microsoft\Windows\CurrentVersion\Uninstall\Riot Game league_of_legends.live",
+            value="UninstallString",
+        )
+        # The only way we can parse the install location of client services is from the league uninstallation
+        # registry entry, so we parse it to ensure we strip the uninstall args
+        if registry_entry and r"Riot Client\RiotClientServices.exe" in registry_entry:
+            try:
+                search_result = re.search(r".*Riot Client\\RiotClientServices.exe", registry_entry)
+                riot_path = search_result.group()[1:]
+                riot_path = re.search(r".*\\Riot Client", riot_path).group()
+            except Exception:
+                pass
+
+    riot_path = str(pathlib.PureWindowsPath(riot_path))
+
+    logger.debug(f"Riot client path determined to be: {riot_path}")
+
+    return riot_path
 
 
 def determine_tesseract_ocr_install_location() -> str:
