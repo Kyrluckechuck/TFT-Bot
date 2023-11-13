@@ -15,6 +15,7 @@ import psutil
 import pyautogui as auto
 import requests
 from requests import HTTPError
+from win32process import DETACHED_PROCESS
 
 from tft_bot import config
 from tft_bot.constants import CONSTANTS
@@ -131,7 +132,14 @@ def restart_league_client() -> None:
     executable_with_launch_args = [CONSTANTS["executables"]["riot_client"]["client_services"]] + CONSTANTS[
         "executables"
     ]["riot_client"]["league_launch_arguments"]
-    subprocess.run(args=executable_with_launch_args, check=True)
+    subprocess.Popen(  # pylint: disable=consider-using-with
+        args=executable_with_launch_args,
+        stdin=None,
+        stdout=None,
+        stderr=None,
+        close_fds=True,
+        creationflags=DETACHED_PROCESS,
+    )
     time.sleep(3)
     if not LCU_INTEGRATION.connect_to_lcu(wait_for_availability=True):
         restart_league_client()

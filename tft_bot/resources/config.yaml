@@ -73,4 +73,4 @@ override_install_location_riot_client: ''
 # Version of the YAML.
 version: 7
 # Version of the TFT set.
-set: 9.5
+set: 9
