@@ -109,6 +109,7 @@ CONSTANTS = {
             "8_bit": "captures/trait/8_bit.png",
             "big_shot": "captures/trait/big_shot.png",
             "bruiser": "captures/trait/bruiser.png",
+            "breakout": "captures/trait/breakout.png",
             "country": "captures/trait/country.png",
             "crowd_diver": "captures/trait/crowd_diver.png",
             "dazzler": "captures/trait/dazzler.png",
