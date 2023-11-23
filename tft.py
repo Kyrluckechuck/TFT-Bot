@@ -255,10 +255,9 @@ def queue() -> None:  # pylint: disable=too-many-branches
             continue
 
         if not LCU_INTEGRATION.create_lobby():
-            time.sleep(5)
-        else:
-            # give it a couple seconds to let the client stabilize the lobby
-            time.sleep(2)
+            time.sleep(3)
+        # give it a couple seconds to let the client stabilize the lobby
+        time.sleep(2)
     loading_match()
 
 
