@@ -219,7 +219,7 @@ def queue() -> None:  # pylint: disable=too-many-branches
         if not PLAY_NEXT_GAME:
             evaluate_next_game_logic()
 
-        if LCU_INTEGRATION.client_connected():
+        if not LCU_INTEGRATION.client_connected():
             logger.warning("Client is not connected or sending confusing messages, restarting the client")
             restart_league_client()
             time.sleep(5)

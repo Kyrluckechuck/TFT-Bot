@@ -145,22 +145,25 @@ class LCUIntegration:
                 response.raise_for_status()
                 logger.debug("Connected to LCUx server.")
                 break
-            except requests.exceptions.RequestException:
-                logger.debug("Can't connect to LCUx server. Retrying...")
+            except (requests.exceptions.RequestException, requests.exceptions.ConnectionError):
+                logger.warning("Can't connect to LCUx server. Retrying...")
                 time.sleep(1)
                 timeout += 1
 
         logger.info("Successfully connected to the League client")
 
         if wait_for_availability:
-            availability_timeout = config.get_timeout(config.Timeout.CLIENT_AVAILABILITY, 120)
-            logger.info(f"Waiting for client availability (~{availability_timeout}s timeout)")
-            for _ in range(availability_timeout):
-                availability_response = self._session.get(url=f"{self._url}/lol-gameflow/v1/availability")
-                if availability_response.status_code == 200 and availability_response.json()["isAvailable"]:
-                    logger.info("Client available, queue logic should start")
-                    return True
-                time.sleep(1)
+            try:
+                availability_timeout = config.get_timeout(config.Timeout.CLIENT_AVAILABILITY, 120)
+                logger.info(f"Waiting for client availability (~{availability_timeout}s timeout)")
+                for _ in range(availability_timeout):
+                    availability_response = self._session.get(url=f"{self._url}/lol-gameflow/v1/availability")
+                    if availability_response.status_code == 200 and availability_response.json()["isAvailable"]:
+                        logger.info("Client available, queue logic should start")
+                        return True
+                    time.sleep(1)
+            except (requests.exceptions.RequestException, requests.exceptions.ConnectionError) as e:
+                logger.critical(e)
             logger.error("Client did not become available. Exiting.")
             return False
 
@@ -324,20 +327,6 @@ class LCUIntegration:
         logger.debug("Reconnecting to game")
         _http_error_wrapper(self._session.post, url=f"{self._url}/lol-gameflow/v1/reconnect")
 
-    def is_session_expired(self) -> requests.Response | str | None:
-        """
-        Check if the session is expired.
-
-        Returns:
-            Response: Session response status
-
-        """
-        session_response = _http_error_wrapper(self._session.get, url=f"{self._url}/lol-login/v1/session")
-        if session_response is None:
-            return "Disconnected"
-
-        return session_response.json()["error"] if session_response is not None else None
-
     def session_expired(self) -> bool:
         """
         Check if the session is expired.
@@ -347,9 +336,9 @@ class LCUIntegration:
 
         """
         logger.debug("Checking if our login session is expired")
-        session_response = self.is_session_expired()
+        session_response = _http_error_wrapper(self._session.get, url=f"{self._url}/lol-login/v1/session")
 
-        return session_response is not None
+        return session_response.json()["error"] if session_response is not None else None
 
     def client_connected(self) -> bool:
         """
@@ -359,9 +348,20 @@ class LCUIntegration:
             bool: True if connected, False otherwise
         """
         logger.debug("Checking if the client is connected")
-        session_response = self.is_session_expired()
+        try:
+            availability_response = _http_error_wrapper(
+                self._session.get, url=f"{self._url}/lol-gameflow/v1/availability"
+            )
+            if (
+                availability_response is not None
+                and availability_response.status_code == 200
+                and availability_response.json()["isAvailable"]
+            ):
+                return True
+        except (requests.exceptions.RequestException, requests.exceptions.ConnectionError):
+            logger.warning("Can't determine client was available")
 
-        return session_response != "Disconnected"
+        return False
 
     def _get_player_uid(self) -> str | None:
         """
