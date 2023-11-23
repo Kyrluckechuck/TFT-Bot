@@ -219,6 +219,12 @@ def queue() -> None:  # pylint: disable=too-many-branches
         if not PLAY_NEXT_GAME:
             evaluate_next_game_logic()
 
+        if LCU_INTEGRATION.client_connected():
+            logger.warning("Client is not connected or sending confusing messages, restarting the client")
+            restart_league_client()
+            time.sleep(5)
+            continue
+
         if LCU_INTEGRATION.session_expired():
             logger.warning("Our login session expired, restarting the client")
             restart_league_client()

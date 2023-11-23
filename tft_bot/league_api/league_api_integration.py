@@ -324,6 +324,20 @@ class LCUIntegration:
         logger.debug("Reconnecting to game")
         _http_error_wrapper(self._session.post, url=f"{self._url}/lol-gameflow/v1/reconnect")
 
+    def is_session_expired(self) -> requests.Response | str | None:
+        """
+        Check if the session is expired.
+
+        Returns:
+            Response: Session response status
+
+        """
+        session_response = _http_error_wrapper(self._session.get, url=f"{self._url}/lol-login/v1/session")
+        if session_response is None:
+            return "Disconnected"
+
+        return session_response.json()["error"] if session_response is not None else None
+
     def session_expired(self) -> bool:
         """
         Check if the session is expired.
@@ -333,9 +347,21 @@ class LCUIntegration:
 
         """
         logger.debug("Checking if our login session is expired")
-        session_response = _http_error_wrapper(self._session.get, url=f"{self._url}/lol-login/v1/session")
+        session_response = self.is_session_expired()
 
-        return session_response is not None and session_response.json()["error"] is not None
+        return session_response is not None
+
+    def client_connected(self) -> bool:
+        """
+        Checks if the client is currently connected / sending understandable responses
+
+        Returns:
+            bool: True if connected, False otherwise
+        """
+        logger.debug("Checking if the client is connected")
+        session_response = self.is_session_expired()
+
+        return session_response != "Disconnected"
 
     def _get_player_uid(self) -> str | None:
         """
