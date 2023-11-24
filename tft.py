@@ -722,6 +722,7 @@ def update_riot_client_constants(riot_client_install_location: str) -> None:
         riot_client_install_location (str): The determined location for the executables
     """
     logger.debug(rf"Updating riot client install location to {riot_client_install_location}")
+    logger.debug(rf"{riot_client_install_location}{CONSTANTS['executables']['riot_client']['client_services']}")
     CONSTANTS["executables"]["riot_client"][
         "client_services"
     ] = rf"{riot_client_install_location}{CONSTANTS['executables']['riot_client']['client_services']}"
