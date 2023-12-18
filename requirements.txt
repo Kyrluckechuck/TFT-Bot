@@ -10,7 +10,7 @@ pywin32==306; platform_system == "Windows"
 pyinstaller==6.2.0
 pylint==3.0.2
 keyboard==0.13.5
-isort[requirements_deprecated_finder,pipfile_deprecated_finder]==5.12.0
+isort[requirements_deprecated_finder,pipfile_deprecated_finder]==5.13.2
 pytest==7.4.3
 pytest-pylint==0.21.0
 flake8==6.1.0
