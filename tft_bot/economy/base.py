@@ -1,6 +1,7 @@
 """
 Module holding the base economy mode blueprint class.
 """
+
 import time
 
 from tft_bot.constants import CONSTANTS

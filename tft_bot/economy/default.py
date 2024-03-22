@@ -1,6 +1,7 @@
 """
 Module holding the default economy mode.
 """
+
 import time
 
 from tft import GAME_CLIENT_INTEGRATION

@@ -1,4 +1,5 @@
 """Bot executable creation script."""
+
 import PyInstaller.__main__
 
 from tft_bot import constants

@@ -1,6 +1,7 @@
 """
 Integrations with the Rito API to have the most reliable data where possible.
 """
+
 import time
 
 from loguru import logger

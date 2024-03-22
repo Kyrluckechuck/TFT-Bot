@@ -1,6 +1,7 @@
 """
 Module holding the OCR standard economy mode.
 """
+
 from loguru import logger
 from pytesseract import pytesseract
 

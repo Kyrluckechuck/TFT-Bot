@@ -1,4 +1,5 @@
 """A collection of click helpers."""
+
 import random
 import time
 
