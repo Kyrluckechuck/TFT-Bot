@@ -41,7 +41,9 @@ class EconomyMode:
         """
         for _ in range(amount):
             for trait in self.wanted_traits:
-                if click_to_image(image_search_result=get_on_screen_in_game(CONSTANTS["game"]["trait"][trait])):
+                if click_to_image(
+                    image_search_result=get_on_screen_in_game(CONSTANTS["game"]["trait"][trait], precision=0.9)
+                ):
                     time.sleep(0.5)
                 elif self.prioritized_order:
                     return
