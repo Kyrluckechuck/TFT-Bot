@@ -4,7 +4,7 @@
 This is an auto TFT bot, with some decent logic built in.
 
 > [!NOTE]
-> Supports TFT Set 10
+> Supports TFT Set 11
 
 
 > ⚠️ WARNING
