@@ -16,8 +16,8 @@ forfeit_early: false
 # For example: admin, star_guardian, mecha_prime, lasercorps
 # For a full list, visit https://github.com/Kyrluckechuck/TFT-Bot/tree/main/captures/trait
 wanted_traits:
-  - mosher
-  - guardian
+  - heavenly
+  - arcanist
 
 # By default, the bot only looks for the next trait in the list if the trait that comes
 # before has been found. So a brawler unit will only be bought after a duelist unit has
@@ -79,6 +79,6 @@ install_location_deceive: ''
 
 # Changing these below values manually can potentially break the bot, so don't!
 # Version of the YAML.
-version: 8
+version: 9
 # Version of the TFT set.
-set: 10
+set: 11

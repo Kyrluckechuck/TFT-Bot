@@ -1,6 +1,7 @@
 """
 The main TFT Bot code
 """
+
 from datetime import datetime
 import os
 import random

@@ -1,4 +1,5 @@
 """A collection of screen helpers for detecting when images are on screen."""
+
 from dataclasses import dataclass
 
 import cv2

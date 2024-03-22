@@ -1,6 +1,7 @@
 """
 Module to handle the configuration for the bot.
 """
+
 import argparse
 from enum import auto
 from enum import StrEnum
