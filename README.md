@@ -3,12 +3,15 @@
 
 This is an auto TFT bot, with some decent logic built in.
 
+> [!CAUTION]
+> With the release of Vanguard, we are unsure of the future of this project.
+> Once Vanguard gets rolled out in your region, please refrain from using the
+> bot until further notice.
+> 
+> As before, we still recommend **against** compiling and or using the executable.
+
 > [!NOTE]
 > Supports TFT Set 11
-
-
-> ⚠️ WARNING
-> While users had reported bans while utilizing the older executable releases, we have not heard reports since removing those and switching to running via Python directly.
 
 Some features of this bot:
 - Compiles to release executables, so you do not need Python / pip installed in order to use it.
