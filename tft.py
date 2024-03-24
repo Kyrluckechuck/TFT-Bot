@@ -960,8 +960,11 @@ def main():
     elif not LCU_INTEGRATION.connect_to_lcu():
         restart_league_client()
 
+    # Re-initialize constants from running League client
     league_directory = LCU_INTEGRATION.get_installation_directory()
     update_league_constants(league_directory)
+    riot_client_directory = system_helpers.determine_riot_client_install_location()
+    update_riot_client_constants(riot_client_directory)
 
     global PROGRAM_START
     PROGRAM_START = datetime.now()
