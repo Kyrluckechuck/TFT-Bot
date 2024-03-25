@@ -4,7 +4,7 @@ mss==9.0.1
 numpy==1.26.2
 opencv-python==4.8.1.78
 pytesseract==0.3.10
-psutil==5.9.6
+psutil==5.9.8
 argparse==1.4.0
 pywin32==306; platform_system == "Windows"
 pyinstaller==6.4.0
