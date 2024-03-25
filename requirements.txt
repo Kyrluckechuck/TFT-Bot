@@ -16,6 +16,6 @@ pytest-pylint==0.21.0
 flake8==6.1.0
 black==24.3.0
 loguru==0.7.2
-pre-commit==3.6.2
+pre-commit==3.7.0
 requests==2.31.0
 ruamel.yaml==0.18.5
