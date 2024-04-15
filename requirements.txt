@@ -7,7 +7,7 @@ pytesseract==0.3.10
 psutil==5.9.6
 argparse==1.4.0
 pywin32==306; platform_system == "Windows"
-pyinstaller==6.4.0
+pyinstaller==6.6.0
 pylint==3.1.0
 keyboard==0.13.5
 isort[requirements_deprecated_finder,pipfile_deprecated_finder]==5.13.2
