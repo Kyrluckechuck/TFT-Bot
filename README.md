@@ -1,21 +1,21 @@
 # Python TFT Auto Battler Bot
 [![Imports: isort](https://img.shields.io/badge/%20imports-isort-%231674b1?style=flat&labelColor=ef8336)](https://pycqa.github.io/isort/)
 
+> [!NOTE]
+> While this bot has served it's purpose, with the release of Vanguard it no longer makes sense and is actually a liability against any accounts it's run by, even when only run as source code.
+> 
+> As such, a few bot writters have joined forces to develop a new bot, that should be immune to **most** of the detection methods they employ thanks to it targetting TFT Mobile.
+> 
+> Please see [Alune](https://github.com/TeamFightTacticsBots/Alune) to continue your TFT botting needs!
+> 
+> While this bot should continue to work for the time being, it is unsafe and not recommended.
+> 
+> To everyone who has supported / followed this bot, I really apprecaite you and hope to see you in Alune!
+
 This is an auto TFT bot, with some decent logic built in.
 
-> [!CAUTION]
-> With the release of Vanguard, we are unsure of the future of this project.
-> Once Vanguard gets rolled out in your region, please refrain from using the
-> bot until further notice.
-> 
-> As before, we still recommend **against** compiling and or using the executable.
-
-> [!NOTE]
-> Supports TFT Set 11
-
 Some features of this bot:
-- Compiles to release executables, so you do not need Python / pip installed in order to use it.
-  - This includes being able to completely customize how the bot works through a [config file](#configuration), so you do not need to install python / pip for this either.
+- Customizable through a [config file](#configuration)
 - Keyboard shortcuts use the [keyboard](https://pypi.org/project/keyboard/) package, which allows it to listen globally (so you don't need to have the console selected in the foreground for this to take effect)
   - Ability to pause/resume the bot using `alt+p`
   - Ability to not re-queue the bot for a new game using `alt+n`
